@@ -408,24 +408,48 @@ contains
     call shr_mpi_bcast(precip_repartition_nonglc_all_rain_t, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
+!$OMP END MASTER
        ! Write settings one-by-one rather than with a nml write because some settings may
        ! be NaN if certain options are turned off.
+!$OMP MASTER
        write(iulog,*) 'repartition_rain_snow = ', repartition_rain_snow
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'glcmec_downscale_longwave = ', glcmec_downscale_longwave
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'lapse_rate = ', lapse_rate
+!$OMP END MASTER
        if (glcmec_downscale_longwave) then
+!$OMP MASTER
           write(iulog,*) 'lapse_rate_longwave = ', lapse_rate_longwave
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) 'longwave_downscaling_limit = ', longwave_downscaling_limit
+!$OMP END MASTER
        end if
        if (repartition_rain_snow) then
+!$OMP MASTER
           write(iulog,*) 'precip_repartition_glc_all_snow_t = ', precip_repartition_glc_all_snow_t
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) 'precip_repartition_glc_all_rain_t = ', precip_repartition_glc_all_rain_t
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) 'precip_repartition_nonglc_all_snow_t = ', precip_repartition_nonglc_all_snow_t
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) 'precip_repartition_nonglc_all_rain_t = ', precip_repartition_nonglc_all_rain_t
+!$OMP END MASTER
        end if
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
 
     this%params = atm2lnd_params_type( &
@@ -755,14 +779,18 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)' in '
+!$OMP END MASTER
        call endrun(msg="InitAccVars allocation error for rbufslp"//&
             errMsg(sourcefile, __LINE__))
     endif
     ! Allocate needed dynamic memory for single level col field
     allocate(rbufslc(begc:endc), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)' in '
+!$OMP END MASTER
        call endrun(msg="InitAccVars allocation error for rbufslc"//&
             errMsg(sourcefile, __LINE__))
     endif
@@ -839,13 +867,17 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)'UpdateAccVars allocation error for rbufslp'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
     ! Allocate needed dynamic memory for single level col field
     allocate(rbufslc(begc:endc), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)'UpdateAccVars allocation error for rbufslc'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 

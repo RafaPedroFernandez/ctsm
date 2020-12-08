@@ -151,13 +151,27 @@ contains
 
     if (masterproc) then
 
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'lai_stream settings:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  stream_year_first_lai  = ',stream_year_first_lai
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  stream_year_last_lai   = ',stream_year_last_lai
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  model_year_align_lai   = ',model_year_align_lai
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  stream_fldFileName_lai = ',trim(stream_fldFileName_lai)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  lai_tintalgo           = ',trim(lai_tintalgo)
+!$OMP END MASTER
 
     endif
 
@@ -314,7 +328,9 @@ contains
             mhvb2t(bounds%begp:bounds%endp,2), stat=ier)
     end if
     if (ier /= 0) then
+!$OMP MASTER
        write(iulog,*) 'EcosystemDynini allocation error'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -478,8 +494,12 @@ contains
 
     if (InterpMonths1 /= months(1)) then
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) 'Attempting to read monthly vegetation data .....'
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) 'nstep = ',get_nstep(),' month = ',kmo,' day = ',kda
+!$OMP END MASTER
        end if
        call t_startf('readMonthlyVeg')
        call readMonthlyVegetation (bounds, fsurdat, months, canopystate_inst)
@@ -532,7 +552,9 @@ contains
 
     allocate(mlai(bounds%begg:bounds%endg,0:maxveg), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
        write(iulog,*)subname, 'allocation error '
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -545,10 +567,18 @@ contains
     call ncd_inqfdims (ncid, isgrid2d, ni, nj, ns)
 
     if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
+!$OMP MASTER
        write(iulog,*)trim(subname), 'ldomain and input file do not match dims '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     call check_dim_size(ncid, 'lsmpft', maxsoil_patches)
@@ -639,7 +669,9 @@ contains
          mhgtb(bounds%begg:bounds%endg,0:maxveg), &
          stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
        write(iulog,*)subname, 'allocation big error '
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -703,9 +735,15 @@ contains
 
     if (masterproc) then
        k = 2
+!$OMP MASTER
        write(iulog,*) 'Successfully read monthly vegetation data for'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'month ', months(k)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)
+!$OMP END MASTER
     end if
 
     deallocate(mlai, msai, mhgtt, mhgtb)

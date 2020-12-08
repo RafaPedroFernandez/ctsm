@@ -224,7 +224,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in clm_SnowHydrology_inparm  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, 'clm_SnowHydrology_inparm', status=ierr)
        if (ierr == 0) then
@@ -255,10 +257,12 @@ contains
     call shr_mpi_bcast (snow_dzmax_u_2, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) 'SnowHydrology settings:'
        write(iulog,nml=clm_snowhydrology_inparm)
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
 
     if (      trim(lotmp_snowdensity_method) == 'Slater2017' ) then
@@ -457,7 +461,7 @@ contains
 
     do fc = 1, num_c
        c = filter_c(fc)
-       
+
        ! Use Alta relationship, Anderson(1976); LaChapelle(1961),
        ! U.S.Department of Agriculture Forest Service, Project F,
        ! Progress Rep. 1, Alta Avalanche Study Center:Snow Layer Densification.
@@ -1107,7 +1111,7 @@ contains
          int_snow         = b_waterstate_inst%int_snow_col(begc:endc), &
          frac_sno         = b_waterdiagnostic_inst%frac_sno_col(begc:endc), &
          snow_depth       = b_waterdiagnostic_inst%snow_depth_col(begc:endc))
-         
+
     do i = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
        associate(w => water_inst%bulk_and_tracers(i))
        call SumFlux_AddSnowPercolation(bounds, &
@@ -1221,6 +1225,7 @@ contains
        c = filter_snowc(fc)
 
        if (h2osoi_ice(c,lev_top(c)) < 0._r8) then
+!$OMP MASTER
           write(iulog,*) "ERROR: In UpdateState_TopLayerFluxes, h2osoi_ice has gone significantly negative"
           write(iulog,*) "Bulk/tracer name = ", name
           write(iulog,*) "c, lev_top(c) = ", c, lev_top(c)
@@ -1229,10 +1234,12 @@ contains
           write(iulog,*) "frac_sno_eff        = ", frac_sno_eff(c)
           write(iulog,*) "qflx_soliddew_to_top_layer*dtime = ", qflx_soliddew_to_top_layer(c)*dtime
           write(iulog,*) "qflx_solidevap_from_top_layer*dtime = ", qflx_solidevap_from_top_layer(c)*dtime
+!$OMP END MASTER
           call endrun("In UpdateState_TopLayerFluxes, h2osoi_ice has gone significantly negative")
        end if
 
        if (h2osoi_liq(c,lev_top(c)) < 0._r8) then
+!$OMP MASTER
           write(iulog,*) "ERROR: In UpdateState_TopLayerFluxes, h2osoi_liq has gone significantly negative"
           write(iulog,*) "Bulk/tracer name = ", name
           write(iulog,*) "c, lev_top(c) = ", c, lev_top(c)
@@ -1242,6 +1249,7 @@ contains
           write(iulog,*) "qflx_liq_grnd*dtime  = ", qflx_liq_grnd(c)*dtime
           write(iulog,*) "qflx_liqdew_to_top_layer*dtime  = ", qflx_liqdew_to_top_layer(c)*dtime
           write(iulog,*) "qflx_liqevap_from_top_layer*dtime = ", qflx_liqevap_from_top_layer(c)*dtime
+!$OMP END MASTER
           call endrun("In UpdateState_TopLayerFluxes, h2osoi_liq has gone significantly negative")
        end if
 
@@ -1896,7 +1904,7 @@ contains
 
     do fc = 1, num_snowc
        c = filter_snowc(fc)
-       
+
        burden(c)  = 0._r8
        zpseudo(c) = 0._r8
        mobile(c)  = .true.
@@ -1969,7 +1977,7 @@ contains
                               c            = c, &
                               h2osno_total = wsum, &
                               int_snow     = int_snow(c))
-                         
+
                          ! Ensure sum of snow and surface water fractions are <= 1 after update
                          !
                          ! Note that there is a similar adjustment in subroutine
@@ -2811,15 +2819,19 @@ contains
 
              if (j == 0) then
                 if ( abs(dztot(c)) > 1.e-10_r8) then
+!$OMP MASTER
                    write(iulog,*)'Inconsistency in SnowDivision_Lake! c, remainders', &
                         'dztot = ',c,dztot(c)
+!$OMP END MASTER
                    call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
                 end if
 
                 do wi = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
                    if ( abs(snwicetot(wi,c)) > 1.e-7_r8 .or. abs(snwliqtot(wi,c)) > 1.e-7_r8 ) then
+!$OMP MASTER
                       write(iulog,*)'Inconsistency in SnowDivision_Lake! wi, c, remainders', &
                            'snwicetot, snwliqtot = ',wi,c,snwicetot(wi,c),snwliqtot(wi,c)
+!$OMP END MASTER
                       call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
                    end if
                 end do
@@ -2954,40 +2966,52 @@ contains
     ! Error check loops
     do j = 2, nlevsno
        if (dzmin(j) <= dzmin(j-1)) then
+!$OMP MASTER
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmin(j) =', dzmin(j), ' and dzmin(j-1) =', dzmin(j-1)
+!$OMP END MASTER
           call endrun(msg="ERROR dzmin(j) cannot be <= dzmin(j-1)"// &
                errMsg(sourcefile, __LINE__))
        end if
        if (dzmax_u(j) <= dzmax_u(j-1)) then
+!$OMP MASTER
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmax_u(j) =', dzmax_u(j), ' and dzmax_u(j-1) =', dzmax_u(j-1)
+!$OMP END MASTER
           call endrun(msg="ERROR dzmax_u(j) cannot be <= dzmax_u(j-1)"// &
                errMsg(sourcefile, __LINE__))
        end if
        if (dzmax_l(j) <= dzmax_l(j-1)) then
+!$OMP MASTER
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmax_l(j) =', dzmax_l(j), ' and dzmax_l(j-1) =', dzmax_l(j-1)
+!$OMP END MASTER
           call endrun(msg="ERROR dzmax_l(j) cannot be <= dzmax_l(j-1)"// &
                errMsg(sourcefile, __LINE__))
        end if
     end do
     do j = 1, nlevsno
        if (dzmin(j) >= dzmax_u(j)) then
+!$OMP MASTER
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmin(j) =', dzmin(j), ' and dzmax_u(j) =', dzmax_u(j)
+!$OMP END MASTER
           call endrun(msg="ERROR dzmin(j) cannot be >= dzmax_u(j)"// &
                errMsg(sourcefile, __LINE__))
        end if
     end do
     do j = 1, nlevsno-1
        if (dzmax_u(j) >= dzmax_l(j)) then
+!$OMP MASTER
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmax_u(j) =', dzmax_u(j), ' and dzmax_l(j) =', dzmax_l(j)
+!$OMP END MASTER
           call endrun(msg="ERROR dzmax_u(j) cannot be >= dzmax_l(j)"// &
                errMsg(sourcefile, __LINE__))
        end if
     end do
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'dzmin =', dzmin
        write(iulog,*) 'dzmax_l =', dzmax_l
        write(iulog,*) 'dzmax_u =', dzmax_u
+!$OMP END MASTER
     end if
 
     loop_columns: do c = bounds%begc,bounds%endc
@@ -3073,9 +3097,9 @@ contains
     !
     ! !DESCRIPTION:
     ! Removes mass from bottom snow layer for columns that exceed the maximum snow depth.
-    ! This routine is called twice: once for non-lake columns and once for lake columns. 
+    ! This routine is called twice: once for non-lake columns and once for lake columns.
     ! The initialization of the snow capping fluxes should only be done ONCE for each group,
-    ! therefore they are a passed as an extra argument (filter_initc). 
+    ! therefore they are a passed as an extra argument (filter_initc).
     ! Density and temperature of the layer are conserved (density needs some work, temperature is a state
     ! variable)
     !
@@ -3268,7 +3292,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer  :: fc, c
-    real(r8) :: mss_snwcp_tot                               ! total snow capping mass [kg/m2] 
+    real(r8) :: mss_snwcp_tot                               ! total snow capping mass [kg/m2]
     real(r8) :: mss_snow_bottom_lyr                         ! total snow mass (ice+liquid) in bottom layer [kg/m2]
     real(r8) :: snwcp_flux_ice                              ! snow capping flux (ice) [kg/m2]
     real(r8) :: snwcp_flux_liq                              ! snow capping flux (liquid) [kg/m2]
@@ -3322,7 +3346,7 @@ contains
 
        rho_orig_bottom(c) = h2osoi_ice_bottom(c) / dz_bottom(c) ! ice only
 
-       mss_snow_bottom_lyr = h2osoi_ice_bottom(c) + h2osoi_liq_bottom(c) 
+       mss_snow_bottom_lyr = h2osoi_ice_bottom(c) + h2osoi_liq_bottom(c)
        mss_snwcp_tot = min(h2osno_excess(c), mss_snow_bottom_lyr * (1._r8 - min_snow_to_keep)) ! Can't remove more mass than available
 
        ! Ratio of snow/liquid in bottom layer determines partitioning of runoff fluxes
@@ -3437,7 +3461,7 @@ contains
     !
     type(bounds_type)     , intent(in) :: bounds
     type(filter_col_type) , intent(in) :: snow_capping_filterc ! column filter: columns undergoing snow capping
-    
+
     ! For description of arguments, see comments in BulkFlux_SnowCappingFluxes. Here,
     ! bulk_* variables refer to bulk water and trac_* variables refer to the given water
     ! tracer.
@@ -3556,8 +3580,10 @@ contains
 
        ! Check that water capacity is still positive
        if (h2osoi_ice_bottom(c) < 0._r8 .or. h2osoi_liq_bottom(c) < 0._r8 ) then
+!$OMP MASTER
           write(iulog,*)'ERROR: capping procedure failed (negative mass remaining) c = ',c
           write(iulog,*)'h2osoi_ice_bottom = ', h2osoi_ice_bottom(c), ' h2osoi_liq_bottom = ', h2osoi_liq_bottom(c)
+!$OMP END MASTER
           call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
        end if
 
@@ -3665,7 +3691,7 @@ contains
     SHR_ASSERT_ALL_FL((ubound(bifall) == (/bounds%endc/)), sourcefile, __LINE__)
 
     associate( &
-         forc_t      => atm2lnd_inst%forc_t_downscaled_col , & ! Input:  [real(r8) (:)   ]  atmospheric temperature (Kelvin)        
+         forc_t      => atm2lnd_inst%forc_t_downscaled_col , & ! Input:  [real(r8) (:)   ]  atmospheric temperature (Kelvin)
          forc_wind   => atm2lnd_inst%forc_wind_grc           & ! Input:  [real(r8) (:)   ]  atmospheric wind speed (m/s)
          )
 
@@ -3679,7 +3705,7 @@ contains
           bifall(c) = 50._r8 + 1.7_r8*(forc_t(c) - tfrz + 15._r8)**1.5_r8
        else if ( new_snow_density == LoTmpDnsTruncatedAnderson1976 ) then
           bifall(c) = 50._r8
-       else if (new_snow_density == LoTmpDnsSlater2017) then 
+       else if (new_snow_density == LoTmpDnsSlater2017) then
           ! Andrew Slater: A temp of about -15C gives the nicest
           ! "blower" powder, but as you get colder the flake size decreases so
           ! density goes up. e.g. the smaller snow crystals from the Arctic and Antarctic

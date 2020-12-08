@@ -443,7 +443,7 @@ contains
 
     ! When LAI streams are being used
     ! NOTE: This call needs to happen outside loops over nclumps (as streams are not threadsafe)
-    if ((.not. use_cn) .and. (.not. use_fates) .and. (doalb) .and. use_lai_streams) then 
+    if ((.not. use_cn) .and. (.not. use_fates) .and. (doalb) .and. use_lai_streams) then
        call lai_advance( bounds_proc )
     endif
 
@@ -1058,7 +1058,7 @@ contains
        end if
 
 
-       
+
        if ( use_fates) then
 
           call EDBGCDyn(bounds_clump,                                                              &
@@ -1088,7 +1088,7 @@ contains
                soilbiogeochem_carbonflux_inst, &
                soilbiogeochem_carbonstate_inst)
 
-          
+
           if( is_beg_curr_day() ) then
 
              ! --------------------------------------------------------------------------
@@ -1098,19 +1098,19 @@ contains
              if ( masterproc ) then
                 write(iulog,*)  'clm: calling FATES model ', get_nstep()
              end if
-             
+
              call clm_fates%dynamics_driv( nc, bounds_clump,                        &
                   atm2lnd_inst, soilstate_inst, temperature_inst, active_layer_inst, &
                   water_inst%waterstatebulk_inst, water_inst%waterdiagnosticbulk_inst, &
                   water_inst%wateratm2lndbulk_inst, canopystate_inst, soilbiogeochem_carbonflux_inst, &
                   frictionvel_inst)
-             
+
              ! TODO(wjs, 2016-04-01) I think this setFilters call should be replaced by a
              ! call to reweight_wrapup, if it's needed at all.
              call setFilters( bounds_clump, glc_behavior )
 
           end if
-             
+
        end if ! use_fates branch
 
        ! ============================================================================
@@ -1656,19 +1656,25 @@ contains
        psum = sum(lnd2atm_inst%t_rad_grc(bounds%begg:bounds%endg))
        call mpi_reduce(psum, tsum, 1, MPI_REAL8, MPI_SUM, 0, mpicom, ier)
        if (ier/=0) then
+!$OMP MASTER
           write(iulog,*) 'write_diagnostic: Error in mpi_reduce()'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        if (masterproc) then
           tsxyav = tsum / numg
+!$OMP MASTER
           write(iulog,1000) nstep, tsxyav
+!$OMP END MASTER
           call shr_sys_flush(iulog)
        end if
 
     else
 
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*)'clm: completed timestep ',nstep
+!$OMP END MASTER
           call shr_sys_flush(iulog)
        end if
 

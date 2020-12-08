@@ -137,9 +137,15 @@ contains
     !-----------------------------------------------------------------------
 
     if (allocated(this%tracers)) then
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: this%tracers is already allocated.'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'This is likely a sign that you are trying to add a variable'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'after complete_setup has already been called.'
+!$OMP END MASTER
        call endrun(msg='Attempt to call '//subname//' after complete_setup was called', &
             additional_msg=errMsg(sourcefile, __LINE__))
     end if
@@ -195,8 +201,12 @@ contains
     ! routine will be called before any of the others, so for efficiency, we just have
     ! the check here.
     if (.not. allocated(this%tracers)) then
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: this%tracers is not yet allocated.'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'This is likely a sign that complete_setup was not called.'
+!$OMP END MASTER
        call endrun(msg='Attempt to call '//subname//' without calling complete_setup', &
             additional_msg=errMsg(sourcefile, __LINE__))
     end if

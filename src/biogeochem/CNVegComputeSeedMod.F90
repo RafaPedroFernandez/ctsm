@@ -192,12 +192,16 @@ contains
        case (COMPONENT_DEADWOOD)
           multiplier = 1._r8 / pftcon%deadwdcn(pft_type)
        case default
+!$OMP MASTER
           write(iulog,*) subname//' ERROR: unknown component: ', component
+!$OMP END MASTER
           call endrun(subname//': unknown component')
        end select
 
     case default
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: unknown species: ', species
+!$OMP END MASTER
        call endrun(subname//': unknown species')
     end select
 

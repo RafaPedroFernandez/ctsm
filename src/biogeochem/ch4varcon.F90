@@ -107,7 +107,7 @@ contains
 
     ! Production
     namelist /ch4par_in/ &
-         usephfact 
+         usephfact
 
     ! Methane
     namelist /ch4par_in/ &
@@ -118,10 +118,11 @@ contains
        ! ----------------------------------------------------------------------
 
     if (masterproc) then
-
+!$OMP MASTER
        write(iulog,*) 'Attempting to read CH4 parameters .....'
        unitn = getavu()
        write(iulog,*) 'Read in ch4par_in namelist from: ', trim(NLFilename_in)
+!$OMP END MASTER
        open( unitn, file=trim(NLFilename_in), status='old' )
        call shr_nl_find_group_name(unitn, 'ch4par_in', status=ierr)
        if (ierr == 0) then
@@ -150,15 +151,16 @@ contains
     end if ! masterproc
 
 
-    call mpi_bcast ( use_aereoxid_prog, 1 , MPI_LOGICAL, 0, mpicom, ierr )          
-    call mpi_bcast (allowlakeprod,      1 , MPI_LOGICAL, 0, mpicom, ierr)            
-    call mpi_bcast (usephfact,          1 , MPI_LOGICAL, 0, mpicom, ierr)            
-    call mpi_bcast (replenishlakec,     1 , MPI_LOGICAL, 0, mpicom, ierr)            
-    call mpi_bcast (finundation_mtd,    1 , MPI_INTEGER, 0, mpicom, ierr)            
-    call mpi_bcast (usefrootc,          1 , MPI_LOGICAL, 0, mpicom, ierr)            
-    call mpi_bcast (ch4offline,         1 , MPI_LOGICAL, 0, mpicom, ierr)            
+    call mpi_bcast ( use_aereoxid_prog, 1 , MPI_LOGICAL, 0, mpicom, ierr )
+    call mpi_bcast (allowlakeprod,      1 , MPI_LOGICAL, 0, mpicom, ierr)
+    call mpi_bcast (usephfact,          1 , MPI_LOGICAL, 0, mpicom, ierr)
+    call mpi_bcast (replenishlakec,     1 , MPI_LOGICAL, 0, mpicom, ierr)
+    call mpi_bcast (finundation_mtd,    1 , MPI_INTEGER, 0, mpicom, ierr)
+    call mpi_bcast (usefrootc,          1 , MPI_LOGICAL, 0, mpicom, ierr)
+    call mpi_bcast (ch4offline,         1 , MPI_LOGICAL, 0, mpicom, ierr)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Successfully read CH4 namelist'
        write(iulog,*)' '
        write(iulog,*)'allowlakeprod      = ', allowlakeprod
@@ -167,15 +169,12 @@ contains
        write(iulog,*)'finundation_method = ', finundation_method
        write(iulog,*)'usefrootc          = ', usefrootc
        write(iulog,*)'ch4offline         = ', ch4offline
-       write(iulog,*)'use_aereoxid_prog  = ', use_aereoxid_prog 
-
+       write(iulog,*)'use_aereoxid_prog  = ', use_aereoxid_prog
        if (ch4offline) write(iulog,*)'CH4 Model will be running offline and not affect fluxes to atmosphere'
-
        if ( .not. use_aereoxid_prog ) then
           write(iulog,*) 'Aerenchyma oxidation (aereoxid) value is being read from '//&
             ' the parameters file'
        endif
-
        if (.not. allowlakeprod) write(iulog,*) 'Lake production has been disabled. '// &
           '  Lakes will not factor into CH4 BGC.  "Sat" history fields will not average'// &
           '  over lakes except for concentrations, which will average zero from lakes.'
@@ -183,10 +182,9 @@ contains
              'WILL BE TRANSIENTLY RELEASED: COUPLED MODEL WILL NOT CONSERVE CARBON IN THIS MODE!'
        write(iulog,*)'Successfully initialized CH4 parameters from namelist.'
        write(iulog,*)
-
+!$OMP END MASTER
     end if
 
   end subroutine ch4conrd
 
 end module ch4varcon
-

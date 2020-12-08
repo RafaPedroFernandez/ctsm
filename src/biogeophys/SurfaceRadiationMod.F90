@@ -828,21 +828,51 @@ contains
 
           ! This situation should not happen:
           if (abs(sum(sabg_lyr(p,:))-sabg_snow(p)) > 0.00001_r8) then
+!$OMP MASTER
              write(iulog,*)"SNICAR ERROR: Absorbed ground radiation not equal to summed snow layer radiation"
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"Diff        = ",sum(sabg_lyr(p,:))-sabg_snow(p)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"sabg_snow(p)= ",sabg_snow(p)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"sabg_sum(p) = ",sum(sabg_lyr(p,:))
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"snl(c)      = ",snl(c)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"flx_absdv1  = ",trd(p,1)*(1.-albgrd(c,1))
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"flx_absdv2  = ",sum(flx_absdv(c,:))*trd(p,1)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"flx_absiv1  = ",tri(p,1)*(1.-albgri(c,1))
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"flx_absiv2  = ",sum(flx_absiv(c,:))*tri(p,1)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"flx_absdn1  = ",trd(p,2)*(1.-albgrd(c,2))
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"flx_absdn2  = ",sum(flx_absdn(c,:))*trd(p,2)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"flx_absin1  = ",tri(p,2)*(1.-albgri(c,2))
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"flx_absin2  = ",sum(flx_absin(c,:))*tri(p,2)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"albgrd_nir  = ",albgrd(c,2)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,*)"coszen      = ",coszen(c)
+!$OMP END MASTER
              call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
           endif
 
@@ -976,7 +1006,9 @@ contains
           g = patch%gridcell(p)
 
           if(elai(p)==0.0_r8.and.fabd(p,1)>0._r8)then
+!$OMP MASTER
              if ( local_debug ) write(iulog,*) 'absorption without LAI',elai(p),tlai(p),fabd(p,1),p
+!$OMP END MASTER
           endif
 
           ! Solar incident

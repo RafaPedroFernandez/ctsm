@@ -17,7 +17,7 @@ module pftconMod
   !
   ! Vegetation type constants
   !
-  integer, public :: noveg                  ! value for not vegetated 
+  integer, public :: noveg                  ! value for not vegetated
   integer, public :: ndllf_evr_tmp_tree     ! value for Needleleaf evergreen temperate tree
   integer, public :: ndllf_evr_brl_tree     ! value for Needleleaf evergreen boreal tree
   integer, public :: ndllf_dcd_brl_tree     ! value for Needleleaf deciduous boreal tree
@@ -194,7 +194,7 @@ module pftconMod
      integer , allocatable :: mxSHplantdate (:)   ! maximum planting date for SouthHemisphere (YYYYMMDD)
      real(r8), allocatable :: planttemp     (:)   ! planting temperature used in CNPhenology (K)
      real(r8), allocatable :: minplanttemp  (:)   ! mininum planting temperature used in CNPhenology (K)
-     real(r8), allocatable :: froot_leaf    (:)   ! allocation parameter: new fine root C per new leaf C (gC/gC) 
+     real(r8), allocatable :: froot_leaf    (:)   ! allocation parameter: new fine root C per new leaf C (gC/gC)
      real(r8), allocatable :: stem_leaf     (:)   ! allocation parameter: new stem c per new leaf C (gC/gC)
      real(r8), allocatable :: croot_stem    (:)   ! allocation parameter: new coarse root C per new stem C (gC/gC)
      real(r8), allocatable :: flivewd       (:)   ! allocation parameter: fraction of new wood that is live (phloem and ray parenchyma) (no units)
@@ -238,10 +238,10 @@ module pftconMod
      real(r8), allocatable :: ffrootcn      (:)   ! C:N during grain fill; fine root
      real(r8), allocatable :: fstemcn       (:)   ! C:N during grain fill; stem
 
-     real(r8), allocatable :: i_vcad        (:)   
-     real(r8), allocatable :: s_vcad        (:)   
-     real(r8), allocatable :: i_flnr        (:)   
-     real(r8), allocatable :: s_flnr        (:)     
+     real(r8), allocatable :: i_vcad        (:)
+     real(r8), allocatable :: s_vcad        (:)
+     real(r8), allocatable :: i_flnr        (:)
+     real(r8), allocatable :: s_flnr        (:)
 
      ! pft parameters for CNDV code (from LPJ subroutine pftparameters)
      real(r8), allocatable :: pftpar20      (:)   ! tree maximum crown area (m2)
@@ -249,7 +249,7 @@ module pftconMod
      real(r8), allocatable :: pftpar29      (:)   ! max coldest monthly mean temperature
      real(r8), allocatable :: pftpar30      (:)   ! min growing degree days (>= 5 deg C)
      real(r8), allocatable :: pftpar31      (:)   ! upper limit of temperature of the warmest month (twmax)
-     
+
      ! pft parameters for FUN
      real(r8), allocatable :: a_fix         (:)   ! A BNF parameter
      real(r8), allocatable :: b_fix         (:)   ! A BNF parameter
@@ -262,11 +262,11 @@ module pftconMod
      real(r8), allocatable :: kc_nonmyc     (:)   ! A non-mycorrhizal uptake parameter
      real(r8), allocatable :: kn_nonmyc     (:)   ! A non-mycorrhizal uptake parameter
      real(r8), allocatable :: kr_resorb     (:)   ! A retrasnlcation parameter
-     real(r8), allocatable :: perecm        (:)   ! The fraction of ECM-associated PFT 
+     real(r8), allocatable :: perecm        (:)   ! The fraction of ECM-associated PFT
      real(r8), allocatable :: fun_cn_flex_a (:)   ! Parameter a of FUN-flexcn link code (def 5)
      real(r8), allocatable :: fun_cn_flex_b (:)   ! Parameter b of FUN-flexcn link code (def 200)
-     real(r8), allocatable :: fun_cn_flex_c (:)   ! Parameter b of FUN-flexcn link code (def 80)         
-     real(r8), allocatable :: FUN_fracfixers(:)   ! Fraction of C that can be used for fixation.    
+     real(r8), allocatable :: fun_cn_flex_c (:)   ! Parameter b of FUN-flexcn link code (def 80)
+     real(r8), allocatable :: FUN_fracfixers(:)   ! Fraction of C that can be used for fixation.
 
 
      ! pft parameters for dynamic root code
@@ -277,7 +277,7 @@ module pftconMod
      procedure, public  :: Init
      procedure, public  :: InitForTesting ! version of Init meant for unit testing
      procedure, public  :: Clean
-     procedure, private :: InitAllocate   
+     procedure, private :: InitAllocate
      procedure, private :: InitRead
      procedure, private :: set_is_pft_known_to_model   ! Set is_pft_known_to_model based on mergetoclmpft
      procedure, private :: set_num_cfts_known_to_model ! Set the module-level variable, num_cfts_known_to_model
@@ -286,7 +286,7 @@ module pftconMod
 
   type(pftcon_type), public :: pftcon ! pft type constants structure
 
-  integer, public, parameter :: pftname_len = 40         ! max length of pftname       
+  integer, public, parameter :: pftname_len = 40         ! max length of pftname
   character(len=pftname_len), public :: pftname(0:mxpft) ! PFT description
 
   real(r8), public, parameter :: reinickerp = 1.6_r8     ! parameter in allometric equation
@@ -349,88 +349,88 @@ contains
     allocate( this%is_shrub      (0:mxpft)); this%is_shrub (:) = .false.
     allocate( this%is_grass      (0:mxpft)); this%is_grass (:) = .false.
 
-    allocate( this%dleaf         (0:mxpft) )       
-    allocate( this%c3psn         (0:mxpft) )       
-    allocate( this%xl            (0:mxpft) )          
-    allocate( this%rhol          (0:mxpft,numrad) ) 
-    allocate( this%rhos          (0:mxpft,numrad) ) 
-    allocate( this%taul          (0:mxpft,numrad) ) 
-    allocate( this%taus          (0:mxpft,numrad) ) 
-    allocate( this%z0mr          (0:mxpft) )        
-    allocate( this%displar       (0:mxpft) )     
-    allocate( this%roota_par     (0:mxpft) )   
-    allocate( this%rootb_par     (0:mxpft) )   
-    allocate( this%crop          (0:mxpft) )        
+    allocate( this%dleaf         (0:mxpft) )
+    allocate( this%c3psn         (0:mxpft) )
+    allocate( this%xl            (0:mxpft) )
+    allocate( this%rhol          (0:mxpft,numrad) )
+    allocate( this%rhos          (0:mxpft,numrad) )
+    allocate( this%taul          (0:mxpft,numrad) )
+    allocate( this%taus          (0:mxpft,numrad) )
+    allocate( this%z0mr          (0:mxpft) )
+    allocate( this%displar       (0:mxpft) )
+    allocate( this%roota_par     (0:mxpft) )
+    allocate( this%rootb_par     (0:mxpft) )
+    allocate( this%crop          (0:mxpft) )
     allocate( this%mergetoclmpft (0:mxpft) )
     allocate( this%is_pft_known_to_model  (0:mxpft) )
-    allocate( this%irrigated     (0:mxpft) )   
-    allocate( this%smpso         (0:mxpft) )       
-    allocate( this%smpsc         (0:mxpft) )       
-    allocate( this%fnitr         (0:mxpft) )       
-    allocate( this%slatop        (0:mxpft) )      
-    allocate( this%dsladlai      (0:mxpft) )    
-    allocate( this%leafcn        (0:mxpft) )  
-    allocate( this%biofuel_harvfrac (0:mxpft) )  
-    allocate( this%flnr          (0:mxpft) )        
-    allocate( this%woody         (0:mxpft) )       
-    allocate( this%lflitcn       (0:mxpft) )      
-    allocate( this%frootcn       (0:mxpft) )      
-    allocate( this%livewdcn      (0:mxpft) )     
-    allocate( this%deadwdcn      (0:mxpft) )     
-    allocate( this%grperc        (0:mxpft) )       
-    allocate( this%grpnow        (0:mxpft) )       
+    allocate( this%irrigated     (0:mxpft) )
+    allocate( this%smpso         (0:mxpft) )
+    allocate( this%smpsc         (0:mxpft) )
+    allocate( this%fnitr         (0:mxpft) )
+    allocate( this%slatop        (0:mxpft) )
+    allocate( this%dsladlai      (0:mxpft) )
+    allocate( this%leafcn        (0:mxpft) )
+    allocate( this%biofuel_harvfrac (0:mxpft) )
+    allocate( this%flnr          (0:mxpft) )
+    allocate( this%woody         (0:mxpft) )
+    allocate( this%lflitcn       (0:mxpft) )
+    allocate( this%frootcn       (0:mxpft) )
+    allocate( this%livewdcn      (0:mxpft) )
+    allocate( this%deadwdcn      (0:mxpft) )
+    allocate( this%grperc        (0:mxpft) )
+    allocate( this%grpnow        (0:mxpft) )
     allocate( this%rootprof_beta (0:mxpft,nvariants) )
-    allocate( this%graincn       (0:mxpft) )      
-    allocate( this%mxtmp         (0:mxpft) )        
-    allocate( this%baset         (0:mxpft) )        
-    allocate( this%declfact      (0:mxpft) )     
-    allocate( this%bfact         (0:mxpft) )        
-    allocate( this%aleaff        (0:mxpft) )       
-    allocate( this%arootf        (0:mxpft) )       
-    allocate( this%astemf        (0:mxpft) )       
-    allocate( this%arooti        (0:mxpft) )       
-    allocate( this%fleafi        (0:mxpft) )       
-    allocate( this%allconsl      (0:mxpft) )     
-    allocate( this%allconss      (0:mxpft) )     
-    allocate( this%ztopmx        (0:mxpft) )       
-    allocate( this%laimx         (0:mxpft) )        
-    allocate( this%gddmin        (0:mxpft) )       
-    allocate( this%hybgdd        (0:mxpft) )       
-    allocate( this%lfemerg       (0:mxpft) )      
-    allocate( this%grnfill       (0:mxpft) )      
-    allocate( this%mbbopt        (0:mxpft) )      
-    allocate( this%medlynslope   (0:mxpft) )      
-    allocate( this%medlynintercept(0:mxpft) )      
-    allocate( this%mxmat         (0:mxpft) )        
+    allocate( this%graincn       (0:mxpft) )
+    allocate( this%mxtmp         (0:mxpft) )
+    allocate( this%baset         (0:mxpft) )
+    allocate( this%declfact      (0:mxpft) )
+    allocate( this%bfact         (0:mxpft) )
+    allocate( this%aleaff        (0:mxpft) )
+    allocate( this%arootf        (0:mxpft) )
+    allocate( this%astemf        (0:mxpft) )
+    allocate( this%arooti        (0:mxpft) )
+    allocate( this%fleafi        (0:mxpft) )
+    allocate( this%allconsl      (0:mxpft) )
+    allocate( this%allconss      (0:mxpft) )
+    allocate( this%ztopmx        (0:mxpft) )
+    allocate( this%laimx         (0:mxpft) )
+    allocate( this%gddmin        (0:mxpft) )
+    allocate( this%hybgdd        (0:mxpft) )
+    allocate( this%lfemerg       (0:mxpft) )
+    allocate( this%grnfill       (0:mxpft) )
+    allocate( this%mbbopt        (0:mxpft) )
+    allocate( this%medlynslope   (0:mxpft) )
+    allocate( this%medlynintercept(0:mxpft) )
+    allocate( this%mxmat         (0:mxpft) )
     allocate( this%mnNHplantdate (0:mxpft) )
     allocate( this%mxNHplantdate (0:mxpft) )
     allocate( this%mnSHplantdate (0:mxpft) )
     allocate( this%mxSHplantdate (0:mxpft) )
-    allocate( this%planttemp     (0:mxpft) )    
-    allocate( this%minplanttemp  (0:mxpft) ) 
-    allocate( this%froot_leaf    (0:mxpft) )   
-    allocate( this%stem_leaf     (0:mxpft) )    
-    allocate( this%croot_stem    (0:mxpft) )   
-    allocate( this%flivewd       (0:mxpft) )      
-    allocate( this%fcur          (0:mxpft) )         
-    allocate( this%fcurdv        (0:mxpft) )       
-    allocate( this%lf_flab       (0:mxpft) )      
-    allocate( this%lf_fcel       (0:mxpft) )      
-    allocate( this%lf_flig       (0:mxpft) )      
-    allocate( this%fr_flab       (0:mxpft) )      
-    allocate( this%fr_fcel       (0:mxpft) )      
-    allocate( this%fr_flig       (0:mxpft) )      
+    allocate( this%planttemp     (0:mxpft) )
+    allocate( this%minplanttemp  (0:mxpft) )
+    allocate( this%froot_leaf    (0:mxpft) )
+    allocate( this%stem_leaf     (0:mxpft) )
+    allocate( this%croot_stem    (0:mxpft) )
+    allocate( this%flivewd       (0:mxpft) )
+    allocate( this%fcur          (0:mxpft) )
+    allocate( this%fcurdv        (0:mxpft) )
+    allocate( this%lf_flab       (0:mxpft) )
+    allocate( this%lf_fcel       (0:mxpft) )
+    allocate( this%lf_flig       (0:mxpft) )
+    allocate( this%fr_flab       (0:mxpft) )
+    allocate( this%fr_fcel       (0:mxpft) )
+    allocate( this%fr_flig       (0:mxpft) )
     allocate( this%leaf_long     (0:mxpft) )
-    allocate( this%evergreen     (0:mxpft) )    
-    allocate( this%stress_decid  (0:mxpft) ) 
-    allocate( this%season_decid  (0:mxpft) ) 
+    allocate( this%evergreen     (0:mxpft) )
+    allocate( this%stress_decid  (0:mxpft) )
+    allocate( this%season_decid  (0:mxpft) )
     allocate( this%dwood         (0:mxpft) )
     allocate( this%root_density  (0:mxpft) )
     allocate( this%root_radius   (0:mxpft) )
-    allocate( this%pconv         (0:mxpft) )        
-    allocate( this%pprod10       (0:mxpft) )      
-    allocate( this%pprod100      (0:mxpft) )     
-    allocate( this%pprodharv10   (0:mxpft) )  
+    allocate( this%pconv         (0:mxpft) )
+    allocate( this%pprod10       (0:mxpft) )
+    allocate( this%pprod100      (0:mxpft) )
+    allocate( this%pprodharv10   (0:mxpft) )
     allocate( this%cc_leaf       (0:mxpft) )
     allocate( this%cc_lstem      (0:mxpft) )
     allocate( this%cc_dstem      (0:mxpft) )
@@ -447,18 +447,18 @@ contains
     allocate( this%rswf_max      (0:mxpft) )
     allocate( this%rswf_min      (0:mxpft) )
     allocate( this%manunitro     (0:mxpft) )
-    allocate( this%fleafcn       (0:mxpft) )  
-    allocate( this%ffrootcn      (0:mxpft) ) 
-    allocate( this%fstemcn       (0:mxpft) )  
+    allocate( this%fleafcn       (0:mxpft) )
+    allocate( this%ffrootcn      (0:mxpft) )
+    allocate( this%fstemcn       (0:mxpft) )
     allocate( this%i_vcad        (0:mxpft) )
     allocate( this%s_vcad        (0:mxpft) )
     allocate( this%i_flnr        (0:mxpft) )
     allocate( this%s_flnr        (0:mxpft) )
-    allocate( this%pftpar20      (0:mxpft) )   
-    allocate( this%pftpar28      (0:mxpft) )   
-    allocate( this%pftpar29      (0:mxpft) )   
-    allocate( this%pftpar30      (0:mxpft) )   
-    allocate( this%pftpar31      (0:mxpft) )   
+    allocate( this%pftpar20      (0:mxpft) )
+    allocate( this%pftpar28      (0:mxpft) )
+    allocate( this%pftpar29      (0:mxpft) )
+    allocate( this%pftpar30      (0:mxpft) )
+    allocate( this%pftpar31      (0:mxpft) )
     allocate( this%a_fix         (0:mxpft) )
     allocate( this%b_fix         (0:mxpft) )
     allocate( this%c_fix         (0:mxpft) )
@@ -466,7 +466,7 @@ contains
     allocate( this%akc_active    (0:mxpft) )
     allocate( this%akn_active    (0:mxpft) )
     allocate( this%ekc_active    (0:mxpft) )
-    allocate( this%ekn_active    (0:mxpft) )  
+    allocate( this%ekn_active    (0:mxpft) )
     allocate( this%kc_nonmyc     (0:mxpft) )
     allocate( this%kn_nonmyc     (0:mxpft) )
     allocate( this%kr_resorb     (0:mxpft) )
@@ -476,14 +476,13 @@ contains
     allocate( this%fun_cn_flex_b (0:mxpft) )
     allocate( this%fun_cn_flex_c (0:mxpft) )
     allocate( this%FUN_fracfixers(0:mxpft) )
-    
     allocate( this%dbh           (0:mxpft) )
     allocate( this%fbw           (0:mxpft) )
     allocate( this%nstem         (0:mxpft) )
     allocate( this%taper         (0:mxpft) )
     allocate( this%rstem_per_dbh (0:mxpft) )
     allocate( this%wood_density  (0:mxpft) )
- 
+
   end subroutine InitAllocate
 
   !-----------------------------------------------------------------------
@@ -513,7 +512,7 @@ contains
     integer            :: npft                 ! number of pfts on pft-physiology file
     logical            :: readv                ! read variable in or not
     character(len=32)  :: subname = 'InitRead' ! subroutine name
-    character(len=pftname_len) :: expected_pftnames(0:mxpft) 
+    character(len=pftname_len) :: expected_pftnames(0:mxpft)
     character(len=512) :: msg
     !-----------------------------------------------------------------------
     !
@@ -606,7 +605,9 @@ contains
     ! Set specific vegetation type values
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Attempting to read PFT physiological data .....'
+!$OMP END MASTER
     end if
     call getfil (paramfile, locfn, 0)
     call ncd_pio_openfile (ncid, trim(locfn), 0)
@@ -624,7 +625,7 @@ contains
        call endrun(msg=trim(msg)//errMsg(sourcefile, __LINE__))
     end if
 
-    call ncd_io('pftname',pftname, 'read', ncid, readvar=readv, posNOTonfile=.true.) 
+    call ncd_io('pftname',pftname, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     call ncd_io('z0mr', this%z0mr, 'read', ncid, readvar=readv, posNOTonfile=.true.)
@@ -680,7 +681,7 @@ contains
 
     call ncd_io('leafcn', this%leafcn, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
-    
+
     call ncd_io('biofuel_harvfrac', this%biofuel_harvfrac, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
@@ -747,16 +748,16 @@ contains
     call ncd_io('fr_flab', this%fr_flab, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fr_fcel', this%fr_fcel, 'read', ncid, readvar=readv, posNOTonfile=.true.)    
+    call ncd_io('fr_fcel', this%fr_fcel, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fr_flig', this%fr_flig, 'read', ncid, readvar=readv, posNOTonfile=.true.)    
+    call ncd_io('fr_flig', this%fr_flig, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('leaf_long', this%leaf_long, 'read', ncid, readvar=readv, posNOTonfile=.true.)    
+    call ncd_io('leaf_long', this%leaf_long, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('evergreen', this%evergreen, 'read', ncid, readvar=readv, posNOTonfile=.true.)    
+    call ncd_io('evergreen', this%evergreen, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     call ncd_io('stress_decid', this%stress_decid, 'read', ncid, readvar=readv, posNOTonfile=.true.)
@@ -774,21 +775,21 @@ contains
     call ncd_io('pftpar29', this%pftpar29, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('pftpar30', this%pftpar30, 'read', ncid, readvar=readv, posNOTonfile=.true.)  
+    call ncd_io('pftpar30', this%pftpar30, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('pftpar31', this%pftpar31, 'read', ncid, readvar=readv, posNOTonfile=.true.)  
+    call ncd_io('pftpar31', this%pftpar31, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     call ncd_io('a_fix', this%a_fix, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
-   
+
     call ncd_io('b_fix', this%b_fix, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
-    
+
     call ncd_io('c_fix', this%c_fix, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
-    
+
     call ncd_io('s_fix', this%s_fix, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
@@ -806,7 +807,7 @@ contains
 
     call ncd_io('kc_nonmyc', this%kc_nonmyc, 'read', ncid, readvar=readv,   posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
-   
+
     call ncd_io('kn_nonmyc', this%kn_nonmyc, 'read', ncid, readvar=readv,   posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
@@ -824,7 +825,7 @@ contains
 
     call ncd_io('fun_cn_flex_c', this%fun_cn_flex_c, 'read', ncid, readvar=readv,         posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
-  
+
     call ncd_io('FUN_fracfixers', this%FUN_fracfixers, 'read', ncid, readvar=readv,         posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
@@ -843,162 +844,162 @@ contains
     call ncd_io('rootprof_beta', this%rootprof_beta, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('pconv', this%pconv, 'read', ncid, readvar=readv)  
+    call ncd_io('pconv', this%pconv, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('pprod10', this%pprod10, 'read', ncid, readvar=readv)  
+    call ncd_io('pprod10', this%pprod10, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('pprodharv10', this%pprodharv10, 'read', ncid, readvar=readv)  
+    call ncd_io('pprodharv10', this%pprodharv10, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('pprod100', this%pprod100, 'read', ncid, readvar=readv)  
+    call ncd_io('pprod100', this%pprod100, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('graincn', this%graincn, 'read', ncid, readvar=readv)  
+    call ncd_io('graincn', this%graincn, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('mxtmp', this%mxtmp, 'read', ncid, readvar=readv)  
+    call ncd_io('mxtmp', this%mxtmp, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('baset', this%baset, 'read', ncid, readvar=readv)  
+    call ncd_io('baset', this%baset, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('declfact', this%declfact, 'read', ncid, readvar=readv)  
+    call ncd_io('declfact', this%declfact, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('bfact', this%bfact, 'read', ncid, readvar=readv)  
+    call ncd_io('bfact', this%bfact, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('aleaff', this%aleaff, 'read', ncid, readvar=readv)  
+    call ncd_io('aleaff', this%aleaff, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('arootf', this%arootf, 'read', ncid, readvar=readv)  
+    call ncd_io('arootf', this%arootf, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('astemf', this%astemf, 'read', ncid, readvar=readv)  
+    call ncd_io('astemf', this%astemf, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('arooti', this%arooti, 'read', ncid, readvar=readv)  
+    call ncd_io('arooti', this%arooti, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fleafi', this%fleafi, 'read', ncid, readvar=readv)  
+    call ncd_io('fleafi', this%fleafi, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('allconsl', this%allconsl, 'read', ncid, readvar=readv)  
+    call ncd_io('allconsl', this%allconsl, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('allconss', this%allconss, 'read', ncid, readvar=readv)  
+    call ncd_io('allconss', this%allconss, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('crop', this%crop, 'read', ncid, readvar=readv)  
+    call ncd_io('crop', this%crop, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('mergetoclmpft', this%mergetoclmpft, 'read', ncid, readvar=readv)  
+    call ncd_io('mergetoclmpft', this%mergetoclmpft, 'read', ncid, readvar=readv)
     if ( .not. readv ) then
        call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
     end if
 
-    call ncd_io('irrigated', this%irrigated, 'read', ncid, readvar=readv)  
+    call ncd_io('irrigated', this%irrigated, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('ztopmx', this%ztopmx, 'read', ncid, readvar=readv)  
+    call ncd_io('ztopmx', this%ztopmx, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('laimx', this%laimx, 'read', ncid, readvar=readv)  
+    call ncd_io('laimx', this%laimx, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('gddmin', this%gddmin, 'read', ncid, readvar=readv)  
+    call ncd_io('gddmin', this%gddmin, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('hybgdd', this%hybgdd, 'read', ncid, readvar=readv)  
+    call ncd_io('hybgdd', this%hybgdd, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('lfemerg', this%lfemerg, 'read', ncid, readvar=readv)  
+    call ncd_io('lfemerg', this%lfemerg, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('grnfill', this%grnfill, 'read', ncid, readvar=readv)  
+    call ncd_io('grnfill', this%grnfill, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('mbbopt', this%mbbopt, 'read', ncid, readvar=readv)  
+    call ncd_io('mbbopt', this%mbbopt, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('medlynslope', this%medlynslope, 'read', ncid, readvar=readv)  
+    call ncd_io('medlynslope', this%medlynslope, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('medlynintercept', this%medlynintercept, 'read', ncid, readvar=readv)  
+    call ncd_io('medlynintercept', this%medlynintercept, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('mxmat', this%mxmat, 'read', ncid, readvar=readv)  
+    call ncd_io('mxmat', this%mxmat, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('cc_leaf', this% cc_leaf, 'read', ncid, readvar=readv)  
+    call ncd_io('cc_leaf', this% cc_leaf, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('cc_lstem', this%cc_lstem, 'read', ncid, readvar=readv)  
+    call ncd_io('cc_lstem', this%cc_lstem, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('cc_dstem', this%cc_dstem, 'read', ncid, readvar=readv)  
+    call ncd_io('cc_dstem', this%cc_dstem, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('cc_other', this%cc_other, 'read', ncid, readvar=readv)  
+    call ncd_io('cc_other', this%cc_other, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fm_leaf', this% fm_leaf, 'read', ncid, readvar=readv)  
+    call ncd_io('fm_leaf', this% fm_leaf, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fm_lstem', this%fm_lstem, 'read', ncid, readvar=readv)  
+    call ncd_io('fm_lstem', this%fm_lstem, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fm_dstem', this%fm_dstem, 'read', ncid, readvar=readv)  
+    call ncd_io('fm_dstem', this%fm_dstem, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fm_other', this%fm_other, 'read', ncid, readvar=readv)  
+    call ncd_io('fm_other', this%fm_other, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fm_root', this% fm_root, 'read', ncid, readvar=readv)  
+    call ncd_io('fm_root', this% fm_root, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fm_lroot', this%fm_lroot, 'read', ncid, readvar=readv)  
+    call ncd_io('fm_lroot', this%fm_lroot, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fm_droot', this%fm_droot, 'read', ncid, readvar=readv)  
+    call ncd_io('fm_droot', this%fm_droot, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fsr_pft', this% fsr_pft, 'read', ncid, readvar=readv)  
+    call ncd_io('fsr_pft', this% fsr_pft, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('fd_pft', this%  fd_pft, 'read', ncid, readvar=readv)  
+    call ncd_io('fd_pft', this%  fd_pft, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     call ncd_io('rswf_min', this% rswf_min, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     call ncd_io('rswf_max', this% rswf_max, 'read', ncid, readvar=readv)
-    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__)) 
-    call ncd_io('planting_temp', this%planttemp, 'read', ncid, readvar=readv)  
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+    call ncd_io('planting_temp', this%planttemp, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('min_planting_temp', this%minplanttemp, 'read', ncid, readvar=readv)  
+    call ncd_io('min_planting_temp', this%minplanttemp, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('min_NH_planting_date', this%mnNHplantdate, 'read', ncid, readvar=readv)  
+    call ncd_io('min_NH_planting_date', this%mnNHplantdate, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('min_SH_planting_date', this%mnSHplantdate, 'read', ncid, readvar=readv)  
+    call ncd_io('min_SH_planting_date', this%mnSHplantdate, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('max_NH_planting_date', this%mxNHplantdate, 'read', ncid, readvar=readv)  
+    call ncd_io('max_NH_planting_date', this%mxNHplantdate, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
-    call ncd_io('max_SH_planting_date', this%mxSHplantdate, 'read', ncid, readvar=readv)  
+    call ncd_io('max_SH_planting_date', this%mxSHplantdate, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     !
     ! Constants
     !
     !MV (10-08-14) TODO is this right - used to be maxveg - is it okay to set it to mxpft?
-    do m = 0,mxpft 
+    do m = 0,mxpft
        this%dwood(m) = dwood
        this%root_radius(m)  = root_radius
        this%root_density(m) = root_density
@@ -1008,17 +1009,17 @@ contains
     ! clm 5 nitrogen variables
     !
     if (use_flexibleCN) then
-       call ncd_io('i_vcad', this%i_vcad, 'read', ncid, readvar=readv) 
-       if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__)) 
-       
-       call ncd_io('s_vcad', this%s_vcad, 'read', ncid, readvar=readv) 
-       if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__)) 
-       
-       call ncd_io('i_flnr', this%i_flnr, 'read', ncid, readvar=readv) 
-       if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__)) 
-       
-       call ncd_io('s_flnr', this%s_flnr, 'read', ncid, readvar=readv) 
-       if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__)) 
+       call ncd_io('i_vcad', this%i_vcad, 'read', ncid, readvar=readv)
+       if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+
+       call ncd_io('s_vcad', this%s_vcad, 'read', ncid, readvar=readv)
+       if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+
+       call ncd_io('i_flnr', this%i_flnr, 'read', ncid, readvar=readv)
+       if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+
+       call ncd_io('s_flnr', this%s_flnr, 'read', ncid, readvar=readv)
+       if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
     end if
 
     !
@@ -1028,7 +1029,7 @@ contains
        call ncd_io('root_dmx', this%root_dmx, 'read', ncid, readvar=readv)
        if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
     end if
-   
+
     call ncd_io('nstem',this%nstem, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
     call ncd_io('taper',this%taper, 'read', ncid, readvar=readv)
@@ -1063,8 +1064,10 @@ contains
     do i = 0, mxpft
        if (.not. use_fates)then
           if ( trim(adjustl(pftname(i))) /= trim(expected_pftnames(i)) )then
+!$OMP MASTER
              write(iulog,*)'pftconrd: pftname is NOT what is expected, name = ', &
                   trim(pftname(i)), ', expected name = ', trim(expected_pftnames(i))
+!$OMP END MASTER
              call endrun(msg='pftconrd: bad name for pft on paramfile dataset'//errMsg(sourcefile, __LINE__))
           end if
        end if
@@ -1157,7 +1160,7 @@ contains
     call this%set_num_cfts_known_to_model()
 
     ! Set vegetation family identifier (tree/shrub/grass)
-    do m = 0,mxpft 
+    do m = 0,mxpft
        if (m == ndllf_evr_tmp_tree .or. m == ndllf_evr_brl_tree &
             .or. m == ndllf_dcd_brl_tree .or. m == nbrdlf_evr_trp_tree &
             .or. m == nbrdlf_evr_tmp_tree .or. m == nbrdlf_dcd_trp_tree &
@@ -1254,8 +1257,10 @@ contains
     end if
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Successfully read PFT physiological data'
        write(iulog,*)
+!$OMP END MASTER
     end if
 
   end subroutine InitRead
@@ -1468,7 +1473,6 @@ contains
     deallocate( this%fun_cn_flex_b)
     deallocate( this%fun_cn_flex_c)
     deallocate( this%FUN_fracfixers)
-    
     deallocate( this%dbh)
     deallocate( this%fbw)
     deallocate( this%nstem)
@@ -1478,4 +1482,3 @@ contains
   end subroutine Clean
 
 end module pftconMod
-

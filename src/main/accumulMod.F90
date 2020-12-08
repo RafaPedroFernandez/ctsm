@@ -184,8 +184,10 @@ contains
 
     naccflds = naccflds + 1
     if (naccflds > max_accum) then
+!$OMP MASTER
        write(iulog,*) 'ACCUMULINIT error: user-defined accumulation fields ', &
             'equal to ',naccflds,' exceeds max_accum'
+!$OMP END MASTER
        call shr_sys_abort()
     end if
     nf = naccflds
@@ -204,7 +206,9 @@ contains
        accum(nf)%extract_accum_field_func => extract_accum_field_basic
        accum(nf)%update_accum_field_func  => update_accum_field_runaccum
     case default
+!$OMP MASTER
        write(iulog,*) 'init_accum_field ERROR: unknown accum_type ', accum_type
+!$OMP END MASTER
        call shr_sys_abort('init_accum_field: unknown accum_type')
     end select
 
@@ -238,7 +242,9 @@ contains
        end1d = endp
        accum(nf)%active => patch%active
     case default
+!$OMP MASTER
        write(iulog,*)'init_accum_field: unknown subgrid type ',subgrid_type
+!$OMP END MASTER
        call shr_sys_abort ()
     end select
 
@@ -252,15 +258,17 @@ contains
     else
        accum(nf)%type2d = ' '
     end if
-    
+
     ! Allocate and initialize accumulation field
 
     allocate(accum(nf)%val(beg1d:end1d,numlev))
     if (accum(nf)%acctype == ACCTYPE_TIMEAVG .or. &
          accum(nf)%acctype == ACCTYPE_RUNACCUM) then
        if (init_value /= 0._r8) then
+!$OMP MASTER
           write(iulog,*) 'init_accum_field ERROR: for field ', trim(name)
           write(iulog,*) 'init_value must be 0 for timeavg and runaccum fields'
+!$OMP END MASTER
           call shr_sys_abort('init_accum_field: init_value must be 0 for timeavg and runaccum fields')
        end if
     end if
@@ -287,6 +295,7 @@ contains
     !------------------------------------------------------------------------
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*)
        write(iulog,*) 'Initializing variables for time accumulation .....'
        write(iulog,'(72a1)') ("-",i=1,60)
@@ -310,6 +319,7 @@ contains
        write(iulog,'(72a1)') ("-",i=1,60)
        write(iulog,*) 'Successfully initialized variables for accumulation'
        write(iulog,*)
+!$OMP END MASTER
     endif
 
 1002 format(' No',' Name    ',' Units   ',' Type    ','Period',' Inival',' Description')
@@ -620,7 +630,7 @@ contains
                ((accper-1)*this%val(k,level) + field(kf)) / accper
        end if
     end do
-       
+
   end subroutine update_accum_field_runmean
 
   !-----------------------------------------------------------------------
@@ -787,7 +797,9 @@ contains
        end if
     end do
     if (field_index == 0) then
+!$OMP MASTER
        write(iulog,*) trim(caller_name), 'ERROR: field name ',trim(field_name),' not found'
+!$OMP END MASTER
        call endrun('Accumulation field not found')
     end if
 

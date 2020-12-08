@@ -61,7 +61,9 @@ contains
             source=soil_water_retention_curve_vangenuchten_1980_type())
 
     case default
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: unknown method: ', method
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
 
     end select

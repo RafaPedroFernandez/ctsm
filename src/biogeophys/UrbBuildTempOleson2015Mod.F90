@@ -657,9 +657,15 @@ contains
 
          ! If dgesv fails, abort 
          if (info /= 0) then
+!$OMP MASTER
            write(iulog,*)'fl: ',fl
+!$OMP END MASTER
+!$OMP MASTER
            write(iulog,*)'l: ',l
+!$OMP END MASTER
+!$OMP MASTER
            write(iulog,*)'dgesv info: ',info
+!$OMP END MASTER
            write (iulog,*) 'dgesv error'
            write (iulog,*) 'clm model is stopping'
            call endrun()

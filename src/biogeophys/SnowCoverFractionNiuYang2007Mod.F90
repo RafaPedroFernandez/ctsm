@@ -222,8 +222,12 @@ contains
     !-----------------------------------------------------------------------
 
     if (use_subgrid_fluxes) then
+!$OMP MASTER
        write(iulog,*) 'ERROR: Attempt to use NiuYang07 snow cover fraction parameterization with use_subgrid_fluxes.'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'These two options are incompatible.'
+!$OMP END MASTER
        call endrun('NiuYang07 snow cover fraction parameterization incompatible with use_subgrid_fluxes')
     end if
 

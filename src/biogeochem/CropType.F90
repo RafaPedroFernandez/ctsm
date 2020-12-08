@@ -59,7 +59,7 @@ module CropType
      procedure, public  :: CropIncrementYear
 
      ! Private routines
-     procedure, private :: InitAllocate 
+     procedure, private :: InitAllocate
      procedure, private :: InitHistory
      procedure, private :: InitCold
      procedure, private, nopass :: checkDates
@@ -83,10 +83,10 @@ contains
     type(bounds_type), intent(in)    :: bounds
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'Init'
     !-----------------------------------------------------------------------
-    
+
     call this%InitAllocate(bounds)
 
     if (use_crop) then
@@ -133,7 +133,9 @@ contains
     baset_latvary_slope     = 0.4_r8
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -155,22 +157,28 @@ contains
     this%baset_latvary_intercept = baset_latvary_intercept
     this%baset_latvary_slope     = baset_latvary_slope
     if (      trim(this%baset_mapping) == baset_map_constant ) then
+!$OMP MASTER
        if ( masterproc ) write(iulog,*) 'baset mapping for ALL crops are constant'
+!$OMP END MASTER
     else if ( trim(this%baset_mapping) == baset_map_latvary ) then
+!$OMP MASTER
        if ( masterproc ) write(iulog,*) 'baset mapping for crops vary with latitude'
+!$OMP END MASTER
     else
        call endrun(msg="Bad value for baset_mapping in "//nmlname//"namelist"//errmsg(sourcefile, __LINE__))
     end if
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=crop)
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
 
     !-----------------------------------------------------------------------
-    
+
   end subroutine ReadNML
 
   !-----------------------------------------------------------------------
@@ -183,7 +191,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
-    
+
     character(len=*), parameter :: subname = 'InitAllocate'
     !-----------------------------------------------------------------------
 
@@ -192,7 +200,7 @@ contains
     allocate(this%nyrs_crop_active_patch(begp:endp)) ; this%nyrs_crop_active_patch(:) = 0
     allocate(this%croplive_patch (begp:endp)) ; this%croplive_patch (:) = .false.
     allocate(this%cropplant_patch(begp:endp)) ; this%cropplant_patch(:) = .false.
-    allocate(this%harvdate_patch (begp:endp)) ; this%harvdate_patch (:) = huge(1) 
+    allocate(this%harvdate_patch (begp:endp)) ; this%harvdate_patch (:) = huge(1)
     allocate(this%fertnitro_patch (begp:endp)) ; this%fertnitro_patch (:) = spval
     allocate(this%gddplant_patch (begp:endp)) ; this%gddplant_patch (:) = spval
     allocate(this%gddtsoi_patch  (begp:endp)) ; this%gddtsoi_patch  (:) = spval
@@ -214,10 +222,10 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
-    
+
     character(len=*), parameter :: subname = 'InitHistory'
     !-----------------------------------------------------------------------
-    
+
     begp = bounds%begp; endp = bounds%endp
 
     this%fertnitro_patch(begp:endp) = spval
@@ -251,11 +259,11 @@ contains
 
   subroutine InitCold(this, bounds)
     ! !USES:
-    use LandunitType, only : lun                
+    use LandunitType, only : lun
     use landunit_varcon, only : istcrop
     use PatchType, only : patch
     use clm_instur, only : fert_cft
-    use pftconMod        , only : pftcon 
+    use pftconMod        , only : pftcon
     use GridcellType     , only : grc
     use shr_infnan_mod   , only : nan => shr_infnan_nan, assignment(=)
     ! !ARGUMENTS:
@@ -314,20 +322,20 @@ contains
     ! restart file for restart or branch runs
     ! Each interval and accumulation type is unique to each field processed.
     ! Routine [initAccBuffer] defines the fields to be processed
-    ! and the type of accumulation. 
+    ! and the type of accumulation.
     ! Routine [updateAccVars] does the actual accumulation for a given field.
-    ! Fields are accumulated by calls to subroutine [update_accum_field]. 
-    ! To accumulate a field, it must first be defined in subroutine [initAccVars] 
+    ! Fields are accumulated by calls to subroutine [update_accum_field].
+    ! To accumulate a field, it must first be defined in subroutine [initAccVars]
     ! and then accumulated by calls to [updateAccVars].
     !
     ! Should only be called if use_crop is true
     !
-    ! !USES 
+    ! !USES
     use accumulMod       , only : init_accum_field
     !
     ! !ARGUMENTS:
     class(crop_type) , intent(in) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
 
     !
     ! !LOCAL VARIABLES:
@@ -351,7 +359,7 @@ contains
     ! !DESCRIPTION:
     ! Initialize module variables that are associated with
     ! time accumulated fields. This routine is called for both an initial run
-    ! and a restart run (and must therefore must be called after the restart file 
+    ! and a restart run (and must therefore must be called after the restart file
     ! is read in and the accumulation buffer is obtained)
     !
     ! !USES:
@@ -367,26 +375,28 @@ contains
     integer  :: nstep
     integer  :: ier
     real(r8), pointer :: rbufslp(:)  ! temporary
-    
+
     character(len=*), parameter :: subname = 'InitAccVars'
     !-----------------------------------------------------------------------
-    
+
     begp = bounds%begp; endp = bounds%endp
 
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)' in '
+!$OMP END MASTER
        call endrun(msg=" allocation error for rbufslp"//&
             errMsg(sourcefile, __LINE__))
     endif
 
     nstep = get_nstep()
 
-    call extract_accum_field ('GDDPLANT', rbufslp, nstep) 
+    call extract_accum_field ('GDDPLANT', rbufslp, nstep)
     this%gddplant_patch(begp:endp) = rbufslp(begp:endp)
 
-    call extract_accum_field ('GDDTSOI', rbufslp, nstep) 
+    call extract_accum_field ('GDDTSOI', rbufslp, nstep)
     this%gddtsoi_patch(begp:endp)  = rbufslp(begp:endp)
 
     deallocate(rbufslp)
@@ -404,9 +414,9 @@ contains
     !
     ! !ARGUMENTS:
     class(crop_type), intent(inout)  :: this
-    type(bounds_type), intent(in)    :: bounds 
-    type(file_desc_t), intent(inout) :: ncid   
-    character(len=*) , intent(in)    :: flag   
+    type(bounds_type), intent(in)    :: bounds
+    type(file_desc_t), intent(inout) :: ncid
+    character(len=*) , intent(in)    :: flag
     !
     ! !LOCAL VARIABLES:
     integer, pointer :: temp1d(:) ! temporary
@@ -444,7 +454,7 @@ contains
        end if
 
        allocate(temp1d(bounds%begp:bounds%endp))
-       if (flag == 'write') then 
+       if (flag == 'write') then
           do p= bounds%begp,bounds%endp
              if (this%croplive_patch(p)) then
                 temp1d(p) = 1
@@ -457,7 +467,7 @@ contains
             dim1name='pft', &
             long_name='Flag that crop is alive, but not harvested', &
             interpinic_flag='interp', readvar=readvar, data=temp1d)
-       if (flag == 'read') then 
+       if (flag == 'read') then
           do p= bounds%begp,bounds%endp
              if (temp1d(p) == 1) then
                 this%croplive_patch(p) = .true.
@@ -469,7 +479,7 @@ contains
        deallocate(temp1d)
 
        allocate(temp1d(bounds%begp:bounds%endp))
-       if (flag == 'write') then 
+       if (flag == 'write') then
           do p= bounds%begp,bounds%endp
              if (this%cropplant_patch(p)) then
                 temp1d(p) = 1
@@ -482,7 +492,7 @@ contains
             dim1name='pft', &
             long_name='Flag that crop is planted, but not harvested' , &
             interpinic_flag='interp', readvar=readvar, data=temp1d)
-       if (flag == 'read') then 
+       if (flag == 'read') then
           do p= bounds%begp,bounds%endp
              if (temp1d(p) == 1) then
                 this%cropplant_patch(p) = .true.
@@ -494,7 +504,7 @@ contains
        deallocate(temp1d)
 
        call restartvar(ncid=ncid, flag=flag,  varname='harvdate', xtype=ncd_int,  &
-            dim1name='pft', long_name='harvest date', units='jday', nvalid_range=(/1,366/), & 
+            dim1name='pft', long_name='harvest date', units='jday', nvalid_range=(/1,366/), &
             interpinic_flag='interp', readvar=readvar, data=this%harvdate_patch)
 
        call restartvar(ncid=ncid, flag=flag,  varname='vf', xtype=ncd_double,  &
@@ -551,7 +561,7 @@ contains
     real(r8), pointer :: rbufslp(:)      ! temporary single level - patch level
     character(len=*), parameter :: subname = 'CropUpdateAccVars'
     !-----------------------------------------------------------------------
-    
+
     begp = bounds%begp; endp = bounds%endp
     begc = bounds%begc; endc = bounds%endc
 
@@ -566,12 +576,14 @@ contains
 
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)'update_accum_hist allocation error for rbuf1dp'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 
     ! Accumulate and extract GDDPLANT
-    
+
     call extract_accum_field ('GDDPLANT', rbufslp, nstep)
     do p = begp,endp
       rbufslp(p) = max(0.0_r8,this%gddplant_patch(p)-rbufslp(p))
@@ -630,7 +642,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine CropIncrementYear (this, num_pcropp, filter_pcropp)
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Increment the crop year, if appropriate
     !
     ! This routine should be called every time step
@@ -668,7 +680,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine checkDates( )
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Make sure the dates are compatible. The date given to startup the model
     ! and the date on the restart file must be the same although years can be
     ! different. The dates need to be checked when the restart file is being
@@ -706,11 +718,15 @@ contains
        stmon_day   = stymd - styr*10000
        call get_start_date( rsyr, rsmon, rsday, tod )
        rsmon_day = rsmon*100 + rsday
+!$OMP MASTER
        if ( masterproc ) &
             write(iulog,formDate) 'Date on the restart file is: ', rsyr, rsmon, rsday
+!$OMP END MASTER
        if ( stmon_day /= rsmon_day )then
+!$OMP MASTER
           write(iulog,formDate) 'Start date is: ', styr, stmon_day/100, &
                (stmon_day - stmon_day/100)
+!$OMP END MASTER
           call endrun(msg=' ERROR: For prognostic crop to work correctly, the start date (month and day)'// &
                ' and the date on the restart file needs to match (years can be different)'//&
                errMsg(sourcefile, __LINE__))
@@ -720,4 +736,3 @@ contains
   end subroutine checkDates
 
 end module CropType
-

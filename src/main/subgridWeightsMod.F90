@@ -13,14 +13,14 @@ module subgridWeightsMod
   ! Note: in the following, 'active' refers to a pft, column, landunit or grid cell over
   ! which computations are performed, and 'inactive' refers to a pft, column or landunit
   ! where computations are NOT performed (grid cells are always active).
-  ! 
+  !
   ! (1) For all columns, landunits and grid cells, the sum of all subgrid weights of its
   !     children (or grandchildren, etc.) is equal to 1. For example:
   !     - For all columns, the sum of all patch weights on the column equals 1
   !     - For all landunits, the sum of all col weights on the landunit equals 1
   !     - For all grid cells, the sum of all patch weights on the grid cell equals 1
   !     - etc.
-  ! 
+  !
   ! (2) For all ACTIVE columns, landunits and grid cells, the sum of all subgrid weights of
   !     its ACTIVE children (or grandchildren, etc.) is equal to 1. For example:
   !     - For all active columns, the sum of all patch weights on the column equals 1 when
@@ -95,10 +95,10 @@ module subgridWeightsMod
   use clm_varctl   , only : iulog, all_active, run_zero_weight_urban, use_fates
   use clm_varcon   , only : nameg, namel, namec, namep
   use decompMod    , only : bounds_type
-  use GridcellType , only : grc                
-  use LandunitType , only : lun                
-  use ColumnType   , only : col                
-  use PatchType    , only : patch                
+  use GridcellType , only : grc
+  use LandunitType , only : lun
+  use ColumnType   , only : col
+  use PatchType    , only : patch
   use glcBehaviorMod , only : glc_behavior_type
   !
   ! PUBLIC TYPES:
@@ -128,7 +128,7 @@ module subgridWeightsMod
      real(r8), pointer :: pct_cft(:,:)       ! % of each crop functional type, as % of landunit [begg:endg, cft_lb:cft_ub]
      real(r8), pointer :: pct_glc_mec(:,:)   ! % of each glacier elevation class, as % of landunit [begg:endg, 1:maxpatch_glcmec]
   end type subgrid_weights_diagnostics_type
-     
+
   type(subgrid_weights_diagnostics_type) :: subgrid_weights_diagnostics
 
   !
@@ -164,10 +164,10 @@ contains
     type(bounds_type), intent(in) :: bounds  ! proc bounds
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'init_subgrid_weights_mod'
     !-----------------------------------------------------------------------
-    
+
     SHR_ASSERT_FL(bounds%level == BOUNDS_LEVEL_PROC, sourcefile, __LINE__)
 
     ! ------------------------------------------------------------------------
@@ -199,7 +199,7 @@ contains
              avgflag='A', long_name='% of each PFT on the natural vegetation (i.e., soil) landunit', &
              ptr_lnd=subgrid_weights_diagnostics%pct_nat_pft)
     end if
-       
+
     if (cft_size > 0) then
        call hist_addfld2d (fname='PCT_CFT', units='%', type2d='cft', &
             avgflag='A', long_name='% of each crop on the crop landunit', &
@@ -276,8 +276,10 @@ contains
        l = col%landunit(c)
        col%active(c) = is_active_c(c, glc_behavior)
        if (col%active(c) .and. .not. lun%active(l)) then
+!$OMP MASTER
           write(iulog,*) trim(subname),' ERROR: active column found on inactive landunit', &
                          'at c = ', c, ', l = ', l
+!$OMP END MASTER
           call endrun(decomp_index=c, clmlevel=namec, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -286,8 +288,10 @@ contains
        c = patch%column(p)
        patch%active(p) = is_active_p(p)
        if (patch%active(p) .and. .not. col%active(c)) then
+!$OMP MASTER
           write(iulog,*) trim(subname),' ERROR: active patch found on inactive column', &
                          'at p = ', p, ', c = ', c
+!$OMP END MASTER
           call endrun(decomp_index=p, clmlevel=namep, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -361,15 +365,15 @@ contains
        if (lun%itype(l) == istsoil) then
           is_active_l = .true.
        end if
-       
+
        ! Set all lake land units to active
        ! By doing this, lakes are also run virtually in grid cells which will grow
-       ! lakes during the transient run. 
-       
+       ! lakes during the transient run.
+
        if (lun%itype(l) == istdlak) then
             is_active_l = .true.
         end if
-       
+
     end if
 
   end function is_active_l
@@ -451,7 +455,7 @@ contains
 
     else
        c =patch%column(p)
-    
+
        is_active_p = .false.
 
        ! ------------------------------------------------------------------------
@@ -483,7 +487,7 @@ contains
 
     character(len=*), parameter :: subname = 'get_landunit_weight'
     !-----------------------------------------------------------------------
-    
+
     l = grc%landunit_indices(ltype, g)
     if (l == ispval) then
        weight = 0._r8
@@ -509,7 +513,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer :: l ! landunit index
-    
+
     character(len=*), parameter :: subname = 'set_landunit_weight'
     !-----------------------------------------------------------------------
 
@@ -517,11 +521,13 @@ contains
     if (l /= ispval) then
        lun%wtgcell(l) = weight
     else if (weight > 0._r8) then
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: Attempt to assign non-zero weight to a non-existent landunit'
        write(iulog,*) 'g, l, ltype, weight = ', g, l, ltype, weight
+!$OMP END MASTER
        call endrun(decomp_index=l, clmlevel=namel, msg=errMsg(sourcefile, __LINE__))
     end if
-    
+
   end subroutine set_landunit_weight
 
 
@@ -564,7 +570,7 @@ contains
     ! This routine operates in two different modes, depending on the value of active_only. If
     ! active_only is true, then we check the sum of weights of the ACTIVE children,
     ! grandchildren, etc. of a given point. If active_only is false, then we check the sum of
-    ! weights of ALL children, grandchildren, etc. of a given point. 
+    ! weights of ALL children, grandchildren, etc. of a given point.
     !
     ! Normally this routine will be called twice: once with active_only=false, and once with
     ! active_only=true.
@@ -599,7 +605,7 @@ contains
        l = patch%landunit(p)
        g = patch%gridcell(p)
 
-       if ((active_only .and. patch%active(p)) .or. .not. active_only) then 
+       if ((active_only .and. patch%active(p)) .or. .not. active_only) then
           sumwtcol(c) = sumwtcol(c) + patch%wtcol(p)
           sumwtlunit(l) = sumwtlunit(l) + patch%wtlunit(p)
           sumwtgcell(g) = sumwtgcell(g) + patch%wtgcell(p)
@@ -608,24 +614,30 @@ contains
 
     do c = bounds%begc,bounds%endc
        if (.not. weights_okay(sumwtcol(c), active_only, col%active(c))) then
+!$OMP MASTER
           write(iulog,*) trim(subname),' ERROR: at c = ',c,'total PFT weight is ',sumwtcol(c), &
                          'active_only = ', active_only
+!$OMP END MASTER
           error_found = .true.
        end if
     end do
 
     do l = bounds%begl,bounds%endl
        if (.not. weights_okay(sumwtlunit(l), active_only, lun%active(l))) then
+!$OMP MASTER
           write(iulog,*) trim(subname),' ERROR: at l = ',l,'total PFT weight is ',sumwtlunit(l), &
                          'active_only = ', active_only
+!$OMP END MASTER
           error_found = .true.
        end if
     end do
 
     do g = bounds%begg,bounds%endg
        if (.not. weights_okay(sumwtgcell(g), active_only, i_am_active=.true.)) then
+!$OMP MASTER
           write(iulog,*) trim(subname),' ERROR: at g = ',g,'total PFT weight is ',sumwtgcell(g), &
                          'active_only = ', active_only
+!$OMP END MASTER
           error_found = .true.
        end if
     end do
@@ -646,16 +658,20 @@ contains
 
     do l = bounds%begl,bounds%endl
        if (.not. weights_okay(sumwtlunit(l), active_only, lun%active(l))) then
+!$OMP MASTER
           write(iulog,*) trim(subname),' ERROR: at l = ',l,'total col weight is ',sumwtlunit(l), &
                          'active_only = ', active_only
+!$OMP END MASTER
           error_found = .true.
        end if
     end do
-    
+
     do g = bounds%begg,bounds%endg
        if (.not. weights_okay(sumwtgcell(g), active_only, i_am_active=.true.)) then
+!$OMP MASTER
           write(iulog,*) trim(subname),' ERROR: at g = ',g,'total col weight is ',sumwtgcell(g), &
                          'active_only = ', active_only
+!$OMP END MASTER
           error_found = .true.
        end if
     end do
@@ -672,8 +688,10 @@ contains
 
     do g = bounds%begg,bounds%endg
        if (.not. weights_okay(sumwtgcell(g), active_only, i_am_active=.true.)) then
+!$OMP MASTER
           write(iulog,*) trim(subname),' ERROR: at g = ',g,'total lunit weight is ',sumwtgcell(g), &
                          'active_only = ', active_only
+!$OMP END MASTER
           error_found = .true.
        end if
     end do
@@ -681,6 +699,7 @@ contains
     deallocate(sumwtcol, sumwtlunit, sumwtgcell)
 
     if (error_found) then
+!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) 'If you are seeing this message at the beginning of a run with'
        write(iulog,*) 'use_init_interp = .true. and init_interp_method = "use_finidat_areas",'
@@ -689,6 +708,7 @@ contains
        write(iulog,*) 'The matching input grid cell had some non-zero-weight subgrid type'
        write(iulog,*) 'that is not present in memory in the new run.'
        write(iulog,*) ' '
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -748,19 +768,19 @@ contains
     type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'set_subgrid_diagnostic_fields'
     !-----------------------------------------------------------------------
-    
+
     call set_pct_landunit_diagnostics(bounds)
 
     ! Note: (MV, 10-17-14): The following has an use_fates if-block around it since
     ! the pct_pft_diagnostics referens to patch%itype(p) which is not used by ED
-    ! Note: (SPM, 10-20-15): If this isn't set then debug mode with intel and 
+    ! Note: (SPM, 10-20-15): If this isn't set then debug mode with intel and
     ! yellowstone will fail when trying to write pct_nat_pft since it contains
     ! all NaN's.
     call set_pct_pft_diagnostics(bounds)
-    
+
     call set_pct_glc_mec_diagnostics(bounds)
 
   end subroutine set_subgrid_diagnostic_fields
@@ -779,12 +799,12 @@ contains
     ! !LOCAL VARIABLES:
     integer :: g, l  ! grid cell & landunit indices
     integer :: ltype ! landunit type
-    
+
     character(len=*), parameter :: subname = 'set_pct_landunit_diagnostics'
     !-----------------------------------------------------------------------
 
     subgrid_weights_diagnostics%pct_landunit(bounds%begg:bounds%endg, :) = 0._r8
-    
+
     do l = bounds%begl, bounds%endl
        g = lun%gridcell(l)
        ltype = lun%itype(l)
@@ -816,10 +836,10 @@ contains
     ! !LOCAL VARIABLES:
     integer :: c,l,g          ! indices
     integer :: icemec_class   ! icemec class (1..maxpatch_glcmec)
-    
+
     character(len=*), parameter :: subname = 'set_pct_glc_mec_diagnostics'
     !-----------------------------------------------------------------------
-    
+
     subgrid_weights_diagnostics%pct_glc_mec(bounds%begg:bounds%endg, :) = 0._r8
 
     do c = bounds%begc, bounds%endc
@@ -850,10 +870,10 @@ contains
     integer :: p,l,g           ! indices
     integer :: ptype           ! patch itype
     integer :: ptype_1indexing ! patch itype, translated into 1-indexing for the given landunit type
-    
+
     character(len=*), parameter :: subname = 'set_pct_pft_diagnostics'
     !-----------------------------------------------------------------------
-    
+
     subgrid_weights_diagnostics%pct_nat_pft(bounds%begg:bounds%endg, :) = 0._r8
 
     ! Note that pct_cft will be 0-size if cft_size is 0 (which can happen if we don't
@@ -861,7 +881,7 @@ contains
     ! to 0, and doing this always allows us to avoid extra logic which could be a
     ! maintenance problem.
     subgrid_weights_diagnostics%pct_cft(bounds%begg:bounds%endg, :) = 0._r8
-    
+
     do p = bounds%begp,bounds%endp
        g = patch%gridcell(p)
        l = patch%landunit(p)

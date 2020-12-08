@@ -1037,7 +1037,9 @@ contains
           eflx_soil_grnd(p) = eflx_soil_grnd(p) + errsoi(c)
           eflx_gnet(p)      = eflx_gnet(p)      + errsoi(c)
           if (abs(errsoi(c)) > 1.e-3_r8) then
+!$OMP MASTER
              write(iulog,*)'errsoi incorporated into sensible heat in LakeTemperature: c, (W/m^2):', c, errsoi(c)
+!$OMP END MASTER
           end if
           errsoi(c) = 0._r8
        end if

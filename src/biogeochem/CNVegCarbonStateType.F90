@@ -9,19 +9,19 @@ module CNVegCarbonStateType
   use shr_infnan_mod , only : nan => shr_infnan_nan, assignment(=)
   use shr_const_mod  , only : SHR_CONST_PDB
   use shr_log_mod    , only : errMsg => shr_log_errMsg
-  use pftconMod	     , only : noveg, npcropmin, pftcon, nc3crop, nc3irrig
+  use pftconMod      , only : noveg, npcropmin, pftcon, nc3crop, nc3irrig
   use clm_varcon     , only : spval, c3_r2, c4_r2, c14ratio
   use clm_varctl     , only : iulog, use_cndv, use_crop
   use decompMod      , only : bounds_type
   use abortutils     , only : endrun
-  use spmdMod        , only : masterproc 
-  use LandunitType   , only : lun                
-  use ColumnType     , only : col                
+  use spmdMod        , only : masterproc
+  use LandunitType   , only : lun
+  use ColumnType     , only : col
   use PatchType      , only : patch
   use CNSpeciesMod   , only : species_from_string, CN_SPECIES_C12
   use dynPatchStateUpdaterMod, only : patch_state_updater_type
   use CNVegComputeSeedMod, only : ComputeSeedAmounts
-  ! 
+  !
   ! !PUBLIC TYPES:
   implicit none
   private
@@ -38,7 +38,7 @@ module CNVegCarbonStateType
      real(r8), pointer :: leafc_storage_patch      (:) ! (gC/m2) leaf C storage
      real(r8), pointer :: leafc_xfer_patch         (:) ! (gC/m2) leaf C transfer
      real(r8), pointer :: leafc_storage_xfer_acc_patch   (:) ! (gC/m2) Accmulated leaf C transfer
-     real(r8), pointer :: storage_cdemand_patch          (:) ! (gC/m2)       C use from the C storage pool 
+     real(r8), pointer :: storage_cdemand_patch          (:) ! (gC/m2)       C use from the C storage pool
      real(r8), pointer :: frootc_patch             (:) ! (gC/m2) fine root C
      real(r8), pointer :: frootc_storage_patch     (:) ! (gC/m2) fine root C storage
      real(r8), pointer :: frootc_xfer_patch        (:) ! (gC/m2) fine root C transfer
@@ -79,22 +79,22 @@ module CNVegCarbonStateType
      real(r8), pointer :: totvegc_patch            (:) ! (gC/m2) total vegetation carbon, excluding cpool
      real(r8), pointer :: totvegc_col              (:) ! (gC/m2) total vegetation carbon, excluding cpool averaged to column (p2c)
 
-     ! Total C pools       
+     ! Total C pools
      real(r8), pointer :: totc_p2c_col             (:) ! (gC/m2) totc_patch averaged to col
      real(r8), pointer :: totc_col                 (:) ! (gC/m2) total column carbon, incl veg and cpool
-     real(r8), pointer :: totecosysc_col           (:) ! (gC/m2) total ecosystem carbon, incl veg but excl cpool 
+     real(r8), pointer :: totecosysc_col           (:) ! (gC/m2) total ecosystem carbon, incl veg but excl cpool
      real(r8), pointer :: totc_grc                 (:) ! (gC/m2) total gridcell carbon
 
      logical, private  :: dribble_crophrv_xsmrpool_2atm
    contains
 
-     procedure , public  :: Init   
+     procedure , public  :: Init
      procedure , public  :: SetValues
      procedure , public  :: ZeroDWT
      procedure , public  :: Restart
      procedure , public  :: Summary => Summary_carbonstate
      procedure , public  :: DynamicPatchAdjustments   ! adjust state variables when patch areas change
-     
+
      procedure , private :: InitAllocate    ! Allocate arrays
      procedure , private :: InitReadNML     ! Read in namelist
      procedure , private :: InitHistory     ! Initialize history
@@ -124,7 +124,7 @@ contains
                   dribble_crophrv_xsmrpool_2atm, c12_cnveg_carbonstate_inst)
 
     class(cnveg_carbonstate_type)                       :: this
-    type(bounds_type)            , intent(in)           :: bounds  
+    type(bounds_type)            , intent(in)           :: bounds
     real(r8)                     , intent(in)           :: ratio
     character(len=*)             , intent(in)           :: carbon_type                ! Carbon isotope type C12, C13 or C1
     character(len=*)             , intent(in)           :: NLFilename                 ! Namelist filename
@@ -178,7 +178,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -197,10 +199,12 @@ contains
     cnvegcstate_const%initial_vegC = initial_vegC
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=cnvegcarbonstate)    ! Name here MUST be the same as in nmlname above!
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
 
     !-----------------------------------------------------------------------
@@ -212,7 +216,7 @@ contains
     !
     ! !ARGUMENTS:
     class (cnveg_carbonstate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer           :: begp,endp
@@ -257,7 +261,7 @@ contains
     allocate(this%grainc_patch             (begp:endp)) ; this%grainc_patch             (:) = nan
     allocate(this%grainc_storage_patch     (begp:endp)) ; this%grainc_storage_patch     (:) = nan
     allocate(this%grainc_xfer_patch        (begp:endp)) ; this%grainc_xfer_patch        (:) = nan
-    allocate(this%woodc_patch              (begp:endp)) ; this%woodc_patch              (:) = nan     
+    allocate(this%woodc_patch              (begp:endp)) ; this%woodc_patch              (:) = nan
 
     allocate(this%cropseedc_deficit_patch  (begp:endp)) ; this%cropseedc_deficit_patch  (:) = nan
     allocate(this%seedc_grc                (begg:endg)) ; this%seedc_grc                (:) = nan
@@ -285,19 +289,19 @@ contains
     !
     ! !USES:
     use clm_varctl , only : use_c13, use_c14
-    use histFileMod, only : hist_addfld1d, hist_addfld2d, hist_addfld_decomp 
+    use histFileMod, only : hist_addfld1d, hist_addfld2d, hist_addfld_decomp
     !
     ! !ARGUMENTS:
     class (cnveg_carbonstate_type) :: this
-    type(bounds_type)         , intent(in) :: bounds 
+    type(bounds_type)         , intent(in) :: bounds
     character(len=*)          , intent(in) :: carbon_type ! one of ['c12', c13','c14']
     !
     ! !LOCAL VARIABLES:
-    integer           :: k,l,ii,jj 
+    integer           :: k,l,ii,jj
     character(10)     :: active
     integer           :: begp,endp
     integer           :: begc,endc
-    integer           :: begg,endg 
+    integer           :: begg,endg
     character(24)     :: fieldname
     character(100)    :: longname
     real(r8), pointer :: data1dptr(:)   ! temp. pointer for slicing larger arrays
@@ -329,7 +333,7 @@ contains
                avgflag='A', long_name='temporary photosynthate C pool loss', &
                ptr_patch=this%xsmrpool_loss_patch, default='inactive')
        end if
-       
+
        this%woodc_patch(begp:endp) = spval
        call hist_addfld1d (fname='WOODC', units='gC/m^2', &
             avgflag='A', long_name='wood C', &
@@ -343,12 +347,12 @@ contains
        this%leafc_storage_patch(begp:endp) = spval
        call hist_addfld1d (fname='LEAFC_STORAGE', units='gC/m^2', &
             avgflag='A', long_name='leaf C storage', &
-            ptr_patch=this%leafc_storage_patch, default='inactive')    
+            ptr_patch=this%leafc_storage_patch, default='inactive')
 
        this%leafc_xfer_patch(begp:endp) = spval
        call hist_addfld1d (fname='LEAFC_XFER', units='gC/m^2', &
             avgflag='A', long_name='leaf C transfer', &
-            ptr_patch=this%leafc_xfer_patch, default='inactive')    
+            ptr_patch=this%leafc_xfer_patch, default='inactive')
 
        this%leafc_storage_xfer_acc_patch(begp:endp) = spval
        call hist_addfld1d (fname='LEAFC_STORAGE_XFER_ACC', units='gC/m^2', &
@@ -368,12 +372,12 @@ contains
        this%frootc_storage_patch(begp:endp) = spval
        call hist_addfld1d (fname='FROOTC_STORAGE', units='gC/m^2', &
             avgflag='A', long_name='fine root C storage', &
-            ptr_patch=this%frootc_storage_patch, default='inactive')   
+            ptr_patch=this%frootc_storage_patch, default='inactive')
 
        this%frootc_xfer_patch(begp:endp) = spval
        call hist_addfld1d (fname='FROOTC_XFER', units='gC/m^2', &
             avgflag='A', long_name='fine root C transfer', &
-            ptr_patch=this%frootc_xfer_patch, default='inactive')    
+            ptr_patch=this%frootc_xfer_patch, default='inactive')
 
        this%livestemc_patch(begp:endp) = spval
        call hist_addfld1d (fname='LIVESTEMC', units='gC/m^2', &
@@ -383,12 +387,12 @@ contains
        this%livestemc_storage_patch(begp:endp) = spval
        call hist_addfld1d (fname='LIVESTEMC_STORAGE', units='gC/m^2', &
             avgflag='A', long_name='live stem C storage', &
-            ptr_patch=this%livestemc_storage_patch, default='inactive')    
+            ptr_patch=this%livestemc_storage_patch, default='inactive')
 
        this%livestemc_xfer_patch(begp:endp) = spval
        call hist_addfld1d (fname='LIVESTEMC_XFER', units='gC/m^2', &
             avgflag='A', long_name='live stem C transfer', &
-            ptr_patch=this%livestemc_xfer_patch, default='inactive')     
+            ptr_patch=this%livestemc_xfer_patch, default='inactive')
 
        this%deadstemc_patch(begp:endp) = spval
        call hist_addfld1d (fname='DEADSTEMC', units='gC/m^2', &
@@ -398,12 +402,12 @@ contains
        this%deadstemc_storage_patch(begp:endp) = spval
        call hist_addfld1d (fname='DEADSTEMC_STORAGE', units='gC/m^2', &
             avgflag='A', long_name='dead stem C storage', &
-            ptr_patch=this%deadstemc_storage_patch, default='inactive')    
+            ptr_patch=this%deadstemc_storage_patch, default='inactive')
 
        this%deadstemc_xfer_patch(begp:endp) = spval
        call hist_addfld1d (fname='DEADSTEMC_XFER', units='gC/m^2', &
             avgflag='A', long_name='dead stem C transfer', &
-            ptr_patch=this%deadstemc_xfer_patch, default='inactive')    
+            ptr_patch=this%deadstemc_xfer_patch, default='inactive')
 
        this%livecrootc_patch(begp:endp) = spval
        call hist_addfld1d (fname='LIVECROOTC', units='gC/m^2', &
@@ -413,12 +417,12 @@ contains
        this%livecrootc_storage_patch(begp:endp) = spval
        call hist_addfld1d (fname='LIVECROOTC_STORAGE', units='gC/m^2', &
             avgflag='A', long_name='live coarse root C storage', &
-            ptr_patch=this%livecrootc_storage_patch, default='inactive')     
+            ptr_patch=this%livecrootc_storage_patch, default='inactive')
 
        this%livecrootc_xfer_patch(begp:endp) = spval
        call hist_addfld1d (fname='LIVECROOTC_XFER', units='gC/m^2', &
             avgflag='A', long_name='live coarse root C transfer', &
-            ptr_patch=this%livecrootc_xfer_patch, default='inactive')    
+            ptr_patch=this%livecrootc_xfer_patch, default='inactive')
 
        this%deadcrootc_patch(begp:endp) = spval
        call hist_addfld1d (fname='DEADCROOTC', units='gC/m^2', &
@@ -428,22 +432,22 @@ contains
        this%deadcrootc_storage_patch(begp:endp) = spval
        call hist_addfld1d (fname='DEADCROOTC_STORAGE', units='gC/m^2', &
             avgflag='A', long_name='dead coarse root C storage', &
-            ptr_patch=this%deadcrootc_storage_patch, default='inactive')   
+            ptr_patch=this%deadcrootc_storage_patch, default='inactive')
 
        this%deadcrootc_xfer_patch(begp:endp) = spval
        call hist_addfld1d (fname='DEADCROOTC_XFER', units='gC/m^2', &
             avgflag='A', long_name='dead coarse root C transfer', &
-            ptr_patch=this%deadcrootc_xfer_patch, default='inactive')   
+            ptr_patch=this%deadcrootc_xfer_patch, default='inactive')
 
        this%gresp_storage_patch(begp:endp) = spval
        call hist_addfld1d (fname='GRESP_STORAGE', units='gC/m^2', &
             avgflag='A', long_name='growth respiration storage', &
-            ptr_patch=this%gresp_storage_patch, default='inactive')    
+            ptr_patch=this%gresp_storage_patch, default='inactive')
 
        this%gresp_xfer_patch(begp:endp) = spval
        call hist_addfld1d (fname='GRESP_XFER', units='gC/m^2', &
             avgflag='A', long_name='growth respiration transfer', &
-            ptr_patch=this%gresp_xfer_patch, default='inactive')     
+            ptr_patch=this%gresp_xfer_patch, default='inactive')
 
        this%cpool_patch(begp:endp) = spval
        call hist_addfld1d (fname='CPOOL', units='gC/m^2', &
@@ -503,7 +507,7 @@ contains
     end if
 
     !-------------------------------
-    ! C13 state variables 
+    ! C13 state variables
     !-------------------------------
 
     if ( carbon_type == 'c13' ) then
@@ -683,7 +687,7 @@ contains
     endif
 
     !-------------------------------
-    ! C14 state variables 
+    ! C14 state variables
     !-------------------------------
 
     if ( carbon_type == 'c14') then
@@ -871,12 +875,12 @@ contains
     ! Initializes time varying variables used only in coupled carbon-nitrogen mode (CN):
     !
     ! !USES:
-    use landunit_varcon	 , only : istsoil, istcrop 
+    use landunit_varcon  , only : istsoil, istcrop
     use clm_varctl, only : MM_Nuptake_opt, spinup_state
     !
     ! !ARGUMENTS:
-    class(cnveg_carbonstate_type)                       :: this 
-    type(bounds_type)            , intent(in)           :: bounds  
+    class(cnveg_carbonstate_type)                       :: this
+    type(bounds_type)            , intent(in)           :: bounds
     real(r8)                     , intent(in)           :: ratio              ! Standard isotope ratio
     character(len=*)             , intent(in)           :: carbon_type        ! 'c12' or 'c13' or 'c14'
     type(cnveg_carbonstate_type) , optional, intent(in) :: c12_cnveg_carbonstate_inst
@@ -935,73 +939,73 @@ contains
           if (patch%itype(p) == noveg) then
              this%leafc_patch(p)          = 0._r8
              this%leafc_storage_patch(p)  = 0._r8
-             this%frootc_patch(p)         = 0._r8            
-             this%frootc_storage_patch(p) = 0._r8    
+             this%frootc_patch(p)         = 0._r8
+             this%frootc_storage_patch(p) = 0._r8
           else
              if (pftcon%evergreen(patch%itype(p)) == 1._r8) then
-                this%leafc_patch(p)          = cnvegcstate_const%initial_vegC * ratio     
+                this%leafc_patch(p)          = cnvegcstate_const%initial_vegC * ratio
                 this%leafc_storage_patch(p)  = 0._r8
-                this%frootc_patch(p)         = cnvegcstate_const%initial_vegC * ratio           
-                this%frootc_storage_patch(p) = 0._r8    
+                this%frootc_patch(p)         = cnvegcstate_const%initial_vegC * ratio
+                this%frootc_storage_patch(p) = 0._r8
              else if (patch%itype(p) >= npcropmin) then ! prognostic crop types
                 this%leafc_patch(p)          = 0._r8
                 this%leafc_storage_patch(p)  = 0._r8
-                this%frootc_patch(p)         = 0._r8            
-                this%frootc_storage_patch(p) = 0._r8    
+                this%frootc_patch(p)         = 0._r8
+                this%frootc_storage_patch(p) = 0._r8
              else
                 this%leafc_patch(p)          = 0._r8
-                this%leafc_storage_patch(p)  = cnvegcstate_const%initial_vegC * ratio   
-                this%frootc_patch(p)         = 0._r8            
-                this%frootc_storage_patch(p) = cnvegcstate_const%initial_vegC * ratio   
+                this%leafc_storage_patch(p)  = cnvegcstate_const%initial_vegC * ratio
+                this%frootc_patch(p)         = 0._r8
+                this%frootc_storage_patch(p) = cnvegcstate_const%initial_vegC * ratio
              end if
           end if
           this%leafc_xfer_patch(p) = 0._r8
           this%leafc_storage_xfer_acc_patch(p)  = 0._r8
           this%storage_cdemand_patch(p)         = 0._r8
 
-          if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option 
-             this%frootc_patch(p)            = 0._r8 
-             this%frootc_storage_patch(p)    = 0._r8 
-          end if     
-          this%frootc_xfer_patch(p)       = 0._r8 
+          if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option
+             this%frootc_patch(p)            = 0._r8
+             this%frootc_storage_patch(p)    = 0._r8
+          end if
+          this%frootc_xfer_patch(p)       = 0._r8
 
-          this%livestemc_patch(p)         = 0._r8 
-          this%livestemc_storage_patch(p) = 0._r8 
-          this%livestemc_xfer_patch(p)    = 0._r8 
+          this%livestemc_patch(p)         = 0._r8
+          this%livestemc_storage_patch(p) = 0._r8
+          this%livestemc_xfer_patch(p)    = 0._r8
 
           if (pftcon%woody(patch%itype(p)) == 1._r8) then
              this%deadstemc_patch(p) = 0.1_r8 * ratio
           else
-             this%deadstemc_patch(p) = 0._r8 
+             this%deadstemc_patch(p) = 0._r8
           end if
-          this%deadstemc_storage_patch(p)  = 0._r8 
-          this%deadstemc_xfer_patch(p)     = 0._r8 
+          this%deadstemc_storage_patch(p)  = 0._r8
+          this%deadstemc_xfer_patch(p)     = 0._r8
 
-          this%livecrootc_patch(p)         = 0._r8 
-          this%livecrootc_storage_patch(p) = 0._r8 
-          this%livecrootc_xfer_patch(p)    = 0._r8 
+          this%livecrootc_patch(p)         = 0._r8
+          this%livecrootc_storage_patch(p) = 0._r8
+          this%livecrootc_xfer_patch(p)    = 0._r8
 
-          this%deadcrootc_patch(p)         = 0._r8 
-          this%deadcrootc_storage_patch(p) = 0._r8 
-          this%deadcrootc_xfer_patch(p)    = 0._r8 
+          this%deadcrootc_patch(p)         = 0._r8
+          this%deadcrootc_storage_patch(p) = 0._r8
+          this%deadcrootc_xfer_patch(p)    = 0._r8
 
-          this%gresp_storage_patch(p)      = 0._r8 
-          this%gresp_xfer_patch(p)         = 0._r8 
+          this%gresp_storage_patch(p)      = 0._r8
+          this%gresp_xfer_patch(p)         = 0._r8
 
-          this%cpool_patch(p)              = 0._r8 
-          this%xsmrpool_patch(p)           = 0._r8 
-          this%ctrunc_patch(p)             = 0._r8 
-          this%dispvegc_patch(p)           = 0._r8 
-          this%storvegc_patch(p)           = 0._r8 
+          this%cpool_patch(p)              = 0._r8
+          this%xsmrpool_patch(p)           = 0._r8
+          this%ctrunc_patch(p)             = 0._r8
+          this%dispvegc_patch(p)           = 0._r8
+          this%storvegc_patch(p)           = 0._r8
           this%woodc_patch(p)              = 0._r8
-          this%totc_patch(p)               = 0._r8 
+          this%totc_patch(p)               = 0._r8
 
           if ( use_crop )then
-             this%grainc_patch(p)         = 0._r8 
-             this%grainc_storage_patch(p) = 0._r8 
-             this%grainc_xfer_patch(p)    = 0._r8 
+             this%grainc_patch(p)         = 0._r8
+             this%grainc_storage_patch(p) = 0._r8
+             this%grainc_xfer_patch(p)    = 0._r8
              this%cropseedc_deficit_patch(p)  = 0._r8
-             this%xsmrpool_loss_patch(p)  = 0._r8 
+             this%xsmrpool_loss_patch(p)  = 0._r8
           end if
 
        endif
@@ -1043,7 +1047,7 @@ contains
                        c12_cnveg_carbonstate_inst, filter_reseed_patch, &
                        num_reseed_patch, spinup_factor4deadwood )
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Read/write CN restart data for carbon state
     !
     ! !USES:
@@ -1051,7 +1055,7 @@ contains
     use clm_varcon       , only : c13ratio, c14ratio
     use clm_varctl       , only : spinup_state, use_cndv, MM_Nuptake_opt
     use clm_time_manager , only : is_restart
-    use landunit_varcon	 , only : istsoil, istcrop 
+    use landunit_varcon  , only : istsoil, istcrop
     use spmdMod          , only : mpicom
     use shr_mpi_mod      , only : shr_mpi_sum
     use restUtilMod
@@ -1059,12 +1063,12 @@ contains
     !
     ! !ARGUMENTS:
     class (cnveg_carbonstate_type)                               :: this
-    type(bounds_type)                     , intent(in)           :: bounds 
+    type(bounds_type)                     , intent(in)           :: bounds
     type(file_desc_t)                     , intent(inout)        :: ncid   ! netcdf id
     character(len=*)                      , intent(in)           :: flag   !'read' or 'write'
     character(len=*)                      , intent(in)           :: carbon_type ! 'c12' or 'c13' or 'c14'
     logical                               , intent(in)           :: reseed_dead_plants
-    type (cnveg_carbonstate_type)         , intent(in), optional :: c12_cnveg_carbonstate_inst 
+    type (cnveg_carbonstate_type)         , intent(in), optional :: c12_cnveg_carbonstate_inst
     integer                               , intent(out), optional :: filter_reseed_patch(:)
     integer                               , intent(out), optional :: num_reseed_patch
     real(r8)                              , intent(out), optional :: spinup_factor4deadwood
@@ -1078,7 +1082,7 @@ contains
     logical            :: exit_spinup  = .false.
     logical            :: enter_spinup = .false.
     ! flags for comparing the model and restart decomposition cascades
-    integer            :: decomp_cascade_state, restart_file_decomp_cascade_state 
+    integer            :: decomp_cascade_state, restart_file_decomp_cascade_state
     ! spinup state as read from restart file, for determining whether to enter or exit spinup mode.
     integer            :: restart_file_spinup_state
     integer            :: total_num_reseed_patch      ! Total number of patches to reseed across all processors
@@ -1117,104 +1121,104 @@ contains
     if (carbon_type == 'c12') then
        call restartvar(ncid=ncid, flag=flag, varname='leafc', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%leafc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%leafc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='leafc_storage', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%leafc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%leafc_storage_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='leafc_xfer', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%leafc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%leafc_xfer_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='leafc_storage_xfer_acc', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%leafc_storage_xfer_acc_patch)
- 
+
        call restartvar(ncid=ncid, flag=flag, varname='storage_cdemand', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%storage_cdemand_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc_storage', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_storage_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc_xfer', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_xfer_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc_storage', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_storage_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc_xfer', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_xfer_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc_storage', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_storage_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc_xfer', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_xfer_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc_storage', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_storage_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc_xfer', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_xfer_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc_storage', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_storage_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc_xfer', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_xfer_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='gresp_storage', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%gresp_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%gresp_storage_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='gresp_xfer', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%gresp_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%gresp_xfer_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='cpool', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%cpool_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%cpool_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='xsmrpool', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_patch)
 
        if (use_crop) then
           call restartvar(ncid=ncid, flag=flag, varname='xsmrpool_loss', xtype=ncd_double,  &
                dim1name='pft', long_name='', units='', &
-               interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_loss_patch) 
+               interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_loss_patch)
           if (flag == 'read' .and. (.not. readvar) ) then
               this%xsmrpool_loss_patch(bounds%begp:bounds%endp) = 0._r8
           end if
@@ -1222,7 +1226,7 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='pft_ctrunc', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%ctrunc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%ctrunc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='leafcmax', xtype=ncd_double,  &
             dim1name='pft', &
@@ -1240,28 +1244,36 @@ contains
           else
              restart_file_spinup_state = spinup_state
              if ( masterproc ) then
+!$OMP MASTER
                 write(iulog,*) ' CNRest: WARNING!  Restart file does not contain info ' &
                       // ' on spinup state used to generate the restart file. '
                  write(iulog,*) '   Assuming the same as current setting: ', spinup_state
+!$OMP END MASTER
              end if
           end if
        end if
 
        if (flag == 'read' .and. spinup_state /= restart_file_spinup_state .and. .not. use_cndv) then
+!$OMP MASTER
           if ( masterproc ) write(iulog, *) 'exit_spinup ',exit_spinup,' restart_file_spinup_state ',restart_file_spinup_state
+!$OMP END MASTER
           if (spinup_state <= 1 .and. restart_file_spinup_state == 2 ) then
-             if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood C pools out of AD spinup mode'
              exit_spinup = .true.
+!$OMP MASTER
+             if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood C pools out of AD spinup mode'
              if ( masterproc ) write(iulog, *) 'Multiplying stemc and crootc by ', spinup_factor_AD, ' for exit spinup'
+!$OMP END MASTER
              do i = bounds%begp,bounds%endp
                 this%deadstemc_patch(i) = this%deadstemc_patch(i) * spinup_factor_AD
                 this%deadcrootc_patch(i) = this%deadcrootc_patch(i) * spinup_factor_AD
              end do
           else if (spinup_state == 2 .and. restart_file_spinup_state <= 1 )then
              if (spinup_state == 2 .and. restart_file_spinup_state <= 1 )then
-                if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood C pools into AD spinup mode'
                 enter_spinup = .true.
+!$OMP MASTER
+                if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood C pools into AD spinup mode'
                 if ( masterproc ) write(iulog, *) 'Dividing stemc and crootc by ', spinup_factor_AD, 'for enter spinup '
+!$OMP END MASTER
                 do i = bounds%begp,bounds%endp
                    this%deadstemc_patch(i) = this%deadstemc_patch(i) / spinup_factor_AD
                    this%deadcrootc_patch(i) = this%deadcrootc_patch(i) / spinup_factor_AD
@@ -1276,7 +1288,7 @@ contains
        if (carbon_type == 'c12') then
           call restartvar(ncid=ncid, flag=flag, varname='totvegc', xtype=ncd_double,  &
                dim1name='pft', long_name='', units='', &
-               interpinic_flag='interp', readvar=readvar, data=this%totvegc_patch) 
+               interpinic_flag='interp', readvar=readvar, data=this%totvegc_patch)
           ! totvegc_col needed for resetting soil carbon stocks during AD spinup exit
           call restartvar(ncid=ncid, flag=flag, varname='totvegc_col', xtype=ncd_double,  &
                dim1name='column', long_name='', units='', &
@@ -1284,15 +1296,17 @@ contains
        end if
 
        !--------------------------------
-       ! C13 carbon state variables 
+       ! C13 carbon state variables
        !--------------------------------
 
        if ( carbon_type == 'c13')  then
           call restartvar(ncid=ncid, flag=flag, varname='totvegc_13', xtype=ncd_double,  &
                dim1name='pft', long_name='', units='', &
-               interpinic_flag='interp', readvar=readvar, data=this%totvegc_patch) 
+               interpinic_flag='interp', readvar=readvar, data=this%totvegc_patch)
           if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
              if ( masterproc ) write(iulog,*) 'initializing cnveg_carbonstate_inst%totvegc with atmospheric c13 value'
+!$OMP END MASTER
              do i = bounds%begp,bounds%endp
                 if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                    this%totvegc_patch(i) = c12_cnveg_carbonstate_inst%totvegc_patch(i) * c3_r2
@@ -1306,7 +1320,9 @@ contains
                dim1name='column', long_name='', units='', &
                interpinic_flag='interp', readvar=readvar, data=this%totvegc_col)
           if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
              if ( masterproc ) write(iulog,*) 'initializing cnveg_carbonstate_inst%totvegc with atmospheric c13 value'
+!$OMP END MASTER
              do i = bounds%begc,bounds%endc
                 if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                    this%totvegc_col(i) = c12_cnveg_carbonstate_inst%totvegc_col(i) * c3_r2
@@ -1319,15 +1335,17 @@ contains
        end if
 
        !--------------------------------
-       ! C14 patch carbon state variables 
+       ! C14 patch carbon state variables
        !--------------------------------
 
        if ( carbon_type == 'c14')  then
           call restartvar(ncid=ncid, flag=flag, varname='totvegc_14', xtype=ncd_double,  &
                dim1name='pft', long_name='', units='', &
-               interpinic_flag='interp', readvar=readvar, data=this%totvegc_patch) 
+               interpinic_flag='interp', readvar=readvar, data=this%totvegc_patch)
           if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
              if ( masterproc ) write(iulog,*) 'initializing this%totvegc_patch with atmospheric c14 value'
+!$OMP END MASTER
              do i = bounds%begp,bounds%endp
                 if (this%totvegc_patch(i) /= spval .and. &
                     .not. isnan(this%totvegc_patch(i)) ) then
@@ -1340,7 +1358,9 @@ contains
                dim1name='column', long_name='', units='', &
                interpinic_flag='interp', readvar=readvar, data=this%totvegc_col)
           if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
              if ( masterproc ) write(iulog,*) 'initializing cnveg_carbonstate_inst%totvegc with atmospheric c14 value'
+!$OMP END MASTER
              do i = bounds%begc,bounds%endc
                 if (this%totvegc_col(i) /= spval .and. &
                     .not. isnan(this%totvegc_col(i)) ) then
@@ -1352,7 +1372,9 @@ contains
 
 
        if (  flag == 'read' .and. (enter_spinup .or. (reseed_dead_plants .and. .not. is_restart())) .and. .not. use_cndv) then
+!$OMP MASTER
              if ( masterproc ) write(iulog, *) 'Reseeding dead plants for CNVegCarbonState'
+!$OMP END MASTER
              ! If a pft is dead or near-dead (indicated by totvegc <= totvegcthresh) then we reseed that
              ! pft according to the cold start protocol in the InitCold subroutine.
              ! Thus, the variable totvegc is required to be read before here
@@ -1375,71 +1397,71 @@ contains
                       if (patch%itype(i) == noveg) then
                          this%leafc_patch(i)          = 0._r8
                          this%leafc_storage_patch(i)  = 0._r8
-                         this%frootc_patch(i)         = 0._r8            
-                         this%frootc_storage_patch(i) = 0._r8    
+                         this%frootc_patch(i)         = 0._r8
+                         this%frootc_storage_patch(i) = 0._r8
                       else
                          if (pftcon%evergreen(patch%itype(i)) == 1._r8) then
-                            this%leafc_patch(i)          = cnvegcstate_const%initial_vegC * ratio     
+                            this%leafc_patch(i)          = cnvegcstate_const%initial_vegC * ratio
                             this%leafc_storage_patch(i)  = 0._r8
-                            this%frootc_patch(i)         = cnvegcstate_const%initial_vegC * ratio           
-                            this%frootc_storage_patch(i) = 0._r8    
+                            this%frootc_patch(i)         = cnvegcstate_const%initial_vegC * ratio
+                            this%frootc_storage_patch(i) = 0._r8
                          else
                             this%leafc_patch(i)          = 0._r8
-                            this%leafc_storage_patch(i)  = cnvegcstate_const%initial_vegC * ratio   
-                            this%frootc_patch(i)         = 0._r8            
-                            this%frootc_storage_patch(i) = cnvegcstate_const%initial_vegC * ratio   
+                            this%leafc_storage_patch(i)  = cnvegcstate_const%initial_vegC * ratio
+                            this%frootc_patch(i)         = 0._r8
+                            this%frootc_storage_patch(i) = cnvegcstate_const%initial_vegC * ratio
                          end if
                       end if
                       this%leafc_xfer_patch(i) = 0._r8
                       this%leafc_storage_xfer_acc_patch(i)  = 0._r8
                       this%storage_cdemand_patch(i)         = 0._r8
 
-                      if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option 
-                         this%frootc_patch(i)            = 0._r8 
-                         this%frootc_storage_patch(i)    = 0._r8 
-                      end if     
-                      this%frootc_xfer_patch(i)       = 0._r8 
+                      if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option
+                         this%frootc_patch(i)            = 0._r8
+                         this%frootc_storage_patch(i)    = 0._r8
+                      end if
+                      this%frootc_xfer_patch(i)       = 0._r8
 
-                      this%livestemc_patch(i)         = 0._r8 
-                      this%livestemc_storage_patch(i) = 0._r8 
-                      this%livestemc_xfer_patch(i)    = 0._r8 
+                      this%livestemc_patch(i)         = 0._r8
+                      this%livestemc_storage_patch(i) = 0._r8
+                      this%livestemc_xfer_patch(i)    = 0._r8
 
                       if (pftcon%woody(patch%itype(i)) == 1._r8) then
                          this%deadstemc_patch(i) = 0.1_r8 * ratio
                       else
-                         this%deadstemc_patch(i) = 0._r8 
+                         this%deadstemc_patch(i) = 0._r8
                       end if
-                      this%deadstemc_storage_patch(i)  = 0._r8 
-                      this%deadstemc_xfer_patch(i)     = 0._r8 
+                      this%deadstemc_storage_patch(i)  = 0._r8
+                      this%deadstemc_xfer_patch(i)     = 0._r8
 
-                      this%livecrootc_patch(i)         = 0._r8 
-                      this%livecrootc_storage_patch(i) = 0._r8 
-                      this%livecrootc_xfer_patch(i)    = 0._r8 
+                      this%livecrootc_patch(i)         = 0._r8
+                      this%livecrootc_storage_patch(i) = 0._r8
+                      this%livecrootc_xfer_patch(i)    = 0._r8
 
-                      this%deadcrootc_patch(i)         = 0._r8 
-                      this%deadcrootc_storage_patch(i) = 0._r8 
-                      this%deadcrootc_xfer_patch(i)    = 0._r8 
+                      this%deadcrootc_patch(i)         = 0._r8
+                      this%deadcrootc_storage_patch(i) = 0._r8
+                      this%deadcrootc_xfer_patch(i)    = 0._r8
 
-                      this%gresp_storage_patch(i)      = 0._r8 
-                      this%gresp_xfer_patch(i)         = 0._r8 
+                      this%gresp_storage_patch(i)      = 0._r8
+                      this%gresp_xfer_patch(i)         = 0._r8
 
-                      this%cpool_patch(i)              = 0._r8 
-                      this%xsmrpool_patch(i)           = 0._r8 
-                      this%ctrunc_patch(i)             = 0._r8 
-                      this%dispvegc_patch(i)           = 0._r8 
-                      this%storvegc_patch(i)           = 0._r8 
+                      this%cpool_patch(i)              = 0._r8
+                      this%xsmrpool_patch(i)           = 0._r8
+                      this%ctrunc_patch(i)             = 0._r8
+                      this%dispvegc_patch(i)           = 0._r8
+                      this%storvegc_patch(i)           = 0._r8
                       this%woodc_patch(i)              = 0._r8
-                      this%totc_patch(i)               = 0._r8 
+                      this%totc_patch(i)               = 0._r8
 
                       if ( use_crop )then
-                         this%grainc_patch(i)         = 0._r8 
-                         this%grainc_storage_patch(i) = 0._r8 
-                         this%grainc_xfer_patch(i)    = 0._r8 
+                         this%grainc_patch(i)         = 0._r8
+                         this%grainc_storage_patch(i) = 0._r8
+                         this%grainc_xfer_patch(i)    = 0._r8
                          this%cropseedc_deficit_patch(i)  = 0._r8
-                         this%xsmrpool_loss_patch(i)  = 0._r8 
+                         this%xsmrpool_loss_patch(i)  = 0._r8
                       end if
 
-                      ! calculate totvegc explicitly so that it is available for the isotope 
+                      ! calculate totvegc explicitly so that it is available for the isotope
                       ! code on the first time step.
 
                       this%totvegc_patch(i) = &
@@ -1478,14 +1500,16 @@ contains
              end do
              if ( present(num_reseed_patch) ) then
                 call shr_mpi_sum( num_reseed_patch, total_num_reseed_patch, mpicom )
+!$OMP MASTER
                 if ( masterproc ) write(iulog,*) 'Total num_reseed, over all tasks = ', total_num_reseed_patch
+!$OMP END MASTER
              end if
        end if
 
     end if
 
     !--------------------------------
-    ! C13 patch carbon state variables 
+    ! C13 patch carbon state variables
     !--------------------------------
 
     if ( carbon_type == 'c13')  then
@@ -1493,7 +1517,9 @@ contains
             dim1name='pft', long_name='', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%leafc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%leafc with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%leafc_patch(i) = c12_cnveg_carbonstate_inst%leafc_patch(i) * c3_r2
@@ -1505,9 +1531,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='leafc_storage_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%leafc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%leafc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%leafc_storage with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%leafc_storage_patch(i) = c12_cnveg_carbonstate_inst%leafc_storage_patch(i) * c3_r2
@@ -1520,9 +1548,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='leafc_xfer_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%leafc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%leafc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%leafc_xfer with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%leafc_xfer_patch(i) = c12_cnveg_carbonstate_inst%leafc_xfer_patch(i) * c3_r2
@@ -1534,9 +1564,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%frootc with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%frootc_patch(i) = c12_cnveg_carbonstate_inst%frootc_patch(i) * c3_r2
@@ -1548,9 +1580,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc_storage_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%frootc_storage with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%frootc_storage_patch(i) = c12_cnveg_carbonstate_inst%frootc_storage_patch(i) * c3_r2
@@ -1562,9 +1596,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc_xfer_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%frootc_xfer with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%frootc_xfer_patch(i) = c12_cnveg_carbonstate_inst%frootc_xfer_patch(i) * c3_r2
@@ -1576,9 +1612,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livestemc with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%livestemc_patch(i) = c12_cnveg_carbonstate_inst%livestemc_patch(i) * c3_r2
@@ -1590,9 +1628,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc_storage_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livestemc_storage with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%livestemc_storage_patch(i) = c12_cnveg_carbonstate_inst%livestemc_storage_patch(i) * c3_r2
@@ -1604,9 +1644,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc_xfer_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livestemc_xfer with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%livestemc_xfer_patch(i) = c12_cnveg_carbonstate_inst%livestemc_xfer_patch(i) * c3_r2
@@ -1618,9 +1660,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadstemc with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%deadstemc_patch(i) = c12_cnveg_carbonstate_inst%deadstemc_patch(i) * c3_r2
@@ -1632,9 +1676,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc_storage_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadstemc_storage with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%deadstemc_storage_patch(i) = c12_cnveg_carbonstate_inst%deadstemc_storage_patch(i) * c3_r2
@@ -1646,9 +1692,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc_xfer_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadstemc_xfer with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%deadstemc_xfer_patch(i) = c12_cnveg_carbonstate_inst%deadstemc_xfer_patch(i) * c3_r2
@@ -1660,9 +1708,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livecrootc with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%livecrootc_patch(i) = c12_cnveg_carbonstate_inst%livecrootc_patch(i) * c3_r2
@@ -1674,9 +1724,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc_storage_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livecrootc_storage with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%livecrootc_storage_patch(i) = c12_cnveg_carbonstate_inst%livecrootc_storage_patch(i) * c3_r2
@@ -1688,9 +1740,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc_xfer_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livecrootc_xfer with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%livecrootc_xfer_patch(i) = c12_cnveg_carbonstate_inst%livecrootc_xfer_patch(i) * c3_r2
@@ -1702,9 +1756,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadcrootc with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%deadcrootc_patch(i) = c12_cnveg_carbonstate_inst%deadcrootc_patch(i) * c3_r2
@@ -1716,9 +1772,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc_storage_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadcrootc_storage with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%deadcrootc_storage_patch(i) = c12_cnveg_carbonstate_inst%deadcrootc_storage_patch(i) * c3_r2
@@ -1730,9 +1788,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc_xfer_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadcrootc_xfer with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%deadcrootc_xfer_patch(i) = c12_cnveg_carbonstate_inst%deadcrootc_xfer_patch(i) * c3_r2
@@ -1744,9 +1804,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='gresp_storage_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%gresp_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%gresp_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%gresp_storage with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%gresp_storage_patch(i) = c12_cnveg_carbonstate_inst%gresp_storage_patch(i) * c3_r2
@@ -1759,9 +1821,11 @@ contains
        call restartvar(ncid=ncid, flag=flag, varname='gresp_xfer_13', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%gresp_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%gresp_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%gresp_xfer with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%gresp_xfer_patch(i) = c12_cnveg_carbonstate_inst%gresp_xfer_patch(i) * c3_r2
@@ -1773,9 +1837,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='cpool_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%cpool_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%cpool_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%cpool with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%cpool_patch(i) = c12_cnveg_carbonstate_inst%cpool_patch(i) * c3_r2
@@ -1788,9 +1854,11 @@ contains
        call restartvar(ncid=ncid, flag=flag, varname='xsmrpool_13', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%xsmrpool with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%xsmrpool_patch(i) = c12_cnveg_carbonstate_inst%xsmrpool_patch(i) * c3_r2
@@ -1803,9 +1871,11 @@ contains
        call restartvar(ncid=ncid, flag=flag, varname='xsmrpool_loss_13', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_loss_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_loss_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%xsmrpool_loss with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%xsmrpool_loss_patch(i) = c12_cnveg_carbonstate_inst%xsmrpool_loss_patch(i) * c3_r2
@@ -1817,9 +1887,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='pft_ctrunc_13', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%ctrunc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%ctrunc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%ctrunc with atmospheric c13 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (pftcon%c3psn(patch%itype(i)) == 1._r8) then
                 this%ctrunc_patch(i) = c12_cnveg_carbonstate_inst%ctrunc_patch(i) * c3_r2
@@ -1832,15 +1904,17 @@ contains
     end if
 
     !--------------------------------
-    ! C14 patch carbon state variables 
+    ! C14 patch carbon state variables
     !--------------------------------
 
     if ( carbon_type == 'c14')  then
        call restartvar(ncid=ncid, flag=flag, varname='leafc_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%leafc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%leafc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%leafc_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%leafc_patch(i) /= spval .and. &
                   .not. isnan(this%leafc_patch(i)) ) then
@@ -1851,9 +1925,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='leafc_storage_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%leafc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%leafc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%leafc_storage_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%leafc_storage_patch(i) /= spval .and. &
                   .not. isnan(this%leafc_storage_patch(i)) ) then
@@ -1864,9 +1940,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='leafc_xfer_14', xtype=ncd_double,  &
             dim1name='pft',    long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%leafc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%leafc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%leafc_xfer_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%leafc_xfer_patch(i) /= spval .and. .not. isnan(this%leafc_xfer_patch(i)) ) then
                 this%leafc_xfer_patch(i) = c12_cnveg_carbonstate_inst%leafc_xfer_patch(i) * c14ratio
@@ -1876,9 +1954,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%frootc_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%frootc_patch(i) /= spval .and. &
                   .not. isnan(this%frootc_patch(i)) ) then
@@ -1889,9 +1969,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc_storage_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%frootc_storage_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%frootc_storage_patch(i) /= spval .and. &
                   .not. isnan(this%frootc_storage_patch(i)) ) then
@@ -1902,9 +1984,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='frootc_xfer_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%frootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%frootc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%frootc_xfer_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%frootc_xfer_patch(i) /= spval .and. &
                   .not. isnan(this%frootc_xfer_patch(i)) ) then
@@ -1915,9 +1999,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livestemc_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%livestemc_patch(i) /= spval .and. .not. isnan(this%livestemc_patch(i)) ) then
                 this%livestemc_patch(i) = c12_cnveg_carbonstate_inst%livestemc_patch(i) * c14ratio
@@ -1927,9 +2013,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc_storage_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livestemc_storage_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%livestemc_storage_patch(i) /= spval .and. .not. isnan(this%livestemc_storage_patch(i)) ) then
                 this%livestemc_storage_patch(i) = c12_cnveg_carbonstate_inst%livestemc_storage_patch(i) * c14ratio
@@ -1939,9 +2027,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livestemc_xfer_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livestemc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livestemc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livestemc_xfer_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%livestemc_xfer_patch(i) /= spval .and. .not. isnan(this%livestemc_xfer_patch(i)) ) then
                 this%livestemc_xfer_patch(i) = c12_cnveg_carbonstate_inst%livestemc_xfer_patch(i) * c14ratio
@@ -1951,9 +2041,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadstemc_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%deadstemc_patch(i) /= spval .and. .not. isnan(this%deadstemc_patch(i)) ) then
                 this%deadstemc_patch(i) = c12_cnveg_carbonstate_inst%deadstemc_patch(i) * c14ratio
@@ -1963,9 +2055,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc_storage_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadstemc_storage_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%deadstemc_storage_patch(i) /= spval .and. .not. isnan(this%deadstemc_storage_patch(i)) ) then
                 this%deadstemc_storage_patch(i) = c12_cnveg_carbonstate_inst%deadstemc_storage_patch(i) * c14ratio
@@ -1975,9 +2069,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadstemc_xfer_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadstemc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadstemc_xfer_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%deadstemc_xfer_patch(i) /= spval .and. .not. isnan(this%deadstemc_xfer_patch(i)) ) then
                 this%deadstemc_xfer_patch(i) = c12_cnveg_carbonstate_inst%deadstemc_xfer_patch(i) * c14ratio
@@ -1987,9 +2083,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livecrootc_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%livecrootc_patch(i) /= spval .and. .not. isnan(this%livecrootc_patch(i)) ) then
                 this%livecrootc_patch(i) = c12_cnveg_carbonstate_inst%livecrootc_patch(i) * c14ratio
@@ -1999,9 +2097,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc_storage_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livecrootc_storage_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%livecrootc_storage_patch(i) /= spval .and. .not. isnan(this%livecrootc_storage_patch(i)) ) then
                 this%livecrootc_storage_patch(i) = c12_cnveg_carbonstate_inst%livecrootc_storage_patch(i) * c14ratio
@@ -2011,9 +2111,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='livecrootc_xfer_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%livecrootc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%livecrootc_xfer_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%livecrootc_xfer_patch(i) /= spval .and. .not. isnan(this%livecrootc_xfer_patch(i)) ) then
                 this%livecrootc_xfer_patch(i) = c12_cnveg_carbonstate_inst%livecrootc_xfer_patch(i) * c14ratio
@@ -2023,9 +2125,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadcrootc_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%deadcrootc_patch(i) /= spval .and. .not. isnan(this%deadcrootc_patch(i)) ) then
                 this%deadcrootc_patch(i) = c12_cnveg_carbonstate_inst%deadcrootc_patch(i) * c14ratio
@@ -2035,9 +2139,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc_storage_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadcrootc_storage_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%deadcrootc_storage_patch(i) /= spval .and. .not. isnan(this%deadcrootc_storage_patch(i)) ) then
                 this%deadcrootc_storage_patch(i) = c12_cnveg_carbonstate_inst%deadcrootc_storage_patch(i) * c14ratio
@@ -2047,9 +2153,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='deadcrootc_xfer_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%deadcrootc_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%deadcrootc_xfer_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%deadcrootc_xfer_patch(i) /= spval .and. .not. isnan(this%deadcrootc_xfer_patch(i)) ) then
                 this%deadcrootc_xfer_patch(i) = c12_cnveg_carbonstate_inst%deadcrootc_xfer_patch(i) * c14ratio
@@ -2059,9 +2167,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='gresp_storage_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%gresp_storage_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%gresp_storage_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%gresp_storage_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%gresp_storage_patch(i) /= spval .and. .not. isnan(this%gresp_storage_patch(i)) ) then
                 this%gresp_storage_patch(i) = c12_cnveg_carbonstate_inst%gresp_storage_patch(i) * c14ratio
@@ -2071,9 +2181,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='gresp_xfer_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%gresp_xfer_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%gresp_xfer_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%gresp_xfer_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%gresp_xfer_patch(i) /= spval .and. .not. isnan(this%gresp_xfer_patch(i)) ) then
                 this%gresp_xfer_patch(i) = c12_cnveg_carbonstate_inst%gresp_xfer_patch(i) * c14ratio
@@ -2083,9 +2195,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='cpool_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%cpool_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%cpool_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%cpool_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%cpool_patch(i) /= spval .and. .not. isnan(this%cpool_patch(i)) ) then
                 this%cpool_patch(i) = c12_cnveg_carbonstate_inst%cpool_patch(i) * c14ratio
@@ -2095,9 +2209,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='xsmrpool_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%xsmrpool_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%xsmrpool_patch(i) /= spval .and. .not. isnan(this%xsmrpool_patch(i)) ) then
                 this%xsmrpool_patch(i) = c12_cnveg_carbonstate_inst%xsmrpool_patch(i) * c14ratio
@@ -2107,9 +2223,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='xsmrpool_loss_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_loss_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%xsmrpool_loss_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%xsmrpool_loss_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%xsmrpool_loss_patch(i) /= spval .and. .not. isnan(this%xsmrpool_loss_patch(i)) ) then
                 this%xsmrpool_loss_patch(i) = c12_cnveg_carbonstate_inst%xsmrpool_loss_patch(i) * c14ratio
@@ -2119,9 +2237,11 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='pft_ctrunc_14', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%ctrunc_patch) 
+            interpinic_flag='interp', readvar=readvar, data=this%ctrunc_patch)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%ctrunc_patch with atmospheric c14 value'
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              if (this%ctrunc_patch(i) /= spval .and. .not. isnan(this%ctrunc_patch(i)) ) then
                 this%ctrunc_patch(i) = c12_cnveg_carbonstate_inst%ctrunc_patch(i) * c14ratio
@@ -2232,7 +2352,9 @@ contains
                dim1name='pft', long_name='pool for seeding new crop growth', units='gC14/m2', &
                interpinic_flag='interp', readvar=readvar, data=this%cropseedc_deficit_patch)
           if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
              if ( masterproc ) write(iulog,*) 'initializing this%cropseedc_deficit_patch with atmospheric c14 value'
+!$OMP END MASTER
              call set_missing_from_template( &
                   my_var = this%cropseedc_deficit_patch, &
                   template_var = c12_cnveg_carbonstate_inst%cropseedc_deficit_patch, &
@@ -2250,7 +2372,7 @@ contains
        ! to distinguish it from the old column-level seedc restart variable
        call restartvar(ncid=ncid, flag=flag, varname='seedc_g', xtype=ncd_double,  &
             dim1name='gridcell', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%seedc_grc) 
+            interpinic_flag='interp', readvar=readvar, data=this%seedc_grc)
     end if
 
     !--------------------------------
@@ -2260,7 +2382,7 @@ contains
     if (carbon_type == 'c13') then
        call restartvar(ncid=ncid, flag=flag, varname='seedc_13_g', xtype=ncd_double,  &
             dim1name='gridcell', long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%seedc_grc) 
+            interpinic_flag='interp', readvar=readvar, data=this%seedc_grc)
        if (flag=='read' .and. .not. readvar) then
           call set_missing_from_template( &
                my_var = this%seedc_grc, &
@@ -2277,9 +2399,11 @@ contains
        call restartvar(ncid=ncid, flag=flag, varname='seedc_14_g', xtype=ncd_double,  &
             dim1name='gridcell', &
             long_name='', units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%seedc_grc) 
+            interpinic_flag='interp', readvar=readvar, data=this%seedc_grc)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) 'initializing this%seedc_grc with atmospheric c14 value'
+!$OMP END MASTER
           call set_missing_from_template( &
                my_var = this%seedc_grc, &
                template_var = c12_cnveg_carbonstate_inst%seedc_grc, &
@@ -2319,7 +2443,7 @@ contains
        this%leafc_storage_patch(i)      = value_patch
        this%leafc_xfer_patch(i)         = value_patch
        this%leafc_storage_xfer_acc_patch(i) = value_patch
-       this%storage_cdemand_patch(i)        = value_patch        
+       this%storage_cdemand_patch(i)        = value_patch
        this%frootc_patch(i)             = value_patch
        this%frootc_storage_patch(i)     = value_patch
        this%frootc_xfer_patch(i)        = value_patch
@@ -2377,7 +2501,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cnveg_carbonstate_type) :: this
-    type(bounds_type), intent(in)  :: bounds 
+    type(bounds_type), intent(in)  :: bounds
     !
     ! !LOCAL VARIABLES:
     integer  :: p          ! indices
@@ -2407,14 +2531,14 @@ contains
     !
     ! !ARGUMENTS:
     class(cnveg_carbonstate_type)  :: this
-    type(bounds_type) , intent(in) :: bounds          
+    type(bounds_type) , intent(in) :: bounds
     integer           , intent(in) :: num_allc        ! number of columns in allc filter
     integer           , intent(in) :: filter_allc(:)  ! filter for all active columns
     integer           , intent(in) :: num_soilc       ! number of soil columns in filter
     integer           , intent(in) :: filter_soilc(:) ! filter for soil columns
     integer           , intent(in) :: num_soilp       ! number of soil patches in filter
     integer           , intent(in) :: filter_soilp(:) ! filter for soil patches
-    real(r8)          , intent(in) :: soilbiogeochem_cwdc_col(bounds%begc:)   
+    real(r8)          , intent(in) :: soilbiogeochem_cwdc_col(bounds%begc:)
     real(r8)          , intent(in) :: soilbiogeochem_totlitc_col(bounds%begc:)
     real(r8)          , intent(in) :: soilbiogeochem_totsomc_col(bounds%begc:)
     real(r8)          , intent(in) :: soilbiogeochem_ctrunc_col(bounds%begc:)
@@ -2483,7 +2607,7 @@ contains
             this%xsmrpool_patch(p) + &
             this%ctrunc_patch(p)
 
-       if (use_crop) then 
+       if (use_crop) then
           this%totc_patch(p) = this%totc_patch(p) + this%cropseedc_deficit_patch(p) + &
                this%xsmrpool_loss_patch(p)
        end if

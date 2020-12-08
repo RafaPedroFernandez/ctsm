@@ -442,7 +442,9 @@ contains
       ! Just print out the first error
       if (fn > 0) then
          g = filterg(1)
+!$OMP MASTER
          write(iulog,*) 'Error in Establishment: fpc_total =',fpc_total(g), ' at gridcell ',g
+!$OMP END MASTER
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
 

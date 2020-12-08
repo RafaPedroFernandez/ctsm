@@ -885,20 +885,46 @@ contains
                      err_idx = err_idx + 1
                   elseif((trip == 1).and.(flg_dover == 4).and.(err_idx >= 20)) then
                      flg_dover = 0
+!$OMP MASTER
                      write(iulog,*) "SNICAR ERROR: FOUND A WORMHOLE. STUCK IN INFINITE LOOP! Called from: ", flg_snw_ice
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: snw_rds(0)= ", snw_rds(c_idx,0)
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: L_snw(0)= ", L_snw(0)
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: h2osno= ", h2osno_lcl, " snl= ", snl_lcl
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: soot1(0)= ", mss_cnc_aer_lcl(0,1)
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: soot2(0)= ", mss_cnc_aer_lcl(0,2)
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: dust1(0)= ", mss_cnc_aer_lcl(0,3)
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: dust2(0)= ", mss_cnc_aer_lcl(0,4)
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: dust3(0)= ", mss_cnc_aer_lcl(0,5)
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "SNICAR STATS: dust4(0)= ", mss_cnc_aer_lcl(0,6)
+!$OMP END MASTER
                      l_idx     = col%landunit(c_idx)
+!$OMP MASTER
                      write(iulog,*) "column index: ", c_idx
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "landunit type", lun%itype(l_idx)
+!$OMP END MASTER
+!$OMP MASTER
                      write(iulog,*) "frac_sno: ", frac_sno(c_idx)
+!$OMP END MASTER
                      call endrun(decomp_index=c_idx, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
                   else
                      flg_dover = 0
@@ -1343,10 +1369,14 @@ contains
 
      !
      ! Open optics file:
+!$OMP MASTER
      if(masterproc) write(iulog,*) 'Attempting to read snow optical properties .....'
+!$OMP END MASTER
      call getfil (fsnowoptics, locfn, 0)
      call ncd_pio_openfile(ncid, locfn, 0)
+!$OMP MASTER
      if(masterproc) write(iulog,*) subname,trim(fsnowoptics)
+!$OMP END MASTER
 
      ! direct-beam snow Mie parameters:
      call ncd_io('ss_alb_ice_drc', ss_alb_snw_drc,            'read', ncid, posNOTonfile=.true.)
@@ -1402,7 +1432,9 @@ contains
      call ncd_pio_closefile(ncid)
      if (masterproc) then
 
+!$OMP MASTER
         write(iulog,*) 'Successfully read snow optical properties'
+!$OMP END MASTER
         ! print some diagnostics:
         write (iulog,*) 'SNICAR: Mie single scatter albedos for direct-beam ice, rds=100um: ', &
              ss_alb_snw_drc(71,1), ss_alb_snw_drc(71,2), ss_alb_snw_drc(71,3),     &
@@ -1433,7 +1465,9 @@ contains
              ss_alb_dst3(1), ss_alb_dst3(2), ss_alb_dst3(3), ss_alb_dst3(4), ss_alb_dst3(5)
         write (iulog,*) 'SNICAR: Mie single scatter albedos for dust species 4: ', &
              ss_alb_dst4(1), ss_alb_dst4(2), ss_alb_dst4(3), ss_alb_dst4(4), ss_alb_dst4(5)
+!$OMP MASTER
         write(iulog,*)
+!$OMP END MASTER
      end if
 
    end subroutine SnowOptics_init
@@ -1456,10 +1490,14 @@ contains
      allocate(snowage_kappa(idx_rhos_max,idx_Tgrd_max,idx_T_max))
      allocate(snowage_drdt0(idx_rhos_max,idx_Tgrd_max,idx_T_max))
 
+!$OMP MASTER
      if(masterproc)  write(iulog,*) 'Attempting to read snow aging parameters .....'
+!$OMP END MASTER
      call getfil (fsnowaging, locfn, 0)
      call ncd_pio_openfile(ncid, locfn, 0)
+!$OMP MASTER
      if(masterproc) write(iulog,*) subname,trim(fsnowaging)
+!$OMP END MASTER
 
      ! snow aging parameters
 
@@ -1470,7 +1508,9 @@ contains
      call ncd_pio_closefile(ncid)
      if (masterproc) then
 
+!$OMP MASTER
         write(iulog,*) 'Successfully read snow aging properties'
+!$OMP END MASTER
 
         ! print some diagnostics:
         write (iulog,*) 'SNICAR: snowage tau for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_tau(3,11,9)

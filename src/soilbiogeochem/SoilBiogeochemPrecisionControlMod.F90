@@ -172,15 +172,23 @@ contains
             do j = 1,nlevdecomp
                if (abs(ns%smin_no3_vr_col(c,j)) < ncrit/1e4_r8) then
                   if ( ns%smin_no3_vr_col(c,j)  < 0._r8 ) then
+!$OMP MASTER
                      !write(iulog, *) '-10^-12 < smin_no3 < 0. resetting to zero.'
+!$OMP END MASTER
+!$OMP MASTER
                      !write(iulog, *) 'smin_no3_vr_col(c,j), c, j: ', ns%smin_no3_vr_col(c,j), c, j
+!$OMP END MASTER
                      ns%smin_no3_vr_col(c,j) = 0._r8
                   endif
                end if
                if (abs(ns%smin_nh4_vr_col(c,j)) < ncrit/1e4_r8) then
                   if ( ns%smin_nh4_vr_col(c,j)  < 0._r8 ) then
+!$OMP MASTER
                      !write(iulog, *) '-10^-12 < smin_nh4 < 0. resetting to zero.'
+!$OMP END MASTER
+!$OMP MASTER
                      !write(iulog, *) 'smin_nh4_vr_col(c,j), c, j: ', ns%smin_nh4_vr_col(c,j), c, j
+!$OMP END MASTER
                      ns%smin_nh4_vr_col(c,j) = 0._r8
                   endif
                end if

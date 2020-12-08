@@ -45,6 +45,7 @@ module surfrdMod
 contains
 
   !-----------------------------------------------------------------------
+
   subroutine surfrd_get_data (begg, endg, ldomain, lfsurdat, actual_numcft)
     !
     ! !DESCRIPTION:
@@ -103,11 +104,13 @@ contains
     !-----------------------------------------------------------------------
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Attempting to read surface boundary data .....'
        if (lfsurdat == ' ') then
           write(iulog,*)'lfsurdat must be specified'
           call endrun(msg=errMsg(sourcefile, __LINE__))
        endif
+!$OMP END MASTER
     endif
 
     wt_lunit(:,:) = 0._r8
@@ -146,7 +149,9 @@ contains
        lat_var  = 'LATIXY'
     end if
     if ( masterproc )then
+!$OMP MASTER
        write(iulog,*) trim(subname),' lon_var = ',trim(lon_var),' lat_var =',trim(lat_var)
+!$OMP END MASTER
     end if
 
     call ncd_inqfdims(ncid, isgrid2d, ni, nj, ns)
@@ -173,7 +178,9 @@ contains
        rmaxlat = max(rmaxlat,abs(ldomain%latc(n)-surfdata_domain%latc(n)))
     enddo
     if (rmaxlon > 0.001_r8 .or. rmaxlat > 0.001_r8) then
+!$OMP MASTER
        write(iulog,*)' ERROR: surfdata/fatmgrid lon/lat mismatch error', rmaxlon,rmaxlat
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -228,8 +235,10 @@ contains
                                     toosmall_urban)
 
     if ( masterproc )then
+!$OMP MASTER
        write(iulog,*) 'Successfully read surface boundary data'
        write(iulog,*)
+!$OMP END MASTER
     end if
 
     ! read the lakemask (necessary for initialisation of dynamical lakes)
@@ -263,11 +272,13 @@ contains
     !-----------------------------------------------------------------------
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Attempting to read maxsoil_patches and numcft from the surface data .....'
        if (lfsurdat == ' ') then
           write(iulog,*)'lfsurdat must be specified'
           call endrun(msg=errMsg(sourcefile, __LINE__))
        endif
+!$OMP END MASTER
     endif
 
     ! Open surface dataset
@@ -284,8 +295,10 @@ contains
     end if
 
     if ( masterproc )then
+!$OMP MASTER
        write(iulog,*) 'Successfully read maxsoil_patches and numcft from the surface data'
        write(iulog,*)
+!$OMP END MASTER
     end if
 
   end subroutine surfrd_get_num_patches
@@ -358,7 +371,9 @@ contains
       ! If PCT_URBAN is not multi-density then set pcturb to zero
       pcturb = 0._r8
       urban_valid(begg:endg) = .false.
+!$OMP MASTER
       write(iulog,*)'PCT_URBAN is not multi-density, pcturb set to 0'
+!$OMP END MASTER
     else
       call ncd_io(ncid=ncid, varname='PCT_URBAN'  , flag='read', data=pcturb, &
            dim1name=grlnd, readvar=readvar)
@@ -418,7 +433,9 @@ contains
        if (found) exit
     end do
     if ( found ) then
+!$OMP MASTER
        write(iulog,*)'surfrd error: patch cover>100 for nl=',nindx
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -488,8 +505,10 @@ contains
        call ncd_io(ncid=ncid, varname='CONST_FERTNITRO_CFT', flag='read', data=fert_cft, &
                dim1name=grlnd, readvar=readvar)
        if (.not. readvar) then
+!$OMP MASTER
           if ( masterproc ) &
                 write(iulog,*) ' WARNING: CONST_FERTNITRO_CFT NOT on surfdata file zero out'
+!$OMP END MASTER
           fert_cft = 0.0_r8
        end if
     else
@@ -500,8 +519,10 @@ contains
        call ncd_io(ncid=ncid, varname='irrigation_method', flag='read', data=irrig_method, &
                dim1name=grlnd, readvar=readvar)
        if (.not. readvar) then
+!$OMP MASTER
           if ( masterproc ) &
                 write(iulog,*) ' WARNING: irrigation_method NOT on surfdata file; using default'
+!$OMP END MASTER
           irrig_method = irrig_method_unset
        end if
     else
@@ -643,11 +664,15 @@ contains
           deallocate(array2DCFT)
           deallocate(array2DFERT)
        else if ( .not. create_crop_landunit )then
+!$OMP MASTER
           if ( masterproc ) write(iulog,*) "WARNING: New CFT-based format surface datasets should be run with ", &
                                            "create_crop_landunit=T"
+!$OMP END MASTER
           if ( use_fates ) then
+!$OMP MASTER
              if ( masterproc ) write(iulog,*) "WARNING: When fates is on we allow new CFT based surface datasets ", &
                                               "to be used with create_crop_land FALSE"
+!$OMP END MASTER
              cftsize = 2
              allocate(array2DCFT (begg:endg,cft_lb:cftsize-1+cft_lb))
              allocate(array2DFERT(begg:endg,cft_lb:cftsize-1+cft_lb))
@@ -661,7 +686,9 @@ contains
           call endrun( msg=' ERROR: Problem figuring out how to handle new format input fsurdat file'//errMsg(sourcefile, __LINE__))
        end if
     else if ( (.not. cft_dim_exists) .and. (.not. create_crop_landunit) )then
+!$OMP MASTER
        if ( masterproc ) write(iulog,*) "WARNING: The PFT format is an unsupported format that will be removed in the future!"
+!$OMP END MASTER
        ! Check dimension size
        call surfrd_pftformat( begg, endg, ncid )                                 ! Format where crop is part of the natural veg. landunit
     else
@@ -770,11 +797,13 @@ contains
     fdynuse = get_flanduse_timeseries()
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Attempting to read landuse.timeseries data .....'
        if (fdynuse == ' ') then
           write(iulog,*)'fdynuse must be specified'
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
+!$OMP END MASTER
     end if
 
     call getfil(fdynuse, locfn, 0 )

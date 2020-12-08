@@ -484,13 +484,27 @@ contains
 
          err = lwdown(l) - (lwdown_road(l) + (lwdown_shadewall(l) + lwdown_sunwall(l))*canyon_hwr(l))
          if (abs(err) > 0.10_r8 ) then
+!$OMP MASTER
             write(iulog,*) 'urban incident atmospheric longwave radiation balance error',err
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog,*) 'l          = ',l
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog,*) 'lwdown     = ',lwdown(l)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog,*) 'vf_sr      = ',vf_sr(l)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog,*) 'vf_sw      = ',vf_sw(l)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog,*) 'canyon_hwr = ',canyon_hwr(l)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog,*) 'clm model is stopping'
+!$OMP END MASTER
             call endrun(decomp_index=l, clmlevel=namel, msg=errmsg(sourcefile, __LINE__))
          endif
       end do

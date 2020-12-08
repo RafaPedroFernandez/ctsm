@@ -76,7 +76,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -95,10 +97,18 @@ contains
     params_inst%br_root = br_root
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,nml=cnmresp_inparm)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
 
   end subroutine CNMRespReadNML

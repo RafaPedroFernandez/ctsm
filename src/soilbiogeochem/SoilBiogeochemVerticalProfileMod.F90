@@ -157,7 +157,9 @@ contains
                   croot_prof(p,j) = cinput_rootfr(p,j) / rootfr_tot
 
                   if (j > col%nbedrock(c) .and. cinput_rootfr(p,j) > 0._r8) then 
+!$OMP MASTER
                      write(iulog,*) 'cinput_rootfr > 0 in bedrock'
+!$OMP END MASTER
                   end if
                   ! set all surface processes to shallower profile
                   leaf_prof(p,j) = surface_prof(j)/ surface_prof_tot
@@ -234,18 +236,40 @@ contains
             nfixation_prof_sum = nfixation_prof_sum + nfixation_prof(c,j) *  dzsoi_decomp(j)
          end do
          if ( ( abs(ndep_prof_sum - 1._r8) > delta ) .or.  ( abs(nfixation_prof_sum - 1._r8) > delta ) ) then
+!$OMP MASTER
             write(iulog, *) 'profile sums: ', ndep_prof_sum, nfixation_prof_sum
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog, *) 'c: ', c
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog, *) 'altmax_lastyear_indx: ', altmax_lastyear_indx(c)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog, *) 'nfixation_prof: ', nfixation_prof(c,:)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog, *) 'ndep_prof: ', ndep_prof(c,:)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog, *) 'cinput_rootfr: ', cinput_rootfr(c,:)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog, *) 'dzsoi_decomp: ', dzsoi_decomp(:)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog, *) 'surface_prof: ', surface_prof(:)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog, *) 'npfts(c): ', col%npatches(c)
+!$OMP END MASTER
             do p = col%patchi(c), col%patchi(c) + col%npatches(c) -1
+!$OMP MASTER
                write(iulog, *) 'p, itype(p), wtcol(p): ', p, patch%itype(p), patch%wtcol(p)
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog, *) 'cinput_rootfr(p,:): ', cinput_rootfr(p,:)
+!$OMP END MASTER
             end do
             call endrun(msg=" ERROR: _prof_sum-1>delta"//errMsg(sourcefile, __LINE__))
          endif
@@ -265,7 +289,9 @@ contains
          end do
          if ( ( abs(froot_prof_sum - 1._r8) > delta ) .or.  ( abs(croot_prof_sum - 1._r8) > delta ) .or. &
               ( abs(stem_prof_sum - 1._r8) > delta ) .or.  ( abs(leaf_prof_sum - 1._r8) > delta ) ) then
+!$OMP MASTER
             write(iulog, *) 'profile sums: ', froot_prof_sum, croot_prof_sum, leaf_prof_sum, stem_prof_sum
+!$OMP END MASTER
             call endrun(msg=' ERROR: sum-1 > delta'//errMsg(sourcefile, __LINE__))
          endif
       end do

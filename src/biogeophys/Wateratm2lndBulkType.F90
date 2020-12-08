@@ -289,14 +289,18 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)' in '
+!$OMP END MASTER
        call endrun(msg="InitAccVars allocation error for rbufslp"//&
             errMsg(sourcefile, __LINE__))
     endif
     ! Allocate needed dynamic memory for single level col field
     allocate(rbufslc(begc:endc), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)' in '
+!$OMP END MASTER
        call endrun(msg="InitAccVars allocation error for rbufslc"//&
             errMsg(sourcefile, __LINE__))
     endif
@@ -361,13 +365,17 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)'UpdateAccVars allocation error for rbufslp'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
     ! Allocate needed dynamic memory for single level col field
     allocate(rbufslc(begc:endc), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)'UpdateAccVars allocation error for rbufslc'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 

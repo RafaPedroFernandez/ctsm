@@ -76,7 +76,7 @@ contains
     ! Define/write CLM restart file.
     !
     ! !ARGUMENTS:
-    type(bounds_type) , intent(in)           :: bounds          
+    type(bounds_type) , intent(in)           :: bounds
     character(len=*)  , intent(in)           :: file  ! output netcdf restart file
     logical           , intent(in)           :: writing_finidat_interp_dest_file ! true if we are writing a finidat_interp_dest file
     character(len=*)  , intent(in), optional :: rdate ! restart file time stamp for name
@@ -111,7 +111,7 @@ contains
     call clm_instRest(bounds, ncid, flag='define', &
          writing_finidat_interp_dest_file=writing_finidat_interp_dest_file)
 
-    if (present(rdate)) then 
+    if (present(rdate)) then
        call hist_restart_ncd (bounds, ncid, flag='define', rdate=rdate )
     end if
 
@@ -121,7 +121,7 @@ contains
     call restFile_enddef( ncid )
 
     ! Write variables
-    
+
     call timemgr_restart_io( ncid, flag='write' )
 
     call subgridRestWrite(bounds, ncid, flag='write' )
@@ -133,22 +133,24 @@ contains
 
     call hist_restart_ncd (bounds, ncid, flag='write' )
 
-    ! Close file 
-    
+    ! Close file
+
     call restFile_close( ncid )
     call restFile_closeRestart( file )
-    
+
     ! Write restart pointer file
-    
+
     if ( ptrfile ) call restFile_write_pfile( file )
-    
+
     ! Write out diagnostic info
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Successfully wrote out restart data at nstep = ',get_nstep()
        write(iulog,'(72a1)') ("-",i=1,60)
+!$OMP END MASTER
     end if
-    
+
   end subroutine restFile_write
 
   !-----------------------------------------------------------------------
@@ -222,10 +224,10 @@ contains
          reset_dynbal_baselines_lake_columns = reset_dynbal_baselines_lake_columns)
 
     ! Do error checking on file
-    
+
     call restFile_check_consistency(bounds_proc, ncid)
 
-    ! Close file 
+    ! Close file
 
     call subgridRest_read_cleanup
     call restFile_close( ncid )
@@ -233,9 +235,11 @@ contains
     ! Write out diagnostic info
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,'(72a1)') ("-",i=1,60)
        write(iulog,*) 'Successfully read restart data for restart run'
        write(iulog,*)
+!$OMP END MASTER
     end if
 
   end subroutine restFile_read
@@ -257,27 +261,27 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer :: status                      ! return status
-    integer :: length                      ! temporary          
+    integer :: length                      ! temporary
     character(len=256) :: ftest,ctest      ! temporaries
     !-----------------------------------------------------------------------
 
     ! Continue run:
-    ! Restart file pathname is read restart pointer file 
+    ! Restart file pathname is read restart pointer file
 
     if (nsrest==nsrContinue) then
        call restFile_read_pfile( path )
        call getfil( path, file, 0 )
     end if
 
-    ! Branch run: 
+    ! Branch run:
     ! Restart file pathname is obtained from namelist "nrevsn"
-    ! Check case name consistency (case name must be different for branch run, 
+    ! Check case name consistency (case name must be different for branch run,
     ! unless namelist specification states otherwise)
 
     if (nsrest==nsrBranch) then
        length = len_trim(nrevsn)
        if (nrevsn(length-2:length) == '.nc') then
-          path = trim(nrevsn) 
+          path = trim(nrevsn)
        else
           path = trim(nrevsn) // '.nc'
        end if
@@ -289,14 +293,16 @@ contains
        status = index(trim(ftest),trim(ctest))
        if (status /= 0 .and. .not.(brnch_retain_casename)) then
           if (masterproc) then
+!$OMP MASTER
              write(iulog,*) 'Must change case name on branch run if ',&
                   'brnch_retain_casename namelist is not set'
              write(iulog,*) 'previous case filename= ',trim(file),&
                   ' current case = ',trim(caseid), &
                   ' ctest = ',trim(ctest), &
                   ' ftest = ',trim(ftest)
+!$OMP END MASTER
           end if
-          call endrun(msg=errMsg(sourcefile, __LINE__)) 
+          call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
     end if
 
@@ -351,14 +357,16 @@ contains
     character(len=256) :: locfn   ! Restart pointer file name
     !-----------------------------------------------------------------------
 
-    ! Obtain the restart file from the restart pointer file. 
-    ! For restart runs, the restart pointer file contains the full pathname 
-    ! of the restart file. For branch runs, the namelist variable 
-    ! [nrevsn] contains the full pathname of the restart file. 
+    ! Obtain the restart file from the restart pointer file.
+    ! For restart runs, the restart pointer file contains the full pathname
+    ! of the restart file. For branch runs, the namelist variable
+    ! [nrevsn] contains the full pathname of the restart file.
     ! New history files are always created for branch runs.
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Reading restart pointer file....'
+!$OMP END MASTER
     endif
 
     nio = getavu()
@@ -368,8 +376,10 @@ contains
     call relavu (nio)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Reading restart data.....'
        write(iulog,'(72a1)') ("-",i=1,60)
+!$OMP END MASTER
     end if
 
   end subroutine restFile_read_pfile
@@ -397,9 +407,11 @@ contains
     !-----------------------------------------------------------------------
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Successfully wrote local restart file ',trim(file)
        write(iulog,'(72a1)') ("-",i=1,60)
        write(iulog,*)
+!$OMP END MASTER
     end if
 
   end subroutine restFile_closeRestart
@@ -431,7 +443,9 @@ contains
 
        write(nio,'(a)') fnamer
        call relavu( nio )
+!$OMP MASTER
        write(iulog,*)'Successfully wrote local restart pointer file'
+!$OMP END MASTER
     end if
 
   end subroutine restFile_write_pfile
@@ -453,11 +467,13 @@ contains
        ! Create new netCDF file (in define mode) and set fill mode
        ! to "no fill" to optimize performance
 
-       if (masterproc) then	
+       if (masterproc) then
+!$OMP MASTER
           write(iulog,*)
           write(iulog,*)'restFile_open: writing restart dataset at ',&
                trim(file), ' at nstep = ',get_nstep()
           write(iulog,*)
+!$OMP END MASTER
        end if
        call ncd_pio_createfile(ncid, trim(file))
 
@@ -466,7 +482,9 @@ contains
        ! Open netcdf restart file
 
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) 'Reading restart dataset'
+!$OMP END MASTER
        end if
        call ncd_pio_openfile (ncid, trim(file), 0)
 
@@ -483,13 +501,15 @@ contains
     use clm_varctl, only : caseid, inst_suffix
     !
     ! !ARGUMENTS:
-    character(len=*), intent(in) :: rdate   ! input date for restart file name 
+    character(len=*), intent(in) :: rdate   ! input date for restart file name
     !-----------------------------------------------------------------------
 
     restFile_filename = "./"//trim(caseid)//"."//trim(compname)//trim(inst_suffix)//&
          ".r."//trim(rdate)//".nc"
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*)'writing restart file ',trim(restFile_filename),' for model date = ',rdate
+!$OMP END MASTER
     end if
 
   end function restFile_filename
@@ -687,7 +707,7 @@ contains
 
     character(len=*), parameter :: subname = 'restFile_add_ilun_metadata'
     !-----------------------------------------------------------------------
-    
+
     do ltype = 1, max_lunit
        attname = att_prefix // landunit_names(ltype)
        call ncd_putatt(ncid, ncd_global, attname, ltype)
@@ -712,7 +732,7 @@ contains
 
     character(len=*), parameter :: subname = 'restFile_add_icol_metadata'
     !-----------------------------------------------------------------------
-    
+
     call write_coltype_metadata(att_prefix, ncid)
 
   end subroutine restFile_add_icol_metadata
@@ -737,7 +757,7 @@ contains
 
     character(len=*), parameter :: subname = 'restFile_add_ipft_metadata'
     !-----------------------------------------------------------------------
-    
+
     do ptype = natpft_lb, mxpft
        attname = att_prefix // pftname(ptype)
        call ncd_putatt(ncid, ncd_global, attname, ptype)
@@ -853,10 +873,10 @@ contains
     ! !LOCAL VARIABLES:
     logical :: check_finidat_year_consistency    ! whether to check consistency between year on finidat file and current year
     logical :: check_finidat_pct_consistency     ! whether to check consistency between pct_pft on finidat file and surface dataset
-    
+
     character(len=*), parameter :: subname = 'restFile_check_consistency'
     !-----------------------------------------------------------------------
-    
+
     call restFile_read_consistency_nl( &
          check_finidat_year_consistency, &
          check_finidat_pct_consistency)
@@ -926,10 +946,12 @@ contains
     call shr_mpi_bcast (check_finidat_pct_consistency, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) 'finidat_consistency_checks settings:'
        write(iulog,nml=finidat_consistency_checks)
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
 
   end subroutine restFile_read_consistency_nl
@@ -959,7 +981,7 @@ contains
 
     character(len=*), parameter :: subname = 'restFile_check_year'
     !-----------------------------------------------------------------------
-    
+
     ! Only do this check for a transient run
     if (get_flanduse_timeseries() /= ' ') then
        ! Determine if the restart file was generated from a transient run; if so, we will
@@ -971,15 +993,17 @@ contains
        if (att_found) then
           call ncd_getatt(ncid, NCD_GLOBAL, 'flanduse_timeseries', flanduse_timeseries_rest)
        else
+!$OMP MASTER
           write(iulog,*) ' '
           write(iulog,*) subname//' WARNING: flanduse_timeseries attribute not found on restart file'
           write(iulog,*) 'Assuming that the restart file was generated from a non-transient run,'
           write(iulog,*) 'and thus skipping the year check'
           write(iulog,*) ' '
+!$OMP END MASTER
 
           flanduse_timeseries_rest = ' '
        end if
-       
+
        ! If the restart file was generated from a transient run, then confirm that the
        ! year of the restart file matches the current model year.
        if (flanduse_timeseries_rest /= ' ') then
@@ -987,6 +1011,7 @@ contains
           call get_rest_date(ncid, rest_year)
           if (year /= rest_year) then
              if (masterproc) then
+!$OMP MASTER
                 write(iulog,*) 'ERROR: Current model year does not match year on initial conditions file (finidat)'
                 write(iulog,*) 'Current year: ', year
                 write(iulog,*) 'Year on initial conditions file: ', rest_year
@@ -1003,6 +1028,7 @@ contains
                 write(iulog,*) '      check_finidat_year_consistency = .false.'
                 write(iulog,*) '    in user_nl_clm'
                 write(iulog,*) ' '
+!$OMP END MASTER
              end if
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end if  ! year /= rest_year
@@ -1012,6 +1038,3 @@ contains
   end subroutine restFile_check_year
 
 end module restFileMod
-
-
-

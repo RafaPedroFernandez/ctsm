@@ -1004,7 +1004,9 @@ contains
 
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)'update_accum_hist allocation error for rbuf1dp'
+!$OMP END MASTER
        call endrun(msg=errMsg(__FILE__, __LINE__))
     endif
 

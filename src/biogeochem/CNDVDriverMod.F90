@@ -3,7 +3,7 @@ module CNDVDriverMod
   !-----------------------------------------------------------------------
   ! !DESCRIPTION:
   ! Note that this module was created simply to contain the subroutine dv
-  ! which cannot cannot be in CNDVMod due to circular dependencies 
+  ! which cannot cannot be in CNDVMod due to circular dependencies
   !
   ! !USES:
   use shr_kind_mod             , only : r8 => shr_kind_r8
@@ -15,8 +15,8 @@ module CNDVDriverMod
   use CNVegCarbonStateType     , only : cnveg_carbonstate_type
   use CNVegCarbonFluxType      , only : cnveg_carbonflux_type
   use clm_varcon               , only : grlnd
-  use LandunitType             , only : lun                
-  use PatchType                , only : patch                
+  use LandunitType             , only : lun
+  use PatchType                , only : patch
   use Wateratm2lndBulkType     , only : wateratm2lndbulk_type
   !
   ! !PUBLIC TYPES:
@@ -49,7 +49,7 @@ contains
     use CNDVEstablishmentMod , only : Establishment
     !
     ! !ARGUMENTS:
-    type(bounds_type)               , intent(in)    :: bounds                  
+    type(bounds_type)               , intent(in)    :: bounds
     integer                         , intent(inout) :: num_natvegp             ! number of naturally-vegetated patches in filter
     integer                         , intent(inout) :: filter_natvegp(:)       ! filter for naturally-vegetated patches
     integer                         , intent(in)    :: kyr                     ! used in routine climate20 below
@@ -63,15 +63,15 @@ contains
     integer  :: p                    ! patch index
     !-----------------------------------------------------------------------
 
-    associate(                                                & 
-         fpcgrid     => dgvs_inst%fpcgrid_patch             , & ! Input:  [real(r8) (:) ]  foliar projective cover on gridcell (fraction)    
-         agdd20      => dgvs_inst%agdd20_patch              , & ! Output: [real(r8) (:) ]  20-yr running mean of agdd                        
-         tmomin20    => dgvs_inst%tmomin20_patch            , & ! Output: [real(r8) (:) ]  20-yr running mean of tmomin                      
-         agdd        => dgvs_inst%agdd_patch                , & ! Input:  [real(r8) (:) ]  accumulated growing degree days above 5           
+    associate(                                                &
+         fpcgrid     => dgvs_inst%fpcgrid_patch             , & ! Input:  [real(r8) (:) ]  foliar projective cover on gridcell (fraction)
+         agdd20      => dgvs_inst%agdd20_patch              , & ! Output: [real(r8) (:) ]  20-yr running mean of agdd
+         tmomin20    => dgvs_inst%tmomin20_patch            , & ! Output: [real(r8) (:) ]  20-yr running mean of tmomin
+         agdd        => dgvs_inst%agdd_patch                , & ! Input:  [real(r8) (:) ]  accumulated growing degree days above 5
 
-         t_mo_min    => atm2lnd_inst%t_mo_min_patch         , & ! Output: [real(r8) (:) ]  annual min of t_mo (Kelvin)                       
-         
-         leafcmax    => cnveg_carbonstate_inst%leafcmax_patch & ! Output: [real(r8) (:) ]  (gC/m2) ann max leaf C 
+         t_mo_min    => atm2lnd_inst%t_mo_min_patch         , & ! Output: [real(r8) (:) ]  annual min of t_mo (Kelvin)
+
+         leafcmax    => cnveg_carbonstate_inst%leafcmax_patch & ! Output: [real(r8) (:) ]  (gC/m2) ann max leaf C
          )
 
       ! *************************************************************************
@@ -80,7 +80,7 @@ contains
       ! Instead of 20-yr running mean of coldest monthly temperature,
       ! use 20-yr running mean of minimum 10-day running mean
       ! *************************************************************************
-      
+
       do p = bounds%begp, bounds%endp
          if (kyr == 2) then ! slevis: add ".and. start_type==arb_ic" here?
             tmomin20(p) = t_mo_min(p) ! NO, b/c want to be able to start dgvm
@@ -118,12 +118,12 @@ contains
          t_mo_min(p) = 1.0e+36_r8
       end do
 
-    end associate 
+    end associate
 
   end subroutine CNDVDriver
 
   !-----------------------------------------------------------------------
-  subroutine CNDVHist(bounds, dgvs_inst) 
+  subroutine CNDVHist(bounds, dgvs_inst)
     !
     ! !DESCRIPTION:
     ! Write CNDV history file
@@ -141,7 +141,7 @@ contains
     use ncdio_pio
     !
     ! !ARGUMENTS:
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     type(dgvs_type)  , intent(in) :: dgvs_inst
     !
     ! !LOCAL VARIABLES:
@@ -162,12 +162,12 @@ contains
     character(len=  8) :: curtime      ! current time
     character(len= 10) :: basedate     ! base date (yyyymmdd)
     character(len=  8) :: basesec      ! base seconds
-    real(r8) , pointer :: rbuf2dg (:,:)   ! Input:  [real(r8) (:,:)]  temporary 
+    real(r8) , pointer :: rbuf2dg (:,:)   ! Input:  [real(r8) (:,:)]  temporary
     !-----------------------------------------------------------------------
 
-    associate(& 
-         fpcgrid => dgvs_inst%fpcgrid_patch , & ! Input:  [real(r8) (:)]  foliar projective cover on gridcell (fraction)    
-         nind    => dgvs_inst%nind_patch      & ! Input:  [real(r8) (:)]  number of individuals (#/m**2)                    
+    associate(&
+         fpcgrid => dgvs_inst%fpcgrid_patch , & ! Input:  [real(r8) (:)]  foliar projective cover on gridcell (fraction)
+         nind    => dgvs_inst%nind_patch      & ! Input:  [real(r8) (:)]  number of individuals (#/m**2)
          )
 
       allocate(rbuf2dg(bounds%begg:bounds%endg,maxsoil_patches), stat=ier)
@@ -330,7 +330,7 @@ contains
               dim1name='lon', dim2name='lat', dim3name='pft', dim4name='time', &
               long_name='number of individuals', units='individuals/m2 vegetated land', &
               missing_value=spval, fill_value=spval)
-      else 
+      else
          call ncd_defvar(ncid=ncid, varname='FPCGRID', xtype=ncprec, &
               dim1name='gridcell', dim2name='pft', dim3name='time', &
               long_name='plant functional type cover', units='fraction of vegetated area', &
@@ -404,16 +404,18 @@ contains
       call ncd_pio_closefile(ncid)
 
       if (masterproc) then
+!$OMP MASTER
          write(iulog,*)'(histCNDV): Finished writing CNDV history dataset ',&
               trim(dgvm_fn), 'at nstep = ',get_nstep()
+!$OMP END MASTER
       end if
-      
+
     end associate
 
   end subroutine CNDVHist
 
   !-----------------------------------------------------------------------
-  character(len=256) function set_dgvm_filename () 
+  character(len=256) function set_dgvm_filename ()
     !
     ! !DESCRIPTION:
     ! Determine initial dataset filenames
@@ -447,7 +449,7 @@ contains
     ! Reconstruct a filter of naturally-vegetated Patches for use in DGVM
     !
     ! !ARGUMENTS:
-    type(bounds_type) , intent(in)  :: bounds   
+    type(bounds_type) , intent(in)  :: bounds
     integer           , intent(out) :: num_natvegp       ! number of patches in naturally-vegetated filter
     integer           , intent(out) :: filter_natvegp(:) ! patch filter for naturally-vegetated points
     type(dgvs_type)   , intent(in)  :: dgvs_inst

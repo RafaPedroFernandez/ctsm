@@ -132,7 +132,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -149,10 +151,18 @@ contains
     call shr_mpi_bcast (initial_seed_at_planting, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,nml=cnphenology)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
 
 

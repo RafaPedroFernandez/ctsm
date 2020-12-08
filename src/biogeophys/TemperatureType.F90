@@ -1060,8 +1060,12 @@ contains
             long_name='internal building air temperature', units='K', &
             interpinic_flag='interp', readvar=readvar, data=this%t_building_lun)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_building in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_building to taf"
+!$OMP END MASTER
           this%t_building_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
        end if
 
@@ -1071,8 +1075,12 @@ contains
             long_name='roof inside surface temperature', units='K', &
             interpinic_flag='interp', readvar=readvar, data=this%t_roof_inner_lun)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_roof_inner in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_roof_inner to taf"
+!$OMP END MASTER
           this%t_roof_inner_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
        end if
 
@@ -1082,8 +1090,12 @@ contains
             long_name='sunwall inside surface temperature', units='K', &
             interpinic_flag='interp', readvar=readvar, data=this%t_sunw_inner_lun)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_sunw_inner in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_sunw_inner to taf"
+!$OMP END MASTER
           this%t_sunw_inner_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
        end if
 
@@ -1093,8 +1105,12 @@ contains
             long_name='shadewall inside surface temperature', units='K', &
             interpinic_flag='interp', readvar=readvar, data=this%t_shdw_inner_lun)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_shdw_inner in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_shdw_inner to taf"
+!$OMP END MASTER
           this%t_shdw_inner_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
        end if
 
@@ -1104,8 +1120,12 @@ contains
             long_name='floor temperature', units='K', &
             interpinic_flag='interp', readvar=readvar, data=this%t_floor_lun)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_floor in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_floor to taf"
+!$OMP END MASTER
           this%t_floor_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
        end if
     end if
@@ -1247,7 +1267,9 @@ contains
     ! Allocate needed dynamic memory for single level pft field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)' in '
+!$OMP END MASTER
        call endrun(msg="extract_accum_hist allocation error for rbufslp"//&
             errMsg(sourcefile, __LINE__))
     endif
@@ -1347,7 +1369,9 @@ contains
 
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
+!$OMP MASTER
        write(iulog,*)'update_accum_hist allocation error for rbuf1dp'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 

@@ -370,8 +370,12 @@ contains
          interpinic_flag='interp', readvar=readvar, data=this%tlai_z_patch)
     if (flag=='read' .and. .not. readvar) then
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) "can't find tlai_z in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) "Initialize tlai_z to tlai/nlevcan" 
+!$OMP END MASTER
        end if
        do iv=1,nlevcan
           this%tlai_z_patch(begp:endp,iv) =  tlai_patch(begp:endp) / nlevcan
@@ -384,8 +388,12 @@ contains
          interpinic_flag='interp', readvar=readvar, data=this%tsai_z_patch)
     if (flag=='read' .and. .not. readvar) then
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) "can't find tsai_z in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) "Initialize tsai_z to tsai/nlevcan" 
+!$OMP END MASTER
        end if
        do iv=1,nlevcan
           this%tsai_z_patch(begp:endp,iv) = tsai_patch(begp:endp) / nlevcan
@@ -396,8 +404,12 @@ contains
          dim1name='pft', long_name='number of canopy layers', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%ncan_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find ncan in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize ncan to nlevcan" 
+!$OMP END MASTER
        this%ncan_patch(begp:endp) = nlevcan
     end if
 
@@ -405,8 +417,12 @@ contains
          dim1name='pft', long_name='number of canopy layers, above snow for radiative transfer', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%nrad_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find nrad in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize nrad to nlevcan" 
+!$OMP END MASTER
        this%nrad_patch(begp:endp) = nlevcan
     end if
 
@@ -415,8 +431,12 @@ contains
          long_name='sunlit fraction for canopy layer', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fsun_z_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fsun_z in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fsun_z to 0"
+!$OMP END MASTER
        do iv=1,nlevcan
           this%fsun_z_patch(begp:endp,iv) = 0._r8
        end do
@@ -426,8 +446,12 @@ contains
          dim1name='pft', long_name='sunlit canopy scaling coefficient', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%vcmaxcintsun_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find vcmaxcintsun in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize vcmaxcintsun to 1"
+!$OMP END MASTER
        this%vcmaxcintsun_patch(begp:endp) = 1._r8
     end if
 
@@ -435,8 +459,12 @@ contains
          dim1name='pft', long_name='shaded canopy scaling coefficient', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%vcmaxcintsha_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find vcmaxcintsha in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize vcmaxcintsha to 1"
+!$OMP END MASTER
        this%vcmaxcintsha_patch(begp:endp) = 1._r8
     end if
 
@@ -447,8 +475,12 @@ contains
             long_name='ground albedo without BC (direct) (0 to 1)', units='', &
             interpinic_flag='interp',readvar=readvar, data=this%albgrd_bc_col)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "SNICAR: can't find albgrd_bc in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize albgrd_bc to albgrd"
+!$OMP END MASTER
           this%albgrd_bc_col(begc:endc,:) = this%albgrd_col(begc:endc,:)
        end if
 
@@ -457,8 +489,12 @@ contains
             long_name='ground albedo without BC (diffuse) (0 to 1)', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%albgri_bc_col)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "SNICAR: can't find albgri_bc in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize albgri_bc to albgri"
+!$OMP END MASTER
           this%albgri_bc_col(begc:endc,:) = this%albgri_col(begc:endc,:)
        end if
 
@@ -467,8 +503,12 @@ contains
             long_name='pure snow ground albedo (direct) (0 to 1)', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%albgrd_pur_col)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "SNICAR: can't find albgrd_pur in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize albgrd_pur to albgrd"
+!$OMP END MASTER
           this%albgrd_pur_col(begc:endc,:) = this%albgrd_col(begc:endc,:)
        end if
 
@@ -477,8 +517,12 @@ contains
             long_name='pure snow ground albedo (diffuse) (0 to 1)', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%albgri_pur_col)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "SNICAR: can't find albgri_pur in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize albgri_pur to albgri"
+!$OMP END MASTER
           this%albgri_pur_col(begc:endc,:) = this%albgri_col(begc:endc,:)
        end if
 
@@ -487,8 +531,12 @@ contains
             long_name='ground albedo without OC (direct) (0 to 1)', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%albgrd_oc_col)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "SNICAR: can't find albgrd_oc in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize albgrd_oc to albgrd"
+!$OMP END MASTER
           this%albgrd_oc_col(begc:endc,:) = this%albgrd_col(begc:endc,:)
        end if
 
@@ -497,8 +545,12 @@ contains
             long_name='ground albedo without OC (diffuse) (0 to 1)', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%albgri_oc_col)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "SNICAR: can't find albgri_oc in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize albgri_oc to albgri"
+!$OMP END MASTER
           this%albgri_oc_col(begc:endc,:) = this%albgri_col(begc:endc,:)
        end if
 
@@ -507,8 +559,12 @@ contains
             long_name='ground albedo without dust (direct) (0 to 1)', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%albgrd_dst_col)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "SNICAR: can't find albgrd_dst in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize albgrd_dst to albgrd"
+!$OMP END MASTER
           this%albgrd_dst_col(begc:endc,:) = this%albgrd_col(begc:endc,:)
        end if
 
@@ -517,8 +573,12 @@ contains
             long_name='ground albedo without dust (diffuse) (0 to 1)', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%albgri_dst_col)
        if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
           if (masterproc) write(iulog,*) "SNICAR: can't find albgri_dst in initial file..."
+!$OMP END MASTER
+!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize albgri_dst to albgri"
+!$OMP END MASTER
           this%albgri_dst_col(begc:endc,:) = this%albgri_col(begc:endc,:)
        end if
 
@@ -540,8 +600,12 @@ contains
          long_name='flux absorbed by sunlit leaf per unit direct flux', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fabd_sun_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fabd_sun in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fabd_sun to fabd/2"
+!$OMP END MASTER
        this%fabd_sun_patch(begp:endp,:) = this%fabd_patch(begp:endp,:)/2._r8
     end if
 
@@ -550,8 +614,12 @@ contains
          long_name='flux absorbed by shaded leaf per unit direct flux', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fabd_sha_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fabd_sha in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fabd_sha to fabd/2"
+!$OMP END MASTER
        this%fabd_sha_patch(begp:endp,:) = this%fabd_patch(begp:endp,:)/2._r8
     end if
 
@@ -560,8 +628,12 @@ contains
          long_name='flux absorbed by sunlit leaf per unit diffuse flux', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fabi_sun_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fabi_sun in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fabi_sun to fabi/2"
+!$OMP END MASTER
        this%fabi_sun_patch(begp:endp,:) = this%fabi_patch(begp:endp,:)/2._r8
     end if
 
@@ -570,8 +642,12 @@ contains
          long_name='flux absorbed by shaded leaf per unit diffuse flux', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fabi_sha_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fabi_sha in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fabi_sha to fabi/2"
+!$OMP END MASTER
        this%fabi_sha_patch(begp:endp,:) = this%fabi_patch(begp:endp,:)/2._r8
     end if
 
@@ -580,8 +656,12 @@ contains
          long_name='absorbed sunlit leaf direct PAR (per unit lai+sai) for canopy layer', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fabd_sun_z_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fabd_sun_z in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fabd_sun_z to (fabd/2)/nlevcan" 
+!$OMP END MASTER
        do iv=1,nlevcan
           this%fabd_sun_z_patch(begp:endp,iv) = (this%fabd_patch(begp:endp,1)/2._r8)/nlevcan
        end do
@@ -592,8 +672,12 @@ contains
          long_name='absorbed shaded leaf direct PAR (per unit lai+sai) for canopy layer', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fabd_sha_z_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fabd_sha_z in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fabd_sha_z to (fabd/2)/nlevcan" 
+!$OMP END MASTER
        do iv=1,nlevcan
           this%fabd_sha_z_patch(begp:endp,iv) = (this%fabd_patch(begp:endp,1)/2._r8)/nlevcan
        end do
@@ -604,8 +688,12 @@ contains
          long_name='absorbed sunlit leaf diffuse PAR (per unit lai+sai) for canopy layer', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fabi_sun_z_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fabi_sun_z in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fabi_sun_z to (fabi/2)/nlevcan"
+!$OMP END MASTER
        do iv=1,nlevcan
           this%fabi_sun_z_patch(begp:endp,iv) = (this%fabi_patch(begp:endp,1)/2._r8)/nlevcan
        end do
@@ -616,8 +704,12 @@ contains
          long_name='absorbed shaded leaf diffuse PAR (per unit lai+sai) for canopy layer', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%fabi_sha_z_patch)
     if (flag=='read' .and. .not. readvar) then
+!$OMP MASTER
        if (masterproc) write(iulog,*) "can't find fabi_sha_z in restart (or initial) file..."
+!$OMP END MASTER
+!$OMP MASTER
        if (masterproc) write(iulog,*) "Initialize fabi_sha_z to (fabi/2)/nlevcan"
+!$OMP END MASTER
        do iv=1,nlevcan
           this%fabi_sha_z_patch(begp:endp,iv) = &
                (this%fabi_patch(begp:endp,1)/2._r8)/nlevcan

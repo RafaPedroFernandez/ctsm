@@ -119,16 +119,36 @@ contains
    call shr_mpi_bcast(ndep_tintalgo          , mpicom)
 
    if (masterproc) then
+!$OMP MASTER
       write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) 'ndepdyn stream settings:'
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  stream_year_first_ndep  = ',stream_year_first_ndep
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  stream_year_last_ndep   = ',stream_year_last_ndep
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  model_year_align_ndep   = ',model_year_align_ndep
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  stream_fldFileName_ndep = ',stream_fldFileName_ndep
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  ndep_varList            = ',ndep_varList
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  ndep_taxmode            = ',ndep_taxmode
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  ndep_tintalgo           = ',ndep_tintalgo
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) ' '
+!$OMP END MASTER
    endif
    ! Read in units
    call check_units( stream_fldFileName_ndep, ndep_varList )

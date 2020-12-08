@@ -7,7 +7,7 @@ module CNVegNitrogenStateType
   use clm_varpar                         , only : ndecomp_cascade_transitions, ndecomp_pools, nlevcan
   use clm_varpar                         , only : nlevdecomp_full, nlevdecomp
   use clm_varcon                         , only : spval, ispval, dzsoi_decomp, zisoi
-  use landunit_varcon                    , only : istcrop, istsoil 
+  use landunit_varcon                    , only : istcrop, istsoil
   use clm_varctl                         , only : use_nitrif_denitrif, use_vertsoilc, use_century_decomp
   use clm_varctl                         , only : iulog, override_bgc_restart_mismatch_dump
   use clm_varctl                         , only : use_crop
@@ -16,10 +16,10 @@ module CNVegNitrogenStateType
   use pftconMod                          , only : npcropmin, noveg, pftcon
   use SoilBiogeochemDecompCascadeConType , only : decomp_cascade_con
   use abortutils                         , only : endrun
-  use spmdMod                            , only : masterproc 
-  use LandunitType                       , only : lun                
-  use ColumnType                         , only : col                
-  use PatchType                          , only : patch                
+  use spmdMod                            , only : masterproc
+  use LandunitType                       , only : lun
+  use ColumnType                         , only : col
+  use PatchType                          , only : patch
   use dynPatchStateUpdaterMod, only : patch_state_updater_type
   use CNSpeciesMod   , only : CN_SPECIES_N
   use CNVegComputeSeedMod, only : ComputeSeedAmounts
@@ -36,11 +36,11 @@ module CNVegNitrogenStateType
      real(r8), pointer :: grainn_patch             (:) ! (gN/m2) grain N (crop)
      real(r8), pointer :: grainn_storage_patch     (:) ! (gN/m2) grain N storage (crop)
      real(r8), pointer :: grainn_xfer_patch        (:) ! (gN/m2) grain N transfer (crop)
-     real(r8), pointer :: leafn_patch              (:) ! (gN/m2) leaf N 
+     real(r8), pointer :: leafn_patch              (:) ! (gN/m2) leaf N
      real(r8), pointer :: leafn_storage_patch      (:) ! (gN/m2) leaf N storage
      real(r8), pointer :: leafn_xfer_patch         (:) ! (gN/m2) leaf N transfer
      real(r8), pointer :: leafn_storage_xfer_acc_patch (:) ! (gN/m2) Accmulated leaf N transfer
-     real(r8), pointer :: storage_ndemand_patch        (:) ! (gN/m2) N demand during the offset period 
+     real(r8), pointer :: storage_ndemand_patch        (:) ! (gN/m2) N demand during the offset period
      real(r8), pointer :: frootn_patch             (:) ! (gN/m2) fine root N
      real(r8), pointer :: frootn_storage_patch     (:) ! (gN/m2) fine root N storage
      real(r8), pointer :: frootn_xfer_patch        (:) ! (gN/m2) fine root N transfer
@@ -70,20 +70,20 @@ module CNVegNitrogenStateType
      real(r8), pointer :: totn_patch               (:) ! (gN/m2) total patch-level nitrogen
      real(r8), pointer :: totn_p2c_col             (:) ! (gN/m2) totn_patch averaged to col
      real(r8), pointer :: totn_col                 (:) ! (gN/m2) total column nitrogen, incl veg
-     real(r8), pointer :: totecosysn_col           (:) ! (gN/m2) total ecosystem nitrogen, incl veg  
+     real(r8), pointer :: totecosysn_col           (:) ! (gN/m2) total ecosystem nitrogen, incl veg
      real(r8), pointer :: totn_grc                 (:) ! (gN/m2) total gridcell nitrogen
 
    contains
 
-     procedure , public  :: Init   
+     procedure , public  :: Init
      procedure , public  :: Restart
      procedure , public  :: SetValues
      procedure , public  :: ZeroDWT
      procedure , public  :: Summary => Summary_nitrogenstate
      procedure , public  :: DynamicPatchAdjustments   ! adjust state variables when patch areas change
-     procedure , private :: InitAllocate 
-     procedure , private :: InitHistory  
-     procedure , private :: InitCold     
+     procedure , private :: InitAllocate
+     procedure , private :: InitHistory
+     procedure , private :: InitCold
 
   end type cnveg_nitrogenstate_type
   !------------------------------------------------------------------------
@@ -99,11 +99,11 @@ contains
        leafc_patch, leafc_storage_patch, frootc_patch, frootc_storage_patch, deadstemc_patch)
 
     class(cnveg_nitrogenstate_type)   :: this
-    type(bounds_type) , intent(in)    :: bounds  
+    type(bounds_type) , intent(in)    :: bounds
     real(r8)          , intent(in)    :: leafc_patch          (bounds%begp:)
     real(r8)          , intent(in)    :: leafc_storage_patch  (bounds%begp:)
-    real(r8)          , intent(in)    :: frootc_patch         (bounds%begp:)     
-    real(r8)          , intent(in)    :: frootc_storage_patch (bounds%begp:)     
+    real(r8)          , intent(in)    :: frootc_patch         (bounds%begp:)
+    real(r8)          , intent(in)    :: frootc_storage_patch (bounds%begp:)
     real(r8)          , intent(in)    :: deadstemc_patch      (bounds%begp:)
 
     call this%InitAllocate (bounds )
@@ -118,7 +118,7 @@ contains
     !
     ! !ARGUMENTS:
     class (cnveg_nitrogenstate_type) :: this
-    type(bounds_type) , intent(in) :: bounds  
+    type(bounds_type) , intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer           :: begp,endp
@@ -130,17 +130,17 @@ contains
     begc = bounds%begc; endc = bounds%endc
     begg = bounds%begg; endg = bounds%endg
 
-    allocate(this%grainn_patch             (begp:endp)) ; this%grainn_patch             (:) = nan     
+    allocate(this%grainn_patch             (begp:endp)) ; this%grainn_patch             (:) = nan
     allocate(this%grainn_storage_patch     (begp:endp)) ; this%grainn_storage_patch     (:) = nan
-    allocate(this%grainn_xfer_patch        (begp:endp)) ; this%grainn_xfer_patch        (:) = nan     
+    allocate(this%grainn_xfer_patch        (begp:endp)) ; this%grainn_xfer_patch        (:) = nan
     allocate(this%leafn_patch              (begp:endp)) ; this%leafn_patch              (:) = nan
-    allocate(this%leafn_storage_patch      (begp:endp)) ; this%leafn_storage_patch      (:) = nan     
-    allocate(this%leafn_xfer_patch         (begp:endp)) ; this%leafn_xfer_patch         (:) = nan     
+    allocate(this%leafn_storage_patch      (begp:endp)) ; this%leafn_storage_patch      (:) = nan
+    allocate(this%leafn_xfer_patch         (begp:endp)) ; this%leafn_xfer_patch         (:) = nan
     allocate(this%leafn_storage_xfer_acc_patch  (begp:endp)) ; this%leafn_storage_xfer_acc_patch         (:) = nan
     allocate(this%storage_ndemand_patch    (begp:endp)) ; this%storage_ndemand_patch    (:) = nan
     allocate(this%frootn_patch             (begp:endp)) ; this%frootn_patch             (:) = nan
-    allocate(this%frootn_storage_patch     (begp:endp)) ; this%frootn_storage_patch     (:) = nan     
-    allocate(this%frootn_xfer_patch        (begp:endp)) ; this%frootn_xfer_patch        (:) = nan     
+    allocate(this%frootn_storage_patch     (begp:endp)) ; this%frootn_storage_patch     (:) = nan
+    allocate(this%frootn_xfer_patch        (begp:endp)) ; this%frootn_xfer_patch        (:) = nan
     allocate(this%livestemn_patch          (begp:endp)) ; this%livestemn_patch          (:) = nan
     allocate(this%livestemn_storage_patch  (begp:endp)) ; this%livestemn_storage_patch  (:) = nan
     allocate(this%livestemn_xfer_patch     (begp:endp)) ; this%livestemn_xfer_patch     (:) = nan
@@ -182,10 +182,10 @@ contains
     !
     ! !ARGUMENTS:
     class(cnveg_nitrogenstate_type) :: this
-    type(bounds_type)         , intent(in) :: bounds 
+    type(bounds_type)         , intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
-    integer           :: k,l,ii,jj 
+    integer           :: k,l,ii,jj
     integer           :: begp,endp
     integer           :: begc,endc
     integer           :: begg,endg
@@ -199,9 +199,9 @@ contains
     begg = bounds%begg; endg = bounds%endg
 
     !-------------------------------
-    ! patch state variables 
+    ! patch state variables
     !-------------------------------
-    
+
     if (use_crop) then
        this%grainn_patch(begp:endp) = spval
        call hist_addfld1d (fname='GRAINN', units='gN/m^2', &
@@ -220,12 +220,12 @@ contains
     this%leafn_storage_patch(begp:endp) = spval
     call hist_addfld1d (fname='LEAFN_STORAGE', units='gN/m^2', &
          avgflag='A', long_name='leaf N storage', &
-         ptr_patch=this%leafn_storage_patch, default='inactive')     
+         ptr_patch=this%leafn_storage_patch, default='inactive')
 
     this%leafn_xfer_patch(begp:endp) = spval
     call hist_addfld1d (fname='LEAFN_XFER', units='gN/m^2', &
          avgflag='A', long_name='leaf N transfer', &
-         ptr_patch=this%leafn_xfer_patch, default='inactive')     
+         ptr_patch=this%leafn_xfer_patch, default='inactive')
 
     if ( use_fun ) then
        this%leafn_storage_xfer_acc_patch(begp:endp) = spval
@@ -247,12 +247,12 @@ contains
     this%frootn_storage_patch(begp:endp) = spval
     call hist_addfld1d (fname='FROOTN_STORAGE', units='gN/m^2', &
          avgflag='A', long_name='fine root N storage', &
-         ptr_patch=this%frootn_storage_patch, default='inactive')     
+         ptr_patch=this%frootn_storage_patch, default='inactive')
 
     this%frootn_xfer_patch(begp:endp) = spval
     call hist_addfld1d (fname='FROOTN_XFER', units='gN/m^2', &
          avgflag='A', long_name='fine root N transfer', &
-         ptr_patch=this%frootn_xfer_patch, default='inactive')     
+         ptr_patch=this%frootn_xfer_patch, default='inactive')
 
     this%livestemn_patch(begp:endp) = spval
     call hist_addfld1d (fname='LIVESTEMN', units='gN/m^2', &
@@ -262,12 +262,12 @@ contains
     this%livestemn_storage_patch(begp:endp) = spval
     call hist_addfld1d (fname='LIVESTEMN_STORAGE', units='gN/m^2', &
          avgflag='A', long_name='live stem N storage', &
-         ptr_patch=this%livestemn_storage_patch, default='inactive')    
+         ptr_patch=this%livestemn_storage_patch, default='inactive')
 
     this%livestemn_xfer_patch(begp:endp) = spval
     call hist_addfld1d (fname='LIVESTEMN_XFER', units='gN/m^2', &
          avgflag='A', long_name='live stem N transfer', &
-         ptr_patch=this%livestemn_xfer_patch, default='inactive')     
+         ptr_patch=this%livestemn_xfer_patch, default='inactive')
 
     this%deadstemn_patch(begp:endp) = spval
     call hist_addfld1d (fname='DEADSTEMN', units='gN/m^2', &
@@ -277,12 +277,12 @@ contains
     this%deadstemn_storage_patch(begp:endp) = spval
     call hist_addfld1d (fname='DEADSTEMN_STORAGE', units='gN/m^2', &
          avgflag='A', long_name='dead stem N storage', &
-         ptr_patch=this%deadstemn_storage_patch, default='inactive')    
+         ptr_patch=this%deadstemn_storage_patch, default='inactive')
 
     this%deadstemn_xfer_patch(begp:endp) = spval
     call hist_addfld1d (fname='DEADSTEMN_XFER', units='gN/m^2', &
          avgflag='A', long_name='dead stem N transfer', &
-         ptr_patch=this%deadstemn_xfer_patch, default='inactive')    
+         ptr_patch=this%deadstemn_xfer_patch, default='inactive')
 
     this%livecrootn_patch(begp:endp) = spval
     call hist_addfld1d (fname='LIVECROOTN', units='gN/m^2', &
@@ -292,12 +292,12 @@ contains
     this%livecrootn_storage_patch(begp:endp) = spval
     call hist_addfld1d (fname='LIVECROOTN_STORAGE', units='gN/m^2', &
          avgflag='A', long_name='live coarse root N storage', &
-         ptr_patch=this%livecrootn_storage_patch, default='inactive')    
+         ptr_patch=this%livecrootn_storage_patch, default='inactive')
 
     this%livecrootn_xfer_patch(begp:endp) = spval
     call hist_addfld1d (fname='LIVECROOTN_XFER', units='gN/m^2', &
          avgflag='A', long_name='live coarse root N transfer', &
-         ptr_patch=this%livecrootn_xfer_patch, default='inactive')    
+         ptr_patch=this%livecrootn_xfer_patch, default='inactive')
 
     this%deadcrootn_patch(begp:endp) = spval
     call hist_addfld1d (fname='DEADCROOTN', units='gN/m^2', &
@@ -307,12 +307,12 @@ contains
     this%deadcrootn_storage_patch(begp:endp) = spval
     call hist_addfld1d (fname='DEADCROOTN_STORAGE', units='gN/m^2', &
          avgflag='A', long_name='dead coarse root N storage', &
-         ptr_patch=this%deadcrootn_storage_patch, default='inactive')    
+         ptr_patch=this%deadcrootn_storage_patch, default='inactive')
 
     this%deadcrootn_xfer_patch(begp:endp) = spval
     call hist_addfld1d (fname='DEADCROOTN_XFER', units='gN/m^2', &
          avgflag='A', long_name='dead coarse root N transfer', &
-         ptr_patch=this%deadcrootn_xfer_patch, default='inactive')    
+         ptr_patch=this%deadcrootn_xfer_patch, default='inactive')
 
     this%retransn_patch(begp:endp) = spval
     call hist_addfld1d (fname='RETRANSN', units='gN/m^2', &
@@ -322,7 +322,7 @@ contains
     this%npool_patch(begp:endp) = spval
     call hist_addfld1d (fname='NPOOL', units='gN/m^2', &
          avgflag='A', long_name='temporary plant N pool', &
-         ptr_patch=this%npool_patch)     
+         ptr_patch=this%npool_patch)
 
     this%ntrunc_patch(begp:endp) = spval
     call hist_addfld1d (fname='PFT_NTRUNC', units='gN/m^2', &
@@ -350,7 +350,7 @@ contains
          ptr_patch=this%totn_patch)
 
     !-------------------------------
-    ! column state variables 
+    ! column state variables
     !-------------------------------
 
     this%seedn_grc(begg:endg) = spval
@@ -377,14 +377,14 @@ contains
     ! !DESCRIPTION:
     ! Initializes time varying variables used only in coupled carbon-nitrogen mode (CN):
     !
-    use clm_varctl     , only : MM_Nuptake_opt   
+    use clm_varctl     , only : MM_Nuptake_opt
     ! !ARGUMENTS:
     class(cnveg_nitrogenstate_type) :: this
-    type(bounds_type) , intent(in) :: bounds  
+    type(bounds_type) , intent(in) :: bounds
     real(r8)          , intent(in) :: leafc_patch(bounds%begp:)
     real(r8)          , intent(in) :: leafc_storage_patch(bounds%begp:)
-    real(r8)          , intent(in) :: frootc_patch(bounds%begp:)            
-    real(r8)          , intent(in) :: frootc_storage_patch(bounds%begp:)    
+    real(r8)          , intent(in) :: frootc_patch(bounds%begp:)
+    real(r8)          , intent(in) :: frootc_storage_patch(bounds%begp:)
     real(r8)          , intent(in) :: deadstemc_patch(bounds%begp:)
     !
     ! !LOCAL VARIABLES:
@@ -397,8 +397,8 @@ contains
 
     SHR_ASSERT_ALL_FL((ubound(leafc_patch)          == (/bounds%endp/)), sourcefile, __LINE__)
     SHR_ASSERT_ALL_FL((ubound(leafc_storage_patch)  == (/bounds%endp/)), sourcefile, __LINE__)
-    SHR_ASSERT_ALL_FL((ubound(frootc_patch)         == (/bounds%endp/)), sourcefile, __LINE__)   
-    SHR_ASSERT_ALL_FL((ubound(frootc_storage_patch) == (/bounds%endp/)), sourcefile, __LINE__)   
+    SHR_ASSERT_ALL_FL((ubound(frootc_patch)         == (/bounds%endp/)), sourcefile, __LINE__)
+    SHR_ASSERT_ALL_FL((ubound(frootc_storage_patch) == (/bounds%endp/)), sourcefile, __LINE__)
     SHR_ASSERT_ALL_FL((ubound(deadstemc_patch)      == (/bounds%endp/)), sourcefile, __LINE__)
 
     ! Set column filters
@@ -435,17 +435,17 @@ contains
           if (patch%itype(p) == noveg) then
              this%leafn_patch(p) = 0._r8
              this%leafn_storage_patch(p) = 0._r8
-             if (MM_Nuptake_opt .eqv. .true.) then   
-                this%frootn_patch(p) = 0._r8            
-                this%frootn_storage_patch(p) = 0._r8    
-             end if 
+             if (MM_Nuptake_opt .eqv. .true.) then
+                this%frootn_patch(p) = 0._r8
+                this%frootn_storage_patch(p) = 0._r8
+             end if
           else
              this%leafn_patch(p)         = leafc_patch(p)         / pftcon%leafcn(patch%itype(p))
              this%leafn_storage_patch(p) = leafc_storage_patch(p) / pftcon%leafcn(patch%itype(p))
-             if (MM_Nuptake_opt .eqv. .true.) then  
-                this%frootn_patch(p) = frootc_patch(p) / pftcon%frootcn(patch%itype(p))           
-                this%frootn_storage_patch(p) = frootc_storage_patch(p) / pftcon%frootcn(patch%itype(p))   
-             end if 
+             if (MM_Nuptake_opt .eqv. .true.) then
+                this%frootn_patch(p) = frootc_patch(p) / pftcon%frootcn(patch%itype(p))
+                this%frootn_storage_patch(p) = frootc_storage_patch(p) / pftcon%frootcn(patch%itype(p))
+             end if
           end if
 
           this%leafn_xfer_patch(p)        = 0._r8
@@ -459,10 +459,10 @@ contains
              this%grainn_xfer_patch(p)    = 0._r8
              this%cropseedn_deficit_patch(p)  = 0._r8
           end if
-          if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option 
+          if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option
              this%frootn_patch(p)            = 0._r8
              this%frootn_storage_patch(p)    = 0._r8
-          end if 
+          end if
           this%frootn_xfer_patch(p)       = 0._r8
           this%livestemn_patch(p)         = 0._r8
           this%livestemn_storage_patch(p) = 0._r8
@@ -532,26 +532,26 @@ contains
                        deadstemc_patch, filter_reseed_patch, num_reseed_patch, &
                        spinup_factor_deadwood )
     !
-    ! !DESCRIPTION: 
-    ! Read/write restart data 
+    ! !DESCRIPTION:
+    ! Read/write restart data
     !
     ! !USES:
     use restUtilMod
     use ncdio_pio
     use clm_varctl             , only : spinup_state, use_cndv
     use clm_time_manager       , only : get_nstep, is_restart
-    use clm_varctl             , only : MM_Nuptake_opt   
+    use clm_varctl             , only : MM_Nuptake_opt
 
     !
     ! !ARGUMENTS:
     class (cnveg_nitrogenstate_type) :: this
-    type(bounds_type)          , intent(in)    :: bounds 
-    type(file_desc_t)          , intent(inout) :: ncid   
+    type(bounds_type)          , intent(in)    :: bounds
+    type(file_desc_t)          , intent(inout) :: ncid
     character(len=*)           , intent(in)    :: flag   !'read' or 'write' or 'define'
     real(r8)          , intent(in) :: leafc_patch(bounds%begp:)
     real(r8)          , intent(in) :: leafc_storage_patch(bounds%begp:)
-    real(r8)          , intent(in) :: frootc_patch(bounds%begp:)            
-    real(r8)          , intent(in) :: frootc_storage_patch(bounds%begp:)    
+    real(r8)          , intent(in) :: frootc_patch(bounds%begp:)
+    real(r8)          , intent(in) :: frootc_storage_patch(bounds%begp:)
     real(r8)          , intent(in) :: deadstemc_patch(bounds%begp:)
     integer           , intent(in) :: filter_reseed_patch(:)
     integer           , intent(in) :: num_reseed_patch
@@ -577,21 +577,21 @@ contains
 
     call restartvar(ncid=ncid, flag=flag, varname='leafn', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%leafn_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%leafn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='leafn_storage', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%leafn_storage_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%leafn_storage_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='leafn_xfer', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%leafn_xfer_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%leafn_xfer_patch)
 
      if ( use_fun ) then
         call restartvar(ncid=ncid, flag=flag, varname='leafn_storage_xfer_acc', xtype=ncd_double,  &
              dim1name='pft', long_name='', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%leafn_storage_xfer_acc_patch)
-    
+
         call restartvar(ncid=ncid, flag=flag, varname='storage_ndemand', xtype=ncd_double,  &
              dim1name='pft', long_name='', units='', &
              interpinic_flag='interp', readvar=readvar, data=this%storage_ndemand_patch)
@@ -600,75 +600,75 @@ contains
 
     call restartvar(ncid=ncid, flag=flag, varname='frootn', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%frootn_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%frootn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='frootn_storage', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%frootn_storage_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%frootn_storage_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='frootn_xfer', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%frootn_xfer_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%frootn_xfer_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='livestemn', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%livestemn_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%livestemn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='livestemn_storage', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%livestemn_storage_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%livestemn_storage_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='livestemn_xfer', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%livestemn_xfer_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%livestemn_xfer_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='deadstemn', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%deadstemn_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%deadstemn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='deadstemn_storage', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%deadstemn_storage_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%deadstemn_storage_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='deadstemn_xfer', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%deadstemn_xfer_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%deadstemn_xfer_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='livecrootn', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%livecrootn_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%livecrootn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='livecrootn_storage', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%livecrootn_storage_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%livecrootn_storage_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='livecrootn_xfer', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%livecrootn_xfer_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%livecrootn_xfer_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='deadcrootn', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%deadcrootn_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%deadcrootn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='deadcrootn_storage', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%deadcrootn_storage_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%deadcrootn_storage_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='deadcrootn_xfer', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%deadcrootn_xfer_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%deadcrootn_xfer_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='retransn', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%retransn_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%retransn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='npool', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%npool_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%npool_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='pft_ntrunc', xtype=ncd_double,  &
          dim1name='pft', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%ntrunc_patch) 
+         interpinic_flag='interp', readvar=readvar, data=this%ntrunc_patch)
 
     if (use_crop) then
        call restartvar(ncid=ncid, flag=flag,  varname='grainn', xtype=ncd_double,  &
@@ -696,7 +696,7 @@ contains
     ! distinguish it from the old column-level seedn restart variable
     call restartvar(ncid=ncid, flag=flag, varname='seedn_g', xtype=ncd_double,  &
          dim1name='gridcell', long_name='', units='', &
-         interpinic_flag='interp', readvar=readvar, data=this%seedn_grc) 
+         interpinic_flag='interp', readvar=readvar, data=this%seedn_grc)
 
 
     if (flag == 'read') then
@@ -710,26 +710,32 @@ contains
        else
           restart_file_spinup_state = spinup_state
           if ( masterproc ) then
+!$OMP MASTER
              write(iulog,*) ' CNRest: WARNING!  Restart file does not contain info ' &
                    // ' on spinup state used to generate the restart file. '
              write(iulog,*) '   Assuming the same as current setting: ', spinup_state
+!$OMP END MASTER
           end if
        end if
     end if
 
     if (flag == 'read' .and. spinup_state /= restart_file_spinup_state .and. .not. use_cndv) then
        if (spinup_state <= 1 .and. restart_file_spinup_state == 2 ) then
-          if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood N pools out of AD spinup mode'
           exit_spinup = .true.
+!$OMP MASTER
+          if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood N pools out of AD spinup mode'
           if ( masterproc ) write(iulog, *) 'Multiplying stemn and crootn by ', spinup_factor_deadwood, 'for exit spinup '
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              this%deadstemn_patch(i) = this%deadstemn_patch(i) * spinup_factor_deadwood
              this%deadcrootn_patch(i) = this%deadcrootn_patch(i) * spinup_factor_deadwood
           end do
        else if (spinup_state == 2 .and. restart_file_spinup_state <= 1 ) then
-          if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood N pools into AD spinup mode'
           enter_spinup = .true.
+!$OMP MASTER
+          if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood N pools into AD spinup mode'
           if ( masterproc ) write(iulog, *) 'Dividing stemn and crootn by ', spinup_factor_deadwood, 'for enter spinup '
+!$OMP END MASTER
           do i = bounds%begp,bounds%endp
              this%deadstemn_patch(i) = this%deadstemn_patch(i) / spinup_factor_deadwood
              this%deadcrootn_patch(i) = this%deadcrootn_patch(i) / spinup_factor_deadwood
@@ -739,7 +745,9 @@ contains
     end if
     ! Reseed dead plants
     if ( flag == 'read' .and. num_reseed_patch > 0 )then
+!$OMP MASTER
        if ( masterproc ) write(iulog, *) 'Reseed dead plants for CNVegNitrogenState'
+!$OMP END MASTER
        do i = 1, num_reseed_patch
           p = filter_reseed_patch(i)
 
@@ -748,42 +756,42 @@ contains
              if (patch%itype(p) == noveg) then
                 this%leafn_patch(p) = 0._r8
                 this%leafn_storage_patch(p) = 0._r8
-                if (MM_Nuptake_opt .eqv. .true.) then   
-                   this%frootn_patch(p) = 0._r8            
-                   this%frootn_storage_patch(p) = 0._r8    
-                end if 
+                if (MM_Nuptake_opt .eqv. .true.) then
+                   this%frootn_patch(p) = 0._r8
+                   this%frootn_storage_patch(p) = 0._r8
+                end if
              else
                 this%leafn_patch(p)         = leafc_patch(p)         / pftcon%leafcn(patch%itype(p))
                 this%leafn_storage_patch(p) = leafc_storage_patch(p) / pftcon%leafcn(patch%itype(p))
-                if (MM_Nuptake_opt .eqv. .true.) then  
-                   this%frootn_patch(p) = frootc_patch(p) / pftcon%frootcn(patch%itype(p))           
-                   this%frootn_storage_patch(p) = frootc_storage_patch(p) / pftcon%frootcn(patch%itype(p))   
-                end if 
+                if (MM_Nuptake_opt .eqv. .true.) then
+                   this%frootn_patch(p) = frootc_patch(p) / pftcon%frootcn(patch%itype(p))
+                   this%frootn_storage_patch(p) = frootc_storage_patch(p) / pftcon%frootcn(patch%itype(p))
+                end if
              end if
-   
+
              this%leafn_xfer_patch(p)        = 0._r8
 
              this%leafn_storage_xfer_acc_patch(p)        = 0._r8
              this%storage_ndemand_patch(p)   = 0._r8
-   
+
              if ( use_crop )then
                 this%grainn_patch(p)         = 0._r8
                 this%grainn_storage_patch(p) = 0._r8
                 this%grainn_xfer_patch(p)    = 0._r8
                 this%cropseedn_deficit_patch(p)  = 0._r8
              end if
-             if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option 
+             if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option
                 this%frootn_patch(p)            = 0._r8
                 this%frootn_storage_patch(p)    = 0._r8
-             end if 
+             end if
              this%frootn_xfer_patch(p)       = 0._r8
              this%livestemn_patch(p)         = 0._r8
              this%livestemn_storage_patch(p) = 0._r8
              this%livestemn_xfer_patch(p)    = 0._r8
-   
+
              ! tree types need to be initialized with some stem mass so that
              ! roughness length is not zero in canopy flux calculation
-   
+
              if (pftcon%woody(patch%itype(p)) == 1._r8) then
                 this%deadstemn_patch(p) = deadstemc_patch(p) / pftcon%deadwdcn(patch%itype(p))
              else
@@ -806,7 +814,7 @@ contains
              this%totvegn_patch(p)            = 0._r8
              this%totn_patch(p)               = 0._r8
 
-             ! calculate totvegc explicitly so that it is available for the isotope 
+             ! calculate totvegc explicitly so that it is available for the isotope
              ! code on the first time step.
 
              this%totvegn_patch(p) = &
@@ -900,7 +908,7 @@ contains
           i = filter_patch(fi)
           this%grainn_patch(i)          = value_patch
           this%grainn_storage_patch(i)  = value_patch
-          this%grainn_xfer_patch(i)     = value_patch   
+          this%grainn_xfer_patch(i)     = value_patch
           this%cropseedn_deficit_patch(i)  = value_patch
        end do
     end if
@@ -924,7 +932,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cnveg_nitrogenstate_type) :: this
-    type(bounds_type), intent(in)  :: bounds 
+    type(bounds_type), intent(in)  :: bounds
     !
     ! !LOCAL VARIABLES:
     integer  :: p          ! indices
@@ -950,7 +958,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cnveg_nitrogenstate_type)                      :: this
-    type(bounds_type)                       , intent(in) :: bounds  
+    type(bounds_type)                       , intent(in) :: bounds
     integer                                 , intent(in) :: num_allc        ! number of columns in allc filter
     integer                                 , intent(in) :: filter_allc(:)  ! filter for all active columns
     integer                                 , intent(in) :: num_soilc       ! number of soil columns in filter
@@ -968,11 +976,11 @@ contains
     ! --------------------------------------------
     ! patch level summary
     ! --------------------------------------------
-    
+
     do fp = 1,num_soilp
        p = filter_soilp(fp)
-         
-	      
+
+
        ! displayed vegetation nitrogen, excluding storage (DISPVEGN)
        this%dispvegn_patch(p) = &
             this%leafn_patch(p)      + &
@@ -1020,7 +1028,7 @@ contains
        this%totn_patch(p) = &
             this%totvegn_patch(p) + &
             this%ntrunc_patch(p)
-            
+
     end do
 
     ! --------------------------------------------
@@ -1044,7 +1052,7 @@ contains
             soilbiogeochem_nitrogenstate_inst%totlitn_col(c) + &
             soilbiogeochem_nitrogenstate_inst%totsomn_col(c) + &
             soilbiogeochem_nitrogenstate_inst%sminn_col(c)   + &
-            this%totvegn_col(c)                              
+            this%totvegn_col(c)
 
        ! total column nitrogen, including patch (TOTCOLN)
 
@@ -1271,7 +1279,7 @@ contains
       real(r8), intent(inout), optional :: flux_out_grc_area( bounds%begp: )
       real(r8), intent(in), optional :: seed( bounds%begp: )
       real(r8), intent(inout), optional :: seed_addition( bounds%begp: )
-      
+
       call patch_state_updater%update_patch_state(bounds, &
          num_soilp_with_inactive, filter_soilp_with_inactive, &
          var = var, &

@@ -85,7 +85,9 @@ contains
     freelivfix_slope_wET = 0.0006_r8
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -103,10 +105,18 @@ contains
     call shr_mpi_bcast (freelivfix_slope_wET, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,nml=mineral_nitrogen_dynamics)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
     params_inst%freelivfix_intercept = freelivfix_intercept
     params_inst%freelivfix_slope_wET = freelivfix_slope_wET

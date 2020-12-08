@@ -198,17 +198,33 @@ contains
        u(ci,jtop(ci):jbot(ci))=result(:)
 
        if(info /= 0) then 
+!$OMP MASTER
           write(iulog,*)'index: ', ci
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*)'n,kl,ku,m ',n,kl,ku,m
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*)'dgbsv info: ',ci,info
+!$OMP END MASTER
           
+!$OMP MASTER
           write(iulog,*) ''
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) 'ab matrix'
+!$OMP END MASTER
           do j=1,n
+!$OMP MASTER
              !             write(iulog,'(i2,7f18.7)') j,temp(:,j)
+!$OMP END MASTER
+!$OMP MASTER
              write(iulog,'(i2,5f18.7)') j,temp(3:7,j)
+!$OMP END MASTER
           enddo
+!$OMP MASTER
           write(iulog,*) ''
+!$OMP END MASTER
           call endrun( 'BandDiagonal ERROR: dgbsv returned error code' )
        endif
        deallocate(temp)

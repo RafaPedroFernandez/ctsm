@@ -131,9 +131,15 @@ contains
       end if
 
       if (num_hydrologyc /= num_filterc_tot) then
+!$OMP MASTER
           write(iulog,*) 'The total number of columns flagged to root water uptake'
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) 'did not match the total number calculated'
+!$OMP END MASTER
+!$OMP MASTER
           write(iulog,*) 'This is likely a problem with the interpretation of column/lu filters.'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
 

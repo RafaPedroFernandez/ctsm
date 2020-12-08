@@ -11,7 +11,7 @@ module UrbanParamsType
   use decompMod    , only : bounds_type
   use clm_varctl   , only : iulog, fsurdat
   use clm_varcon   , only : namel, grlnd, spval
-  use LandunitType , only : lun                
+  use LandunitType , only : lun
   !
   implicit none
   save
@@ -26,21 +26,21 @@ module UrbanParamsType
   !
   ! !PRIVATE TYPE
   type urbinp_type
-     real(r8), pointer :: canyon_hwr      (:,:)  
-     real(r8), pointer :: wtlunit_roof    (:,:)  
-     real(r8), pointer :: wtroad_perv     (:,:)  
-     real(r8), pointer :: em_roof         (:,:)   
-     real(r8), pointer :: em_improad      (:,:)  
-     real(r8), pointer :: em_perroad      (:,:)  
-     real(r8), pointer :: em_wall         (:,:)  
-     real(r8), pointer :: alb_roof_dir    (:,:,:)  
-     real(r8), pointer :: alb_roof_dif    (:,:,:)  
-     real(r8), pointer :: alb_improad_dir (:,:,:)  
-     real(r8), pointer :: alb_improad_dif (:,:,:)  
-     real(r8), pointer :: alb_perroad_dir (:,:,:)  
-     real(r8), pointer :: alb_perroad_dif (:,:,:)  
-     real(r8), pointer :: alb_wall_dir    (:,:,:)  
-     real(r8), pointer :: alb_wall_dif    (:,:,:)  
+     real(r8), pointer :: canyon_hwr      (:,:)
+     real(r8), pointer :: wtlunit_roof    (:,:)
+     real(r8), pointer :: wtroad_perv     (:,:)
+     real(r8), pointer :: em_roof         (:,:)
+     real(r8), pointer :: em_improad      (:,:)
+     real(r8), pointer :: em_perroad      (:,:)
+     real(r8), pointer :: em_wall         (:,:)
+     real(r8), pointer :: alb_roof_dir    (:,:,:)
+     real(r8), pointer :: alb_roof_dif    (:,:,:)
+     real(r8), pointer :: alb_improad_dir (:,:,:)
+     real(r8), pointer :: alb_improad_dif (:,:,:)
+     real(r8), pointer :: alb_perroad_dir (:,:,:)
+     real(r8), pointer :: alb_perroad_dif (:,:,:)
+     real(r8), pointer :: alb_wall_dir    (:,:,:)
+     real(r8), pointer :: alb_wall_dif    (:,:,:)
      real(r8), pointer :: ht_roof         (:,:)
      real(r8), pointer :: wind_hgt_canyon (:,:)
      real(r8), pointer :: tk_wall         (:,:,:)
@@ -92,14 +92,14 @@ module UrbanParamsType
      real(r8), pointer     :: eflx_traffic_factor (:)   ! lun multiplicative traffic factor for sensible heat flux from urban traffic (-)
    contains
 
-     procedure, public :: Init 
-     
+     procedure, public :: Init
+
   end type urbanparams_type
   !
   ! !Urban control variables
-  character(len= *), parameter, public :: urban_hac_off = 'OFF'                
-  character(len= *), parameter, public :: urban_hac_on =  'ON'                 
-  character(len= *), parameter, public :: urban_wasteheat_on = 'ON_WASTEHEAT'  
+  character(len= *), parameter, public :: urban_hac_off = 'OFF'
+  character(len= *), parameter, public :: urban_hac_on =  'ON'
+  character(len= *), parameter, public :: urban_wasteheat_on = 'ON_WASTEHEAT'
   character(len= 16), public           :: urban_hac = urban_hac_off
   logical, public                      :: urban_traffic = .false.     ! urban traffic fluxes
 
@@ -111,7 +111,7 @@ module UrbanParamsType
 
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
-  !----------------------------------------------------------------------- 
+  !-----------------------------------------------------------------------
 
 contains
 
@@ -131,11 +131,11 @@ contains
     !
     ! !ARGUMENTS:
     class(urbanparams_type) :: this
-    type(bounds_type)      , intent(in)    :: bounds  
+    type(bounds_type)      , intent(in)    :: bounds
     !
     ! !LOCAL VARIABLES:
     integer             :: j,l,c,p,g       ! indices
-    integer             :: nc,fl,ib        ! indices 
+    integer             :: nc,fl,ib        ! indices
     integer             :: dindx           ! urban density type index
     integer             :: ier             ! error status
     real(r8)            :: sumvf           ! sum of view factors for wall or road
@@ -181,12 +181,12 @@ contains
     allocate(this%em_perroad          (begl:endl))          ; this%em_perroad          (:)   = nan
     allocate(this%em_wall             (begl:endl))          ; this%em_wall             (:)   = nan
     allocate(this%alb_roof_dir        (begl:endl,numrad))   ; this%alb_roof_dir        (:,:) = nan
-    allocate(this%alb_roof_dif        (begl:endl,numrad))   ; this%alb_roof_dif        (:,:) = nan    
-    allocate(this%alb_improad_dir     (begl:endl,numrad))   ; this%alb_improad_dir     (:,:) = nan       
-    allocate(this%alb_perroad_dir     (begl:endl,numrad))   ; this%alb_perroad_dir     (:,:) = nan       
-    allocate(this%alb_improad_dif     (begl:endl,numrad))   ; this%alb_improad_dif     (:,:) = nan       
-    allocate(this%alb_perroad_dif     (begl:endl,numrad))   ; this%alb_perroad_dif     (:,:) = nan       
-    allocate(this%alb_wall_dir        (begl:endl,numrad))   ; this%alb_wall_dir        (:,:) = nan    
+    allocate(this%alb_roof_dif        (begl:endl,numrad))   ; this%alb_roof_dif        (:,:) = nan
+    allocate(this%alb_improad_dir     (begl:endl,numrad))   ; this%alb_improad_dir     (:,:) = nan
+    allocate(this%alb_perroad_dir     (begl:endl,numrad))   ; this%alb_perroad_dir     (:,:) = nan
+    allocate(this%alb_improad_dif     (begl:endl,numrad))   ; this%alb_improad_dif     (:,:) = nan
+    allocate(this%alb_perroad_dif     (begl:endl,numrad))   ; this%alb_perroad_dif     (:,:) = nan
+    allocate(this%alb_wall_dir        (begl:endl,numrad))   ; this%alb_wall_dir        (:,:) = nan
     allocate(this%alb_wall_dif        (begl:endl,numrad))   ; this%alb_wall_dif        (:,:) = nan
     allocate(this%eflx_traffic_factor (begl:endl))          ; this%eflx_traffic_factor (:)   = nan
 
@@ -260,7 +260,7 @@ contains
           !              | \  vsr   / |       |         r   |  | \  vww   /   s
           !              |  \      /  |       h         o   w  |  \      /    k
           !        wall  |   \    /   | wall  |         a   |  |   \    /     y
-          !              |vwr \  / vwr|       |         d   |  |vrw \  / vsw 
+          !              |vwr \  / vwr|       |         d   |  |vrw \  / vsw
           !              ------\/------       -             -  |-----\/-----
           !                   road                                  wall   |
           !              <----- w ---->                                    |
@@ -271,20 +271,20 @@ contains
           !                                               vsw = view factor of sky for wall
           !    vsr + vwr + vwr = 1                        vrw + vww + vsw = 1
           !
-          ! Source: Masson, V. (2000) A physically-based scheme for the urban energy budget in 
+          ! Source: Masson, V. (2000) A physically-based scheme for the urban energy budget in
           ! atmospheric models. Boundary-Layer Meteorology 94:357-397
           !
           ! - Calculate urban land unit aerodynamic constants using Macdonald (1998) as used in
           ! Grimmond and Oke (1999)
           ! ---------------------------------------------------------------------------------------
-          
-          ! road -- sky view factor -> 1 as building height -> 0 
+
+          ! road -- sky view factor -> 1 as building height -> 0
           ! and -> 0 as building height -> infinity
 
           this%vf_sr(l) = sqrt(lun%canyon_hwr(l)**2 + 1._r8) - lun%canyon_hwr(l)
           this%vf_wr(l) = 0.5_r8 * (1._r8 - this%vf_sr(l))
 
-          ! one wall -- sky view factor -> 0.5 as building height -> 0 
+          ! one wall -- sky view factor -> 0.5 as building height -> 0
           ! and -> 0 as building height -> infinity
 
           this%vf_sw(l) = 0.5_r8 * (lun%canyon_hwr(l) + 1._r8 - sqrt(lun%canyon_hwr(l)**2+1._r8)) / lun%canyon_hwr(l)
@@ -310,7 +310,7 @@ contains
           ! Grimmond and Oke (1999)
           !----------------------------------------------------------------------------------
 
-          ! Calculate plan area index 
+          ! Calculate plan area index
           plan_ai = lun%canyon_hwr(l)/(lun%canyon_hwr(l) + 1._r8)
 
           ! Building shape shortside/longside ratio (e.g. 1 = square )
@@ -343,7 +343,7 @@ contains
                   (1 - lun%z_d_town(l) / lun%ht_roof(l)) * frontal_ai)**(-0.5_r8))
           end if
 
-       else ! Not urban point 
+       else ! Not urban point
 
           this%eflx_traffic_factor(l) = spval
           this%t_building_min(l) = spval
@@ -358,7 +358,7 @@ contains
     end do
 
     ! Deallocate memory for urbinp datatype
-    
+
     call UrbanInput(bounds%begg, bounds%endg, mode='finalize')
 
   end subroutine Init
@@ -366,7 +366,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine UrbanInput(begg, endg, mode)
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Allocate memory and read in urban input data
     !
     ! !USES:
@@ -375,7 +375,7 @@ contains
     use fileutils       , only : getavu, relavu, getfil, opnfil
     use spmdMod         , only : masterproc
     use domainMod       , only : ldomain
-    use ncdio_pio       , only : file_desc_t, ncd_io, ncd_inqvdlen, ncd_inqfdims 
+    use ncdio_pio       , only : file_desc_t, ncd_io, ncd_inqvdlen, ncd_inqfdims
     use ncdio_pio       , only : ncd_pio_openfile, ncd_pio_closefile, ncd_inqdid, ncd_inqdlen
     !
     ! !ARGUMENTS:
@@ -392,7 +392,7 @@ contains
     integer :: numrad_i              ! input grid: number of solar bands (VIS/NIR)
     integer :: numurbl_i             ! input grid: number of urban landunits
     integer :: ier,ret               ! error status
-    logical :: isgrid2d              ! true => file is 2d 
+    logical :: isgrid2d              ! true => file is 2d
     logical :: readvar               ! true => variable is on dataset
     logical :: has_numurbl           ! true => numurbl dimension is on dataset
     character(len=32) :: subname = 'UrbanInput' ! subroutine name
@@ -403,16 +403,20 @@ contains
     if (mode == 'initialize') then
 
        ! Read urban data
-       
+
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*)' Reading in urban input data from fsurdat file ...'
+!$OMP END MASTER
        end if
-       
+
        call getfil (fsurdat, locfn, 0)
        call ncd_pio_openfile (ncid, locfn, 0)
 
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) subname,trim(fsurdat)
+!$OMP END MASTER
        end if
 
        ! Check whether this file has new-format urban data
@@ -422,26 +426,28 @@ contains
        ! in this case, set nlevurb to zero
        if (.not. has_numurbl) then
          nlevurb = 0
+!$OMP MASTER
          if (masterproc) write(iulog,*)'PCT_URBAN is not multi-density, nlevurb set to 0'
+!$OMP END MASTER
        end if
 
        if ( nlevurb == 0 ) return
 
        ! Allocate dynamic memory
-       allocate(urbinp%canyon_hwr(begg:endg, numurbl), &  
-                urbinp%wtlunit_roof(begg:endg, numurbl), &  
+       allocate(urbinp%canyon_hwr(begg:endg, numurbl), &
+                urbinp%wtlunit_roof(begg:endg, numurbl), &
                 urbinp%wtroad_perv(begg:endg, numurbl), &
-                urbinp%em_roof(begg:endg, numurbl), &     
-                urbinp%em_improad(begg:endg, numurbl), &    
-                urbinp%em_perroad(begg:endg, numurbl), &    
-                urbinp%em_wall(begg:endg, numurbl), &    
-                urbinp%alb_roof_dir(begg:endg, numurbl, numrad), &    
-                urbinp%alb_roof_dif(begg:endg, numurbl, numrad), &    
-                urbinp%alb_improad_dir(begg:endg, numurbl, numrad), &    
-                urbinp%alb_perroad_dir(begg:endg, numurbl, numrad), &    
-                urbinp%alb_improad_dif(begg:endg, numurbl, numrad), &    
-                urbinp%alb_perroad_dif(begg:endg, numurbl, numrad), &    
-                urbinp%alb_wall_dir(begg:endg, numurbl, numrad), &    
+                urbinp%em_roof(begg:endg, numurbl), &
+                urbinp%em_improad(begg:endg, numurbl), &
+                urbinp%em_perroad(begg:endg, numurbl), &
+                urbinp%em_wall(begg:endg, numurbl), &
+                urbinp%alb_roof_dir(begg:endg, numurbl, numrad), &
+                urbinp%alb_roof_dif(begg:endg, numurbl, numrad), &
+                urbinp%alb_improad_dir(begg:endg, numurbl, numrad), &
+                urbinp%alb_perroad_dir(begg:endg, numurbl, numrad), &
+                urbinp%alb_improad_dif(begg:endg, numurbl, numrad), &
+                urbinp%alb_perroad_dif(begg:endg, numurbl, numrad), &
+                urbinp%alb_wall_dir(begg:endg, numurbl, numrad), &
                 urbinp%alb_wall_dif(begg:endg, numurbl, numrad), &
                 urbinp%ht_roof(begg:endg, numurbl), &
                 urbinp%wind_hgt_canyon(begg:endg, numurbl), &
@@ -462,33 +468,41 @@ contains
 
        call ncd_inqfdims (ncid, isgrid2d, ni, nj, ns)
        if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
+!$OMP MASTER
           write(iulog,*)trim(subname), 'ldomain and input file do not match dims '
           write(iulog,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
           write(iulog,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
           write(iulog,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
+!$OMP END MASTER
           call endrun(msg=errmsg(sourcefile, __LINE__))
        end if
 
        call ncd_inqdid(ncid, 'nlevurb', dimid)
        call ncd_inqdlen(ncid, dimid, nlevurb_i)
        if (nlevurb_i /= nlevurb) then
+!$OMP MASTER
           write(iulog,*)trim(subname)// ': parameter nlevurb= ',nlevurb, &
                'does not equal input dataset nlevurb= ',nlevurb_i
+!$OMP END MASTER
           call endrun(msg=errmsg(sourcefile, __LINE__))
        endif
 
        call ncd_inqdid(ncid, 'numrad', dimid)
        call ncd_inqdlen(ncid, dimid, numrad_i)
        if (numrad_i /= numrad) then
+!$OMP MASTER
           write(iulog,*)trim(subname)// ': parameter numrad= ',numrad, &
                'does not equal input dataset numrad= ',numrad_i
+!$OMP END MASTER
           call endrun(msg=errmsg(sourcefile, __LINE__))
        endif
        call ncd_inqdid(ncid, 'numurbl', dimid)
        call ncd_inqdlen(ncid, dimid, numurbl_i)
        if (numurbl_i /= numurbl) then
+!$OMP MASTER
           write(iulog,*)trim(subname)// ': parameter numurbl= ',numurbl, &
                'does not equal input dataset numurbl= ',numurbl_i
+!$OMP END MASTER
           call endrun(msg=errmsg(sourcefile, __LINE__))
        endif
        call ncd_io(ncid=ncid, varname='CANYON_HWR', flag='read', data=urbinp%canyon_hwr,&
@@ -655,8 +669,10 @@ contains
 
        call ncd_pio_closefile(ncid)
        if (masterproc) then
-          write(iulog,*)' Sucessfully read urban input data' 
+!$OMP MASTER
+          write(iulog,*)' Sucessfully read urban input data'
           write(iulog,*)
+!$OMP END MASTER
        end if
 
     else if (mode == 'finalize') then
@@ -695,7 +711,9 @@ contains
           call endrun(msg='initUrbanInput: deallocation error '//errmsg(sourcefile, __LINE__))
        end if
     else
+!$OMP MASTER
        write(iulog,*)'initUrbanInput error: mode ',trim(mode),' not supported '
+!$OMP END MASTER
        call endrun(msg=errmsg(sourcefile, __LINE__))
     end if
 
@@ -779,6 +797,7 @@ contains
        end do
     end do
     if ( found ) then
+!$OMP MASTER
        write(iulog,*) trim(caller), ' ERROR: no valid urban data for nl=',nindx
        write(iulog,*)'density type:    ',dindx
        write(iulog,*)'urban_valid:     ',urban_valid(nindx)
@@ -811,6 +830,7 @@ contains
           write(iulog,*)'tk_improad: ',urbinp%tk_improad(nindx,dindx,1:nlev)
           write(iulog,*)'cv_improad: ',urbinp%cv_improad(nindx,dindx,1:nlev)
        end if
+!$OMP END MASTER
        call endrun(msg=errmsg(sourcefile, __LINE__))
     end if
 
@@ -859,7 +879,9 @@ contains
     if ( masterproc )then
 
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in clmu_inparm  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, 'clmu_inparm', status=ierr)
        if (ierr == 0) then
@@ -881,13 +903,19 @@ contains
 
     !
     if (urban_traffic) then
+!$OMP MASTER
        write(iulog,*)'Urban traffic fluxes are not implemented currently'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     !
     if ( masterproc )then
+!$OMP MASTER
        write(iulog,*) '   urban air conditioning/heating and wasteheat   = ', urban_hac
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '   urban traffic flux   = ', urban_traffic
+!$OMP END MASTER
     end if
 
     ReadNamelist = .true.
@@ -915,7 +943,9 @@ contains
     !-----------------------------------------------------------------------
 
     if ( .not. ReadNamelist )then
+!$OMP MASTER
        write(iulog,*)'Testing on building_temp_method before urban namelist was read in'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     IsSimpleBuildTemp = building_temp_method == BUILDING_TEMP_METHOD_SIMPLE
@@ -943,7 +973,9 @@ contains
     !-----------------------------------------------------------------------
 
     if ( .not. ReadNamelist )then
+!$OMP MASTER
        write(iulog,*)'Testing on building_temp_method before urban namelist was read in'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     IsProgBuildTemp = building_temp_method == BUILDING_TEMP_METHOD_PROG
@@ -953,7 +985,3 @@ contains
   !-----------------------------------------------------------------------
 
 end module UrbanParamsType
-
-
-
-

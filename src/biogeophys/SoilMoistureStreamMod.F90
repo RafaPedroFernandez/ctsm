@@ -153,18 +153,38 @@ contains
 
     if (masterproc) then
 
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'soil_moisture_stream settings:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  stream_year_first_soilm  = ',stream_year_first_soilm
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  stream_year_last_soilm   = ',stream_year_last_soilm
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  model_year_align_soilm   = ',model_year_align_soilm
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  stream_fldfilename_soilm = ',trim(stream_fldfilename_soilm)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  soilm_tintalgo = ',trim(soilm_tintalgo)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  soilm_offset = ',soilm_offset
+!$OMP END MASTER
        if ( soilm_ignore_data_if_missing )then
+!$OMP MASTER
           write(iulog,*) '  Do NOT override a point with streams data if the streams data is missing'
+!$OMP END MASTER
        else
+!$OMP MASTER
           write(iulog,*) '  Abort, if you find a model point where the input streams data is set to missing value'
+!$OMP END MASTER
        end if
 
     endif
@@ -176,7 +196,9 @@ contains
     !
     fldList = trim(soilmString)
 
+!$OMP MASTER
     if (masterproc) write(iulog,*) 'fieldlist: ', trim(fldList)
+!$OMP END MASTER
 
     call shr_strdata_create(sdat_soilm,name="soil_moisture",    &
          pio_subsystem=pio_subsystem,                  &
@@ -255,7 +277,9 @@ contains
     if ( .not. allocated(g_to_ig) )then
        allocate (g_to_ig(bounds%begg:bounds%endg), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*) 'Prescribed soil moisture allocation error'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
 
@@ -386,7 +410,9 @@ contains
                      if ( soilm_ignore_data_if_missing )then
                         cycle
                      else
+!$OMP MASTER
                         write(iulog,*) 'Input soil moisture dataset is not vegetated as expected: gridcell=', &
+!$OMP END MASTER
                                         g, ' active = ', col%active(c)
                         call endrun(subname // ' ERROR:: The input soil moisture stream is NOT vegetated for one of the land points' )
                      end if

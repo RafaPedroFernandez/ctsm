@@ -20,16 +20,16 @@ module initVerticalMod
   use clm_varctl        , only : use_bedrock, rundef
   use clm_varctl        , only : soil_layerstruct_predefined, soil_layerstruct_userdefined
   use clm_varctl        , only : use_fates
-  use clm_varcon        , only : zlak, dzlak, zsoi, dzsoi, zisoi, dzsoi_decomp, spval, ispval, grlnd 
+  use clm_varcon        , only : zlak, dzlak, zsoi, dzsoi, zisoi, dzsoi_decomp, spval, ispval, grlnd
   use column_varcon     , only : icol_roof, icol_sunwall, icol_shadewall, is_hydrologically_active
   use landunit_varcon   , only : istdlak, istice_mec
   use fileutils         , only : getfil
-  use LandunitType      , only : lun                
-  use GridcellType      , only : grc                
-  use ColumnType        , only : col                
+  use LandunitType      , only : lun
+  use GridcellType      , only : grc
+  use ColumnType        , only : col
   use glcBehaviorMod    , only : glc_behavior_type
-  use SnowHydrologyMod  , only : InitSnowLayers             
-  use abortUtils        , only : endrun    
+  use SnowHydrologyMod  , only : InitSnowLayers
+  use abortUtils        , only : endrun
   use ncdio_pio
   !
   ! !PUBLIC TYPES:
@@ -65,13 +65,13 @@ contains
     real(r8)            , intent(in)    :: thick_roof(bounds%begl:)
     !
     ! LOCAL VARAIBLES:
-    integer               :: c,l,g,i,j,lev     ! indices 
+    integer               :: c,l,g,i,j,lev     ! indices
     type(file_desc_t)     :: ncid              ! netcdf id
-    logical               :: readvar 
+    logical               :: readvar
     integer               :: dimid             ! dimension id
     character(len=256)    :: locfn             ! local filename
-    real(r8) ,pointer     :: std (:)           ! read in - topo_std 
-    real(r8) ,pointer     :: tslope (:)        ! read in - topo_slope 
+    real(r8) ,pointer     :: std (:)           ! read in - topo_std
+    real(r8) ,pointer     :: tslope (:)        ! read in - topo_slope
     real(r8)              :: slope0            ! temporary
     real(r8)              :: slopebeta         ! temporary
     real(r8)              :: slopemax          ! temporary
@@ -80,14 +80,14 @@ contains
     real(r8)              :: thick_equal = 0.2
     character(len=20)     :: calc_method       ! soil layer calculation method
     real(r8) ,pointer     :: zbedrock_in(:)   ! read in - z_bedrock
-    real(r8) ,pointer     :: lakedepth_in(:)   ! read in - lakedepth 
+    real(r8) ,pointer     :: lakedepth_in(:)   ! read in - lakedepth
     real(r8), allocatable :: zurb_wall(:,:)    ! wall (layer node depth)
     real(r8), allocatable :: zurb_roof(:,:)    ! roof (layer node depth)
     real(r8), allocatable :: dzurb_wall(:,:)   ! wall (layer thickness)
     real(r8), allocatable :: dzurb_roof(:,:)   ! roof (layer thickness)
     real(r8), allocatable :: ziurb_wall(:,:)   ! wall (layer interface)
     real(r8), allocatable :: ziurb_roof(:,:)   ! roof (layer interface)
-    real(r8)              :: depthratio        ! ratio of lake depth to standard deep lake depth 
+    real(r8)              :: depthratio        ! ratio of lake depth to standard deep lake depth
     integer               :: begc, endc
     integer               :: begl, endl
     integer               :: jmin_bedrock
@@ -122,23 +122,25 @@ contains
     SHR_ASSERT_ALL_FL((ubound(thick_wall)  == (/endl/)), sourcefile, __LINE__)
     SHR_ASSERT_ALL_FL((ubound(thick_roof)  == (/endl/)), sourcefile, __LINE__)
 
-    ! Open surface dataset to read in data below 
+    ! Open surface dataset to read in data below
 
     call getfil (fsurdat, locfn, 0)
     call ncd_pio_openfile (ncid, locfn, 0)
 
     ! --------------------------------------------------------------------
-    ! Define layer structure for soil, lakes, urban walls and roof 
+    ! Define layer structure for soil, lakes, urban walls and roof
     ! Vertical profile of snow is not initialized here - but below
     ! --------------------------------------------------------------------
-    
+
     ! Soil layers and interfaces (assumed same for all non-lake patches)
     ! "0" refers to soil surface and "nlevsoi" refers to the bottom of model soil
 
     if (soil_layerstruct_predefined == '10SL_3.5m' .or. soil_layerstruct_predefined == '23SL_3.5m') then
        calc_method = 'node-based'  ! node-based followed by error check
        if (soil_layerstruct_userdefined(1) /= rundef) then
+!$OMP MASTER
           write(iulog,*) subname//' ERROR: Both soil_layerstruct_predefined and soil_layer_userdefined have values'
+!$OMP END MASTER
           call shr_sys_abort(subname//' ERROR: Cannot decide how to set the soil layer structure')
        end if
     ! thickness-based (part 1) and error check
@@ -147,18 +149,24 @@ contains
              soil_layerstruct_predefined == '4SL_2m') then
        calc_method = 'thickness-based'
        if (soil_layerstruct_userdefined(1) /= rundef) then
+!$OMP MASTER
           write(iulog,*) subname//' ERROR: Both soil_layerstruct_predefined and soil_layer_userdefined have values'
+!$OMP END MASTER
           call shr_sys_abort(subname//' ERROR: Cannot decide how to set the soil layer structure')
        end if
     ! thickness-based (part 2) and error check
     else if (soil_layerstruct_userdefined(1) /= rundef) then
        calc_method = 'thickness-based'
        if (soil_layerstruct_predefined /= 'UNSET') then
+!$OMP MASTER
           write(iulog,*) subname//' ERROR: Both soil_layerstruct_predefined and soil_layer_userdefined have values'
+!$OMP END MASTER
           call shr_sys_abort(subname//' ERROR: Cannot decide how to set the soil layer structure')
        end if
     else  ! error check
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: Unrecognized pre-defined and user-defined soil layer structures: ', trim(soil_layerstruct_predefined), soil_layerstruct_userdefined
+!$OMP END MASTER
        call endrun(subname//' ERROR: Unrecognized soil layer structure')
     end if
 
@@ -234,18 +242,20 @@ contains
           dzsoi(4) = 1.0_r8
           dzsoi(5) = 1.0_r8
        end if  ! thickness-based options
-       
+
        zisoi(0) = 0._r8
        do j = 1,nlevgrnd
           zisoi(j)= sum(dzsoi(1:j))
        enddo
-       
+
        do j = 1, nlevgrnd
           zsoi(j) = 0.5*(zisoi(j-1) + zisoi(j))
        enddo
 
     else  ! error check
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: Unrecognized calc_method: ', trim(calc_method)
+!$OMP END MASTER
        call endrun(subname//' ERROR: Unrecognized calc_method')
     end if  ! calc_method is node-based or thickness-based
 
@@ -258,10 +268,12 @@ contains
     end if
 
     if (masterproc) then
-       write(iulog, *) 'zsoi', zsoi(:) 
+!$OMP MASTER
+       write(iulog, *) 'zsoi', zsoi(:)
        write(iulog, *) 'zisoi: ', zisoi(:)
        write(iulog, *) 'dzsoi: ', dzsoi(:)
        write(iulog, *) 'dzsoi_decomp: ',dzsoi_decomp
+!$OMP END MASTER
     end if
 
     if (nlevurb > 0) then
@@ -284,7 +296,7 @@ contains
 
        ! "0" refers to urban wall/roof surface and "nlevsoi" refers to urban wall/roof bottom
        if (lun%urbpoi(l)) then
-          if (use_vancouver) then       
+          if (use_vancouver) then
              zurb_wall(l,1) = 0.010_r8/2._r8
              zurb_wall(l,2) = zurb_wall(l,1) + 0.010_r8/2._r8 + 0.020_r8/2._r8
              zurb_wall(l,3) = zurb_wall(l,2) + 0.020_r8/2._r8 + 0.070_r8/2._r8
@@ -302,30 +314,38 @@ contains
              dzurb_wall(l,3) = 0.070_r8
              dzurb_wall(l,4) = 0.070_r8
              dzurb_wall(l,5) = 0.030_r8
+!$OMP MASTER
              write(iulog,*)'Total thickness of wall: ',sum(dzurb_wall(l,:))
              write(iulog,*)'Wall layer thicknesses: ',dzurb_wall(l,:)
+!$OMP END MASTER
 
              dzurb_roof(l,1) = 0.010_r8
              dzurb_roof(l,2) = 0.010_r8
              dzurb_roof(l,3) = 0.010_r8
              dzurb_roof(l,4) = 0.010_r8
              dzurb_roof(l,5) = 0.030_r8
+!$OMP MASTER
              write(iulog,*)'Total thickness of roof: ',sum(dzurb_roof(l,:))
              write(iulog,*)'Roof layer thicknesses: ',dzurb_roof(l,:)
+!$OMP END MASTER
 
              ziurb_wall(l,0) = 0.
              ziurb_wall(l,1) = dzurb_wall(l,1)
              do j = 2,nlevurb
                 ziurb_wall(l,j) = sum(dzurb_wall(l,1:j))
              end do
+!$OMP MASTER
              write(iulog,*)'Wall layer interface depths: ',ziurb_wall(l,:)
+!$OMP END MASTER
 
              ziurb_roof(l,0) = 0.
              ziurb_roof(l,1) = dzurb_roof(l,1)
              do j = 2,nlevurb
                 ziurb_roof(l,j) = sum(dzurb_roof(l,1:j))
              end do
+!$OMP MASTER
              write(iulog,*)'Roof layer interface depths: ',ziurb_roof(l,:)
+!$OMP END MASTER
           else if (use_mexicocity) then
              zurb_wall(l,1) = 0.015_r8/2._r8
              zurb_wall(l,2) = zurb_wall(l,1) + 0.015_r8/2._r8 + 0.120_r8/2._r8
@@ -344,30 +364,38 @@ contains
              dzurb_wall(l,3) = 0.150_r8
              dzurb_wall(l,4) = 0.150_r8
              dzurb_wall(l,5) = 0.015_r8
+!$OMP MASTER
              write(iulog,*)'Total thickness of wall: ',sum(dzurb_wall(l,:))
              write(iulog,*)'Wall layer thicknesses: ',dzurb_wall(l,:)
+!$OMP END MASTER
 
              dzurb_roof(l,1) = 0.010_r8
              dzurb_roof(l,2) = 0.050_r8
              dzurb_roof(l,3) = 0.050_r8
              dzurb_roof(l,4) = 0.050_r8
              dzurb_roof(l,5) = 0.025_r8
+!$OMP MASTER
              write(iulog,*)'Total thickness of roof: ',sum(dzurb_roof(l,:))
              write(iulog,*)'Roof layer thicknesses: ',dzurb_roof(l,:)
+!$OMP END MASTER
 
              ziurb_wall(l,0) = 0.
              ziurb_wall(l,1) = dzurb_wall(l,1)
              do j = 2,nlevurb
                 ziurb_wall(l,j) = sum(dzurb_wall(l,1:j))
              end do
+!$OMP MASTER
              write(iulog,*)'Wall layer interface depths: ',ziurb_wall(l,:)
+!$OMP END MASTER
 
              ziurb_roof(l,0) = 0.
              ziurb_roof(l,1) = dzurb_roof(l,1)
              do j = 2,nlevurb
                 ziurb_roof(l,j) = sum(dzurb_roof(l,1:j))
              end do
+!$OMP MASTER
              write(iulog,*)'Roof layer interface depths: ',ziurb_roof(l,:)
+!$OMP END MASTER
           else
              do j = 1, nlevurb
                 zurb_wall(l,j) = (j-0.5)*(thick_wall(l)/float(nlevurb))  !node depths
@@ -378,13 +406,13 @@ contains
 
              dzurb_roof(l,1) = 0.5*(zurb_roof(l,1)+zurb_roof(l,2))    !thickness b/n two interfaces
              do j = 2,nlevurb-1
-                dzurb_roof(l,j)= 0.5*(zurb_roof(l,j+1)-zurb_roof(l,j-1)) 
+                dzurb_roof(l,j)= 0.5*(zurb_roof(l,j+1)-zurb_roof(l,j-1))
              enddo
              dzurb_roof(l,nlevurb) = zurb_roof(l,nlevurb)-zurb_roof(l,nlevurb-1)
 
              dzurb_wall(l,1) = 0.5*(zurb_wall(l,1)+zurb_wall(l,2))    !thickness b/n two interfaces
              do j = 2,nlevurb-1
-                dzurb_wall(l,j)= 0.5*(zurb_wall(l,j+1)-zurb_wall(l,j-1)) 
+                dzurb_wall(l,j)= 0.5*(zurb_wall(l,j+1)-zurb_wall(l,j-1))
              enddo
              dzurb_wall(l,nlevurb) = zurb_wall(l,nlevurb)-zurb_wall(l,nlevurb-1)
 
@@ -466,24 +494,28 @@ contains
 
     !  if use_bedrock = false, set zbedrock to lowest layer bottom interface
     else
+!$OMP MASTER
        if (masterproc) write(iulog,*) 'not using use_bedrock!!'
+!$OMP END MASTER
        zbedrock_in(:) = zisoi(nlevsoi)
     endif
 
     !  determine minimum index of minimum soil depth
     jmin_bedrock = 3
-    do j = 3,nlevsoi 
+    do j = 3,nlevsoi
        if (zisoi(j-1) < zmin_bedrock .and. zisoi(j) >= zmin_bedrock) then
           jmin_bedrock = j
        endif
     enddo
 
+!$OMP MASTER
     if (masterproc) write(iulog,*) 'jmin_bedrock: ', jmin_bedrock
+!$OMP END MASTER
 
     !  Determine gridcell bedrock index
     do g = bounds%begg,bounds%endg
        grc%nbedrock(g) = nlevsoi
-       do j = jmin_bedrock,nlevsoi 
+       do j = jmin_bedrock,nlevsoi
           if (zisoi(j-1) < zbedrock_in(g) .and. zisoi(j) >= zbedrock_in(g)) then
              grc%nbedrock(g) = j
           end if
@@ -493,7 +525,7 @@ contains
     !  Set column bedrock index
     do c = begc, endc
        g = col%gridcell(c)
-       col%nbedrock(c) = grc%nbedrock(g) 
+       col%nbedrock(c) = grc%nbedrock(g)
     end do
 
     deallocate(zbedrock_in)
@@ -506,8 +538,10 @@ contains
     call ncd_io(ncid=ncid, varname='LAKEDEPTH', flag='read', data=lakedepth_in, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) 'WARNING:: LAKEDEPTH not found on surface data set. All lake columns will have lake depth', &
                ' set equal to default value.'
+!$OMP END MASTER
        end if
        lakedepth_in(:) = spval
     end if
@@ -585,7 +619,7 @@ contains
 
           else if (col%lakedepth(c) > 1._r8 .and. col%lakedepth(c) < 5000._r8) then
 
-             depthratio                 = col%lakedepth(c) / (zlak(nlevlak) + 0.5_r8*dzlak(nlevlak)) 
+             depthratio                 = col%lakedepth(c) / (zlak(nlevlak) + 0.5_r8*dzlak(nlevlak))
              col%z_lake(c,1)            = zlak(1)
              col%dz_lake(c,1)           = dzlak(1)
              col%dz_lake(c,2:nlevlak-1) = dzlak(2:nlevlak-1)*depthratio
@@ -604,7 +638,9 @@ contains
 
           else
 
+!$OMP MASTER
              write(iulog,*)'Bad lake depth: lakedepth: ', col%lakedepth(c)
+!$OMP END MASTER
              call shr_sys_abort(errmsg(sourcefile, __LINE__))
 
           end if
@@ -652,7 +688,7 @@ contains
     end do
 
     !-----------------------------------------------
-    ! Set cold-start values for snow levels, snow layers and snow interfaces 
+    ! Set cold-start values for snow levels, snow layers and snow interfaces
     !-----------------------------------------------
 
     call InitSnowLayers(bounds, snow_depth(bounds%begc:bounds%endc))
@@ -665,7 +701,7 @@ contains
     call ncd_io(ncid=ncid, varname='SLOPE', flag='read', data=tslope, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
        call shr_sys_abort(' ERROR: TOPOGRAPHIC SLOPE NOT on surfdata file'//&
-            errMsg(sourcefile, __LINE__)) 
+            errMsg(sourcefile, __LINE__))
     end if
     do c = begc,endc
        g = col%gridcell(c)
@@ -678,7 +714,7 @@ contains
     call ncd_io(ncid=ncid, varname='STD_ELEV', flag='read', data=std, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
        call shr_sys_abort(' ERROR: TOPOGRAPHIC STDdev (STD_ELEV) NOT on surfdata file'//&
-            errMsg(sourcefile, __LINE__)) 
+            errMsg(sourcefile, __LINE__))
     end if
     do c = begc,endc
        g = col%gridcell(c)
@@ -727,9 +763,11 @@ contains
     !-----------------------------------------------------------------------
 
     if (depth <= zisoi(0)) then
+!$OMP MASTER
        write(iulog,*) subname, ': ERROR: depth above top of soil'
        write(iulog,*) 'depth = ', depth
        write(iulog,*) 'zisoi = ', zisoi
+!$OMP END MASTER
        call endrun(msg=subname//': depth above top of soil')
     end if
 
@@ -743,9 +781,11 @@ contains
     end do
 
     if (.not. found) then
+!$OMP MASTER
        write(iulog,*) subname, ': ERROR: depth below bottom of soil'
        write(iulog,*) 'depth = ', depth
        write(iulog,*) 'zisoi = ', zisoi
+!$OMP END MASTER
        call endrun(msg=subname//': depth below bottom of soil')
     end if
 

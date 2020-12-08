@@ -19,10 +19,10 @@ module initGridCellsMod
   use clm_varctl     , only : iulog
   use clm_varcon     , only : namep, namec, namel, nameg
   use decompMod      , only : bounds_type, ldecomp
-  use GridcellType   , only : grc                
-  use LandunitType   , only : lun                
-  use ColumnType     , only : col                
-  use PatchType      , only : patch                
+  use GridcellType   , only : grc
+  use LandunitType   , only : lun
+  use ColumnType     , only : col
+  use PatchType      , only : patch
   use initSubgridMod , only : clm_ptrs_compdown, clm_ptrs_check
   use initSubgridMod , only : add_landunit, add_column, add_patch
   use glcBehaviorMod , only : glc_behavior_type
@@ -32,7 +32,7 @@ module initGridCellsMod
   private
   !
   ! !PUBLIC MEMBER FUNCTIONS:
-  public initGridcells ! initialize sub-grid gridcell mapping 
+  public initGridcells ! initialize sub-grid gridcell mapping
   !
   ! !PRIVATE MEMBER FUNCTIONS:
   private set_landunit_veg_compete
@@ -50,7 +50,7 @@ contains
   !------------------------------------------------------------------------
   subroutine initGridcells(glc_behavior)
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Initialize sub-grid mapping and allocates space for derived type hierarchy.
     ! For each land gridcell determine landunit, column and patch properties.
     !
@@ -74,8 +74,8 @@ contains
     !------------------------------------------------------------------------
 
     ! Notes about how this routine is arranged, and its implications for the arrangement
-    ! of 1-d vectors in memory: 
-    ! 
+    ! of 1-d vectors in memory:
+    !
     ! (1) There is an outer loop over clumps; this results in all of a clump's points (at
     !     the gridcell, landunit, column & patch level) being contiguous. This is important
     !     for the use of begg:endg, etc., and also for performance.
@@ -85,7 +85,7 @@ contains
     !     points with the same landunit are grouped together (this is true at the
     !     landunit, column and patch levels). Thus, different landunits for a given grid
     !     cell are separated in memory. This improves performance in the many parts of
-    !     the code that operate over a single landunit, or two similar landunits. 
+    !     the code that operate over a single landunit, or two similar landunits.
     !
     ! Example: landunit-level array: For a processor with 2 clumps, each of which has 2
     ! grid cells, each of which has 3 landunits, the layout of a landunit-level array
@@ -109,12 +109,12 @@ contains
     !
     ! So note that clump index is most slowly varying, followed by landunit type,
     ! followed by gridcell, followed by column and patch type.
-    ! 
+    !
     ! Cohort layout
     ! Array index:   1   2   3   4   5   6   7   8   9  10  11  12
     ! ------------------------------------------------------------
     ! Gridcell:      1   1   1   1   2   2   2   2   3   3   3   3
-    ! Column:        1   1   2   2   3   3   4   4   5   5   6   6   
+    ! Column:        1   1   2   2   3   3   4   4   5   5   6   6
     ! Cohort:        1   2   1   2   1   2   1   2   1   2   1   2
 
     nclumps = get_proc_clumps()
@@ -126,7 +126,7 @@ contains
        call get_clump_bounds(nc, bounds_clump)
 
        ! For each land gridcell on global grid determine landunit, column and patch properties
-       
+
        li = bounds_clump%begl-1
        ci = bounds_clump%begc-1
        pi = bounds_clump%begp-1
@@ -162,7 +162,7 @@ contains
                ltype=isturb_md, gi=gdc, li=li, ci=ci, pi=pi)
        end do
 
-       ! Determine lake, wetland and glacier landunits 
+       ! Determine lake, wetland and glacier landunits
        do gdc = bounds_clump%begg,bounds_clump%endg
           call set_landunit_wet_lake(              &
                ltype=istdlak, gi=gdc, li=li, ci=ci, pi=pi)
@@ -189,9 +189,9 @@ contains
        do gdc = bounds_clump%begg,bounds_clump%endg
           grc%gindex(gdc) = ldecomp%gdc2glo(gdc)
           grc%area(gdc)   = ldomain%area(gdc)
-          grc%latdeg(gdc) = ldomain%latc(gdc) 
-          grc%londeg(gdc) = ldomain%lonc(gdc) 
-          grc%lat(gdc)    = grc%latdeg(gdc) * SHR_CONST_PI/180._r8  
+          grc%latdeg(gdc) = ldomain%latc(gdc)
+          grc%londeg(gdc) = ldomain%lonc(gdc)
+          grc%lat(gdc)    = grc%latdeg(gdc) * SHR_CONST_PI/180._r8
           grc%lon(gdc)    = grc%londeg(gdc) * SHR_CONST_PI/180._r8
        enddo
 
@@ -215,7 +215,7 @@ contains
   !------------------------------------------------------------------------
   subroutine set_landunit_veg_compete (ltype, gi, li, ci, pi)
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Initialize vegetated landunit with competition
     !
     ! !USES
@@ -254,7 +254,7 @@ contains
     if (nlunits > 0) then
        call add_landunit(li=li, gi=gi, ltype=ltype, wtgcell=wtlunit2gcell)
        nlunits_added = nlunits_added + 1
-       
+
        ! Assume one column on the landunit
        call add_column(ci=ci, li=li, ctype=1, wtlunit=1.0_r8)
        ncols_added = ncols_added + 1
@@ -272,7 +272,7 @@ contains
     SHR_ASSERT_FL(npatches_added == npatches, sourcefile, __LINE__)
 
   end subroutine set_landunit_veg_compete
-  
+
   !------------------------------------------------------------------------
   subroutine set_landunit_wet_lake (ltype, gi, li, ci, pi)
     !
@@ -309,8 +309,10 @@ contains
        call subgrid_get_info_lake(gi, &
             npatches=npatches, ncols=ncols, nlunits=nlunits)
     else
+!$OMP MASTER
        write(iulog,*)' set_landunit_wet_lake: ltype of ',ltype,' not valid'
        write(iulog,*)' only istwet and istdlak ltypes are valid'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -319,20 +321,22 @@ contains
     if (npatches > 0) then
 
        if (npatches /= 1) then
+!$OMP MASTER
           write(iulog,*)' set_landunit_wet_lake: compete landunit must'// &
                ' have one patch '
           write(iulog,*)' current value of npatches=',npatches
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
 
-       ! Currently assume that each landunit only has only one column 
+       ! Currently assume that each landunit only has only one column
        ! and that each column has its own pft
-       
+
        call add_landunit(li=li, gi=gi, ltype=ltype, wtgcell=wtlunit2gcell)
        call add_column(ci=ci, li=li, ctype=ltype, wtlunit=1.0_r8)
        call add_patch(pi=pi, ci=ci, ptype=noveg, wtcol=1.0_r8)
 
-    endif       ! npatches > 0       
+    endif       ! npatches > 0
 
   end subroutine set_landunit_wet_lake
 
@@ -394,7 +398,7 @@ contains
        ! elevations classes are populated, even if some have zero fractional area.
        ! This ensures that the ice sheet component, glc, will receive a surface mass
        ! balance in each elevation class wherever the SMB is needed.
-       
+
        type_is_dynamic = glc_behavior%cols_have_dynamic_type(gi)
        do m = 1, maxpatch_glcmec
           call glc_behavior%glc_mec_col_exists(gi = gi, elev_class = m, atm_topo = atm_topo, &
@@ -416,13 +420,13 @@ contains
 
   subroutine set_landunit_crop_noncompete (ltype, gi, li, ci, pi)
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Initialize crop landunit without competition
     !
     ! Note about the ltype input argument: This provides the value for this landunit index
     ! (i.e., the crop landunit index). This may differ from the landunit's 'itype' value,
     ! since itype is istsoil if we are running with create_crop_landunit but for
-    ! an older surface dataset that 
+    ! an older surface dataset that
     !
     ! !USES
     use clm_instur      , only : wt_lunit, wt_cft
@@ -467,7 +471,9 @@ contains
        if ( create_crop_landunit )then
           my_ltype = ltype    ! Will always be istcrop
           if ( ltype /= istcrop )then
+!$OMP MASTER
              write(iulog,*)' create_crop_landunit on and ltype is not istcrop: ', ltype
+!$OMP END MASTER
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end if
        else
@@ -476,8 +482,8 @@ contains
 
        call add_landunit(li=li, gi=gi, ltype=my_ltype, wtgcell=wtlunit2gcell)
        nlunits_added = nlunits_added + 1
-       
-       ! Set column and patch properties for this landunit 
+
+       ! Set column and patch properties for this landunit
        ! (each column has its own pft)
 
        do cft = cft_lb, cft_ub
@@ -501,7 +507,7 @@ contains
 
   subroutine set_landunit_urban (ltype, gi, li, ci, pi)
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Initialize urban landunits
     !
     ! !USES
@@ -534,7 +540,7 @@ contains
     real(r8) :: wtcol2lunit   ! weight of column with respect to landunit
     real(r8) :: wtlunit_roof  ! weight of roof with respect to landunit
     real(r8) :: wtroad_perv   ! weight of pervious road column with respect to total road
-    integer  :: ier           ! error status 
+    integer  :: ier           ! error status
     !------------------------------------------------------------------------
 
     ! Set decomposition properties, and set variables specific to urban density type
@@ -550,7 +556,9 @@ contains
        call subgrid_get_info_urban_md(gi, &
             npatches=npatches, ncols=ncols, nlunits=nlunits)
     case default
+!$OMP MASTER
        write(iulog,*)' set_landunit_urban: unknown ltype: ', ltype
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end select
 
@@ -566,9 +574,9 @@ contains
 
        ! Loop through columns for this landunit and set the column and patch properties
        ! For the urban landunits it is assumed that each column has its own pft
-       
+
        do m = 1, maxpatch_urb
-          
+
           if (m == 1) then
              ctype = icol_roof
              wtcol2lunit = wtlunit_roof

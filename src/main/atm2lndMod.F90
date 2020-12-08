@@ -19,7 +19,7 @@ module atm2lndMod
   use atm2lndType    , only : atm2lnd_type
   use TopoMod        , only : topo_type
   use filterColMod   , only : filter_col_type
-  use LandunitType   , only : lun                
+  use LandunitType   , only : lun
   use ColumnType     , only : col
   use landunit_varcon, only : istice_mec
   use WaterType      , only : water_type
@@ -114,7 +114,7 @@ contains
     use QsatMod         , only : Qsat
     !
     ! !ARGUMENTS:
-    type(bounds_type)  , intent(in)    :: bounds  
+    type(bounds_type)  , intent(in)    :: bounds
     class(topo_type)   , intent(in)    :: topo_inst
     type(atm2lnd_type) , intent(inout) :: atm2lnd_inst
     type(wateratm2lndbulk_type) , intent(inout) :: wateratm2lndbulk_inst
@@ -148,20 +148,20 @@ contains
          topo_c       => topo_inst%topo_col                        , & ! Input:  [real(r8) (:)] column surface height (m)
 
          ! Gridcell-level non-downscaled fields:
-         forc_t_g     => atm2lnd_inst%forc_t_not_downscaled_grc    , & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)        
+         forc_t_g     => atm2lnd_inst%forc_t_not_downscaled_grc    , & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
          forc_th_g    => atm2lnd_inst%forc_th_not_downscaled_grc   , & ! Input:  [real(r8) (:)]  atmospheric potential temperature (Kelvin)
-         forc_q_g     => wateratm2lndbulk_inst%forc_q_not_downscaled_grc    , & ! Input:  [real(r8) (:)]  atmospheric specific humidity (kg/kg)   
-         forc_pbot_g  => atm2lnd_inst%forc_pbot_not_downscaled_grc , & ! Input:  [real(r8) (:)]  atmospheric pressure (Pa)               
-         forc_rho_g   => atm2lnd_inst%forc_rho_not_downscaled_grc  , & ! Input:  [real(r8) (:)]  atmospheric density (kg/m**3)           
-         
+         forc_q_g     => wateratm2lndbulk_inst%forc_q_not_downscaled_grc    , & ! Input:  [real(r8) (:)]  atmospheric specific humidity (kg/kg)
+         forc_pbot_g  => atm2lnd_inst%forc_pbot_not_downscaled_grc , & ! Input:  [real(r8) (:)]  atmospheric pressure (Pa)
+         forc_rho_g   => atm2lnd_inst%forc_rho_not_downscaled_grc  , & ! Input:  [real(r8) (:)]  atmospheric density (kg/m**3)
+
          ! Column-level downscaled fields:
-         forc_t_c     => atm2lnd_inst%forc_t_downscaled_col        , & ! Output: [real(r8) (:)]  atmospheric temperature (Kelvin)        
+         forc_t_c     => atm2lnd_inst%forc_t_downscaled_col        , & ! Output: [real(r8) (:)]  atmospheric temperature (Kelvin)
          forc_th_c    => atm2lnd_inst%forc_th_downscaled_col       , & ! Output: [real(r8) (:)]  atmospheric potential temperature (Kelvin)
-         forc_q_c     => wateratm2lndbulk_inst%forc_q_downscaled_col        , & ! Output: [real(r8) (:)]  atmospheric specific humidity (kg/kg)   
-         forc_pbot_c  => atm2lnd_inst%forc_pbot_downscaled_col     , & ! Output: [real(r8) (:)]  atmospheric pressure (Pa)               
-         forc_rho_c   => atm2lnd_inst%forc_rho_downscaled_col        & ! Output: [real(r8) (:)]  atmospheric density (kg/m**3)           
+         forc_q_c     => wateratm2lndbulk_inst%forc_q_downscaled_col        , & ! Output: [real(r8) (:)]  atmospheric specific humidity (kg/kg)
+         forc_pbot_c  => atm2lnd_inst%forc_pbot_downscaled_col     , & ! Output: [real(r8) (:)]  atmospheric pressure (Pa)
+         forc_rho_c   => atm2lnd_inst%forc_rho_downscaled_col        & ! Output: [real(r8) (:)]  atmospheric density (kg/m**3)
          )
-      
+
       ! Initialize column forcing (needs to be done for ALL active columns)
       do c = bounds%begc,bounds%endc
          if (col%active(c)) then
@@ -185,7 +185,7 @@ contains
          l = col%landunit(c)
          g = col%gridcell(c)
 
-         ! This is a simple downscaling procedure 
+         ! This is a simple downscaling procedure
          ! Note that forc_hgt, forc_u, and forc_v are not downscaled.
 
          hsurf_g = forc_topo_g(g)                        ! gridcell sfc elevation
@@ -201,10 +201,10 @@ contains
          pbot_c  = pbot_g*exp(-(hsurf_c-hsurf_g)/Hbot)   ! column sfc press
 
          ! Derivation of potential temperature calculation:
-         ! 
+         !
          ! The textbook definition would be:
          ! thbot_c = tbot_c * (p0/pbot_c)^(rair/cpair)
-         ! 
+         !
          ! Note that pressure is related to scale height as:
          ! pbot_c = p0 * exp(-zbot/H)
          !
@@ -281,7 +281,7 @@ contains
     egcm = qbot*pbot / &
          (wv_to_dair_weight_ratio + (1._r8 - wv_to_dair_weight_ratio)*qbot)
     rhos = (pbot - (1._r8 - wv_to_dair_weight_ratio)*egcm) / (rair*tbot)
-    
+
   end function rhos
 
   !-----------------------------------------------------------------------
@@ -294,7 +294,7 @@ contains
     ! all points - not just those within the downscale filter.
     !
     ! !ARGUMENTS:
-    type(bounds_type)  , intent(in)    :: bounds  
+    type(bounds_type)  , intent(in)    :: bounds
     type(atm2lnd_type) , intent(inout) :: atm2lnd_inst
     type(wateratm2lndbulk_type) , intent(inout) :: wateratm2lndbulk_inst
     real(r8), intent(inout) :: eflx_sh_precip_conversion(bounds%begc:) ! sensible heat flux from precipitation conversion (W/m**2) [+ to atm]
@@ -315,9 +315,9 @@ contains
          ! Gridcell-level non-downscaled fields:
          forc_rain_g  => wateratm2lndbulk_inst%forc_rain_not_downscaled_grc , & ! Input:  [real(r8) (:)]  rain rate [mm/s]
          forc_snow_g  => wateratm2lndbulk_inst%forc_snow_not_downscaled_grc , & ! Input:  [real(r8) (:)]  snow rate [mm/s]
-         
+
          ! Column-level downscaled fields:
-         forc_t_c                  => atm2lnd_inst%forc_t_downscaled_col                , & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)        
+         forc_t_c                  => atm2lnd_inst%forc_t_downscaled_col                , & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
          forc_rain_c               => wateratm2lndbulk_inst%forc_rain_downscaled_col    , & ! Output: [real(r8) (:)]  rain rate [mm/s]
          forc_snow_c               => wateratm2lndbulk_inst%forc_snow_downscaled_col    , & ! Output: [real(r8) (:)]  snow rate [mm/s]
          rain_to_snow_conversion_c => wateratm2lndbulk_inst%rain_to_snow_conversion_col , & ! Output: [real(r8) (:)]  amount of rain converted to snow via precipitation repartition [mm/s]
@@ -475,11 +475,11 @@ contains
 
          ! Gridcell-level fields:
          forc_lwrad_g => atm2lnd_inst%forc_lwrad_not_downscaled_grc, & ! Input:  [real(r8) (:)]  downward longwave (W/m**2)
-         
+
          ! Column-level (downscaled) fields:
          forc_lwrad_c => atm2lnd_inst%forc_lwrad_downscaled_col      & ! Output: [real(r8) (:)]  downward longwave (W/m**2)
          )
-    
+
       ! Initialize column forcing (needs to be done for ALL active columns)
       do c = bounds%begc, bounds%endc
          if (col%active(c)) then
@@ -554,8 +554,10 @@ contains
          do g = bounds%begg, bounds%endg
             if (sum_wts_g(g) > 0._r8) then
                if (abs((newsum_lwrad_g(g) / sum_wts_g(g)) - forc_lwrad_g(g)) > 1.e-8_r8) then
+!$OMP MASTER
                   write(iulog,*) 'g, newsum_lwrad_g, sum_wts_g, forc_lwrad_g: ', &
                        g, newsum_lwrad_g(g), sum_wts_g(g), forc_lwrad_g(g)
+!$OMP END MASTER
                   call endrun(msg=' ERROR: Energy conservation error downscaling longwave'//&
                        errMsg(sourcefile, __LINE__))
                end if
@@ -578,7 +580,7 @@ contains
     !
     ! This allows for the possibility that only a subset of columns are downscaled. Only
     ! the columns that are adjusted should be included in the weighted sum, sum_field;
-    ! sum_wts gives the sum of contributing weights on the grid cell level. 
+    ! sum_wts gives the sum of contributing weights on the grid cell level.
 
     ! For example, if a grid cell has an original forcing value of 1.0, and contains 4
     ! columns with the following weights on the gridcell, and the following values after
@@ -645,7 +647,7 @@ contains
     !
     ! !ARGUMENTS:
     implicit none
-    type(bounds_type) , intent(in) :: bounds  
+    type(bounds_type) , intent(in) :: bounds
     type(atm2lnd_type), intent(in) :: atm2lnd_inst
     type(wateratm2lndbulk_type), intent(in) :: wateratm2lndbulk_inst
     !
@@ -656,21 +658,21 @@ contains
 
     associate(&
          ! Gridcell-level fields:
-         forc_t_g     => atm2lnd_inst%forc_t_not_downscaled_grc     , & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)        
+         forc_t_g     => atm2lnd_inst%forc_t_not_downscaled_grc     , & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
          forc_th_g    => atm2lnd_inst%forc_th_not_downscaled_grc    , & ! Input:  [real(r8) (:)]  atmospheric potential temperature (Kelvin)
-         forc_q_g     => wateratm2lndbulk_inst%forc_q_not_downscaled_grc     , & ! Input:  [real(r8) (:)]  atmospheric specific humidity (kg/kg)   
-         forc_pbot_g  => atm2lnd_inst%forc_pbot_not_downscaled_grc  , & ! Input:  [real(r8) (:)]  atmospheric pressure (Pa)               
-         forc_rho_g   => atm2lnd_inst%forc_rho_not_downscaled_grc   , & ! Input:  [real(r8) (:)]  atmospheric density (kg/m**3)           
+         forc_q_g     => wateratm2lndbulk_inst%forc_q_not_downscaled_grc     , & ! Input:  [real(r8) (:)]  atmospheric specific humidity (kg/kg)
+         forc_pbot_g  => atm2lnd_inst%forc_pbot_not_downscaled_grc  , & ! Input:  [real(r8) (:)]  atmospheric pressure (Pa)
+         forc_rho_g   => atm2lnd_inst%forc_rho_not_downscaled_grc   , & ! Input:  [real(r8) (:)]  atmospheric density (kg/m**3)
          forc_rain_g  => wateratm2lndbulk_inst%forc_rain_not_downscaled_grc  , & ! Input:  [real(r8) (:)]  rain rate [mm/s]
          forc_snow_g  => wateratm2lndbulk_inst%forc_snow_not_downscaled_grc  , & ! Input:  [real(r8) (:)]  snow rate [mm/s]
          forc_lwrad_g => atm2lnd_inst%forc_lwrad_not_downscaled_grc , & ! Input:  [real(r8) (:)]  downward longwave (W/m**2)
-         
+
          ! Column-level (downscaled) fields:
-         forc_t_c     => atm2lnd_inst%forc_t_downscaled_col         , & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)        
+         forc_t_c     => atm2lnd_inst%forc_t_downscaled_col         , & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
          forc_th_c    => atm2lnd_inst%forc_th_downscaled_col        , & ! Input:  [real(r8) (:)]  atmospheric potential temperature (Kelvin)
-         forc_q_c     => wateratm2lndbulk_inst%forc_q_downscaled_col         , & ! Input:  [real(r8) (:)]  atmospheric specific humidity (kg/kg)   
-         forc_pbot_c  => atm2lnd_inst%forc_pbot_downscaled_col      , & ! Input:  [real(r8) (:)]  atmospheric pressure (Pa)               
-         forc_rho_c   => atm2lnd_inst%forc_rho_downscaled_col       , & ! Input:  [real(r8) (:)]  atmospheric density (kg/m**3)           
+         forc_q_c     => wateratm2lndbulk_inst%forc_q_downscaled_col         , & ! Input:  [real(r8) (:)]  atmospheric specific humidity (kg/kg)
+         forc_pbot_c  => atm2lnd_inst%forc_pbot_downscaled_col      , & ! Input:  [real(r8) (:)]  atmospheric pressure (Pa)
+         forc_rho_c   => atm2lnd_inst%forc_rho_downscaled_col       , & ! Input:  [real(r8) (:)]  atmospheric density (kg/m**3)
          forc_rain_c  => wateratm2lndbulk_inst%forc_rain_downscaled_col      , & ! Input:  [real(r8) (:)]  rain rate [mm/s]
          forc_snow_c  => wateratm2lndbulk_inst%forc_snow_downscaled_col      , & ! Input:  [real(r8) (:)]  snow rate [mm/s]
          forc_lwrad_c => atm2lnd_inst%forc_lwrad_downscaled_col       & ! Input:  [real(r8) (:)]  downward longwave (W/m**2)
@@ -686,7 +688,7 @@ contains
     ! However, do NOT check rain & snow: these ARE downscaled for urban points (as for
     ! all other points), and the urban code does not refer to the gridcell-level versions
     ! of these fields.
-    
+
     do c = bounds%begc, bounds%endc
        if (col%active(c)) then
           l = col%landunit(c)
@@ -699,6 +701,7 @@ contains
                   forc_pbot_c(c)  /= forc_pbot_g(g) .or. &
                   forc_rho_c(c)   /= forc_rho_g(g)  .or. &
                   forc_lwrad_c(c) /= forc_lwrad_g(g)) then
+!$OMP MASTER
                 write(iulog,*) subname//' ERROR: column-level forcing differs from gridcell-level forcing for urban point'
                 write(iulog,*) 'c, g = ', c, g
                 write(iulog,*) 'forc_t_c, forc_t_g = ', forc_t_c(c), forc_t_g(g)
@@ -707,6 +710,7 @@ contains
                 write(iulog,*) 'forc_pbot_c, forc_pbot_g = ', forc_pbot_c(c), forc_pbot_g(g)
                 write(iulog,*) 'forc_rho_c, forc_rho_g = ', forc_rho_c(c), forc_rho_g(g)
                 write(iulog,*) 'forc_lwrad_c, forc_lwrad_g = ', forc_lwrad_c(c), forc_lwrad_g(g)
+!$OMP END MASTER
                 call endrun(msg=errMsg(sourcefile, __LINE__))
              end if  ! inequal
           end if  ! urbpoi

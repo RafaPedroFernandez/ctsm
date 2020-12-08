@@ -440,7 +440,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -458,10 +460,18 @@ contains
     call shr_mpi_bcast(enable_water_isotopes, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) nmlname, ' settings'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,nml=water_tracers_inparm)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)
+!$OMP END MASTER
     end if
 
     this%params = water_params_type( &
@@ -576,9 +586,15 @@ contains
 
 
     if (tracer_num - 1 /= num_tracers) then
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: tracer_num discrepancy'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'num_tracers = ', num_tracers
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'but added ', tracer_num - 1, ' tracers'
+!$OMP END MASTER
        call endrun(msg='tracer_num discrepancy '//errMsg(sourcefile, __LINE__))
     end if
 
@@ -840,7 +856,9 @@ contains
     type is(water_info_isotope_type)
        isotope_info => info
     class default
+!$OMP MASTER
        write(iulog,*) subname, ' ERROR: tracer ', i, ' is not an isotope'
+!$OMP END MASTER
        call endrun(subname//' called on a non-isotope tracer')
     end select
 

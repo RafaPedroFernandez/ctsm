@@ -56,7 +56,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -73,10 +75,18 @@ contains
     call shr_mpi_bcast (fire_method, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,nml=cnfire_inparm)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
   end subroutine CNFireReadNML
   !-----------------------------------------------------------------------
@@ -117,7 +127,9 @@ contains
        allocate(cnfire_li2021_type :: cnfire_method)
 
     case default
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: unknown method: ', fire_method
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
 
     end select

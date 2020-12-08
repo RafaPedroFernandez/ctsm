@@ -282,7 +282,9 @@ contains
             err_index = c
          end if
           if (abs(col_errcb(c)) > 1e-8_r8) then
+!$OMP MASTER
             write(iulog,*) 'cbalance warning at c =', c, col_errcb(c), col_endcb(c)
+!$OMP END MASTER
          end if
 
 
@@ -291,21 +293,51 @@ contains
 
       if (err_found) then
          c = err_index
+!$OMP MASTER
          write(iulog,*)'column cbalance error    = ', col_errcb(c), c
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'Latdeg,Londeg=',grc%latdeg(col%gridcell(c)),grc%londeg(col%gridcell(c))
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'begcb                    = ',col_begcb(c)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'endcb                    = ',col_endcb(c)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'delta store              = ',col_endcb(c)-col_begcb(c)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'--- Inputs ---'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'gpp                      = ',gpp(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'--- Outputs ---'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'er                       = ',er(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'col_fire_closs           = ',col_fire_closs(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'col_hrv_xsmrpool_to_atm  = ',col_hrv_xsmrpool_to_atm(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'col_xsmrpool_to_atm      = ',col_xsmrpool_to_atm(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'wood_harvestc            = ',wood_harvestc(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'grainc_to_cropprodc      = ',grainc_to_cropprodc(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'-1*som_c_leached         = ',som_c_leached(c)*dt
+!$OMP END MASTER
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
 
@@ -361,23 +393,47 @@ contains
             err_index = g
          end if
          if (abs(grc_errcb(g)) > 1e-8_r8) then
+!$OMP MASTER
             write(iulog,*) 'cbalance warning at g =', g, grc_errcb(g), grc_endcb(g)
+!$OMP END MASTER
          end if
       end do ! end of gridcell loop
 
       if (err_found) then
          g = err_index
+!$OMP MASTER
          write(iulog,*)'gridcell cbalance error =', grc_errcb(g), g
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'latdeg, londeg          =', grc%latdeg(g), grc%londeg(g)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'begcb                   =', grc_begcb(g)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'endcb                   =', grc_endcb(g)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'delta store             =', grc_endcb(g) - grc_begcb(g)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'--- Inputs ---'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'nbp_grc                 =', nbp_grc(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'dwt_seedc_to_leaf_grc   =', dwt_seedc_to_leaf_grc(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'dwt_seedc_to_deadstem_grc =', dwt_seedc_to_deadstem_grc(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'--- Outputs ---'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'-1*som_c_leached_grc    = ', som_c_leached_grc(g) * dt
+!$OMP END MASTER
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
 
@@ -522,25 +578,51 @@ contains
          end if
          
          if (abs(col_errnb(c)) > 1e-7_r8) then
+!$OMP MASTER
             write(iulog,*) 'nbalance warning at c =', c, col_errnb(c), col_endnb(c)
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog,*)'inputs,ffix,nfix,ndep = ',ffix_to_sminn(c)*dt,nfix_to_sminn(c)*dt,ndep_to_sminn(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
             write(iulog,*)'outputs,lch,roff,dnit = ',smin_no3_leached(c)*dt, smin_no3_runoff(c)*dt,f_n2o_nit(c)*dt
+!$OMP END MASTER
          end if
 
       end do ! end of columns loop
 
       if (err_found) then
          c = err_index
+!$OMP MASTER
          write(iulog,*)'column nbalance error    = ',col_errnb(c), c
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'Latdeg,Londeg            = ',grc%latdeg(col%gridcell(c)),grc%londeg(col%gridcell(c))
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'begnb                    = ',col_begnb(c)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'endnb                    = ',col_endnb(c)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'delta store              = ',col_endnb(c)-col_begnb(c)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'input mass               = ',col_ninputs(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'output mass              = ',col_noutputs(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'net flux                 = ',(col_ninputs(c)-col_noutputs(c))*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'inputs,ffix,nfix,ndep    = ',ffix_to_sminn(c)*dt,nfix_to_sminn(c)*dt,ndep_to_sminn(c)*dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*)'outputs,ffix,nfix,ndep   = ',smin_no3_leached(c)*dt, smin_no3_runoff(c)*dt,f_n2o_nit(c)*dt
+!$OMP END MASTER
         
          
          
@@ -596,28 +678,62 @@ contains
          end if
 
          if (abs(grc_errnb(g)) > 1e-7_r8) then
+!$OMP MASTER
             write(iulog,*) 'nbalance warning at g =', g, grc_errnb(g), grc_endnb(g)
+!$OMP END MASTER
          end if
       end do
 
       if (err_found) then
          g = err_index
+!$OMP MASTER
          write(iulog,*) 'gridcell nbalance error  =', grc_errnb(g), g
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'latdeg, londeg           =', grc%latdeg(g), grc%londeg(g)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'begnb                    =', grc_begnb(g)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'endnb                    =', grc_endnb(g)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'delta store              =', grc_endnb(g) - grc_begnb(g)
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'input mass               =', grc_ninputs(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'output mass              =', grc_noutputs(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'net flux                 =', (grc_ninputs(g) - grc_noutputs(g)) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) '--- Inputs ---'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'grc_ninputs_partial      =', grc_ninputs_partial(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'dwt_seedn_to_leaf_grc    =', dwt_seedn_to_leaf_grc(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'dwt_seedn_to_deadstem_grc =', dwt_seedn_to_deadstem_grc(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) '--- Outputs ---'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'grc_noutputs_partial     =', grc_noutputs_partial(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'dwt_conv_nflux_grc       =', dwt_conv_nflux_grc(g) * dt
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'product_loss_grc         =', product_loss_grc(g) * dt
+!$OMP END MASTER
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
 

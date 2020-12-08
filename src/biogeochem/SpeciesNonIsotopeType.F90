@@ -57,8 +57,12 @@ contains
     !-----------------------------------------------------------------------
 
     if (len_trim(species_name) > species_name_maxlen) then
+!$OMP MASTER
        write(iulog,*) 'species_isotope_type constructor: species_name too long'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) trim(species_name) // ' exceeds max length: ', species_name_maxlen
+!$OMP END MASTER
        call endrun(msg='species_isotope_type constructor: species_name too long: '// &
             errMsg(sourcefile, __LINE__))
     end if

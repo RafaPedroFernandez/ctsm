@@ -12,17 +12,17 @@ module SurfaceResistanceMod
   use shr_const_mod , only: SHR_CONST_TKFRZ
   use clm_varctl    , only: iulog
   use SoilStateType , only: soilstate_type
-  use WaterStateBulkType, only: waterstatebulk_type 
-  use WaterDiagnosticBulkType, only: waterdiagnosticbulk_type 
+  use WaterStateBulkType, only: waterstatebulk_type
+  use WaterDiagnosticBulkType, only: waterdiagnosticbulk_type
    use TemperatureType   , only : temperature_type
   implicit none
   save
   private
   integer :: soil_resis_method   !choose the method for soil resistance calculation
-  
+
   integer, parameter :: leepielke_1992 = 0 !
-  integer, parameter :: sl_14 = 1 
-  
+  integer, parameter :: sl_14 = 1
+
   !
   ! !PUBLIC MEMBER FUNCTIONS:
   public :: calc_soilevap_resis
@@ -43,7 +43,7 @@ module SurfaceResistanceMod
   ! !REVISION HISTORY:
   ! 6/25/2013 Created by Jinyun Tang
   !-----------------------------------------------------------------------
-  
+
 contains
 
   !-----------------------------------------------------------------------
@@ -53,7 +53,7 @@ contains
 !!$   ! initialize method for soil resis calculation
 !!$    !
 !!$    ! !USES:
-!!$    use abortutils      , only : endrun   
+!!$    use abortutils      , only : endrun
 !!$    use fileutils       , only : getavu, relavu
 !!$    use spmdMod         , only : mpicom, masterproc
 !!$    use shr_mpi_mod     , only : shr_mpi_bcast
@@ -96,17 +96,19 @@ contains
 !!$    call shr_mpi_bcast(soil_resis_method, mpicom)
 !!$
 !!$    if (masterproc) then
+!!$OMP MASTER
 !!$       write(iulog,*) ' '
 !!$       write(iulog,*) 'soil_resis settings:'
 !!$       write(iulog,*) '  soil_resis_method  = ',soil_resis_method
+!!$OMP END MASTER
 !!$    endif
-!!$!scs   
+!!$!scs
 !!$!   soil_resis_method = leepielke_1992
 !!$!   soil_resis_method = sl_14
 !!$!scs
 !!$
 !!$  end subroutine init_soil_resistance
-   
+
   !-----------------------------------------------------------------------
   subroutine soil_resistance_readNL(NLFilename)
    !
@@ -114,7 +116,7 @@ contains
    ! Read the namelist for soil resistance method
     !
     ! !USES:
-    use abortutils      , only : endrun   
+    use abortutils      , only : endrun
     use fileutils       , only : getavu, relavu
     use spmdMod         , only : mpicom, masterproc
     use shr_mpi_mod     , only : shr_mpi_bcast
@@ -159,14 +161,16 @@ contains
     call shr_mpi_bcast(soil_resis_method, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) 'soil_resis settings:'
        write(iulog,*) '  soil_resis_method  = ',soil_resis_method
+!$OMP END MASTER
     endif
 
   end subroutine soil_resistance_readNL
-   
-   !------------------------------------------------------------------------------   
+
+   !------------------------------------------------------------------------------
    subroutine readParams( ncid )
      !
      ! !USES:
@@ -188,23 +192,23 @@ contains
 
    end subroutine readParams
 
-   !------------------------------------------------------------------------------   
+   !------------------------------------------------------------------------------
    subroutine calc_soilevap_resis(bounds, num_nolakec, filter_nolakec, &
         soilstate_inst, waterstatebulk_inst, waterdiagnosticbulk_inst, temperature_inst)
      !
      ! DESCRIPTIONS
      ! compute the resis factor for soil evaporation calculation
      !
-     use shr_kind_mod  , only : r8 => shr_kind_r8     
-     use shr_const_mod , only : SHR_CONST_PI  
+     use shr_kind_mod  , only : r8 => shr_kind_r8
+     use shr_const_mod , only : SHR_CONST_PI
      use decompMod     , only : bounds_type
      use ColumnType    , only : col
      use LandunitType  , only : lun
-     use abortutils    , only : endrun      
+     use abortutils    , only : endrun
      !
      ! !ARGUMENTS:
      implicit none
-     type(bounds_type)     , intent(in)    :: bounds    ! bounds   
+     type(bounds_type)     , intent(in)    :: bounds    ! bounds
      integer               , intent(in)    :: num_nolakec
      integer               , intent(in)    :: filter_nolakec(:)
      type(soilstate_type)  , intent(inout) :: soilstate_inst
@@ -217,7 +221,7 @@ contains
           dsl       =>  soilstate_inst%dsl_col      , & ! Output: [real(r8) (:)] soil dry surface layer thickness
           soilresis =>  soilstate_inst%soilresis_col  & ! Output: [real(r8) (:)] soil evaporative resistance
           )
-   
+
        !select the right method and do the calculation
        select case (soil_resis_method)
 
@@ -230,14 +234,14 @@ contains
                soilstate_inst, waterstatebulk_inst, temperature_inst, &
                dsl(bounds%begc:bounds%endc), soilresis(bounds%begc:bounds%endc))
                case default
-          call endrun(subname // ':: a soilevap resis function must be specified!')     
+          call endrun(subname // ':: a soilevap resis function must be specified!')
        end select
 
      end associate
 
    end subroutine calc_soilevap_resis
-   
-   !------------------------------------------------------------------------------   
+
+   !------------------------------------------------------------------------------
    subroutine calc_beta_leepielke1992(bounds, num_nolakec, filter_nolakec, &
         soilstate_inst, waterstatebulk_inst, waterdiagnosticbulk_inst, soilbeta)
      !
@@ -245,7 +249,7 @@ contains
      ! compute the lee-pielke beta factor to scal actual soil evaporation from potential evaporation
      !
      ! USES
-     use shr_kind_mod    , only : r8 => shr_kind_r8     
+     use shr_kind_mod    , only : r8 => shr_kind_r8
      use shr_const_mod   , only : SHR_CONST_PI
      use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
      use decompMod       , only : bounds_type
@@ -257,7 +261,7 @@ contains
      use LandunitType    , only : lun
      !
      implicit none
-     type(bounds_type)     , intent(in)    :: bounds    ! bounds   
+     type(bounds_type)     , intent(in)    :: bounds    ! bounds
      integer               , intent(in)    :: num_nolakec
      integer               , intent(in)    :: filter_nolakec(:)
      type(soilstate_type)  , intent(in)    :: soilstate_inst
@@ -274,16 +278,16 @@ contains
      associate(                                              &
           watsat      =>    soilstate_inst%watsat_col      , & ! Input:  [real(r8) (:,:)] volumetric soil water at saturation (porosity)
           watfc       =>    soilstate_inst%watfc_col       , & ! Input:  [real(r8) (:,:)] volumetric soil water at field capacity
-          
-          h2osoi_ice  =>    waterstatebulk_inst%h2osoi_ice_col , & ! Input:  [real(r8) (:,:)] ice lens (kg/m2)                       
-          h2osoi_liq  =>    waterstatebulk_inst%h2osoi_liq_col , & ! Input:  [real(r8) (:,:)] liquid water (kg/m2)                   
+
+          h2osoi_ice  =>    waterstatebulk_inst%h2osoi_ice_col , & ! Input:  [real(r8) (:,:)] ice lens (kg/m2)
+          h2osoi_liq  =>    waterstatebulk_inst%h2osoi_liq_col , & ! Input:  [real(r8) (:,:)] liquid water (kg/m2)
           frac_sno    =>    waterdiagnosticbulk_inst%frac_sno_col   , & ! Input:  [real(r8) (:)] fraction of ground covered by snow (0 to 1)
           frac_h2osfc =>    waterdiagnosticbulk_inst%frac_h2osfc_col  & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
           )
 
        do fc = 1,num_nolakec
           c = filter_nolakec(fc)
-          l = col%landunit(c)   
+          l = col%landunit(c)
           if (lun%itype(l)/=istwet .AND. lun%itype(l)/=istice_mec) then
              if (lun%itype(l) == istsoil .or. lun%itype(l) == istcrop) then
                 wx   = (h2osoi_liq(c,1)/denh2o+h2osoi_ice(c,1)/denice)/col%dz(c,1)
@@ -303,7 +307,7 @@ contains
              else if (col%itype(c) == icol_road_perv) then
                 soilbeta(c) = 0._r8
              else if (col%itype(c) == icol_sunwall .or. col%itype(c) == icol_shadewall) then
-                soilbeta(c) = 0._r8          
+                soilbeta(c) = 0._r8
              else if (col%itype(c) == icol_roof .or. col%itype(c) == icol_road_imperv) then
                 soilbeta(c) = 0._r8
              endif
@@ -315,8 +319,8 @@ contains
      end associate
 
    end subroutine calc_beta_leepielke1992
-   
-   !------------------------------------------------------------------------------   
+
+   !------------------------------------------------------------------------------
    function do_soilevap_beta()result(lres)
      !
      !DESCRIPTION
@@ -334,7 +338,7 @@ contains
 
    end function do_soilevap_beta
 
-  !------------------------------------------------------------------------------   
+  !------------------------------------------------------------------------------
    subroutine calc_soil_resistance_sl14(bounds, num_nolakec, filter_nolakec, &
         soilstate_inst, waterstatebulk_inst, temperature_inst, dsl, soilresis)
      !
@@ -342,7 +346,7 @@ contains
      ! compute the lee-pielke beta factor to scal actual soil evaporation from potential evaporation
      !
      ! USES
-     use shr_kind_mod    , only : r8 => shr_kind_r8     
+     use shr_kind_mod    , only : r8 => shr_kind_r8
      use shr_const_mod   , only : SHR_CONST_PI
      use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
      use decompMod       , only : bounds_type
@@ -354,7 +358,7 @@ contains
      use LandunitType    , only : lun
      !
      implicit none
-     type(bounds_type)     , intent(in)    :: bounds    ! bounds   
+     type(bounds_type)     , intent(in)    :: bounds    ! bounds
      integer               , intent(in)    :: num_nolakec
      integer               , intent(in)    :: filter_nolakec(:)
      type(soilstate_type)  , intent(in)    :: soilstate_inst
@@ -367,25 +371,25 @@ contains
      real(r8) :: aird, eps, dg, d0, vwc_liq
      real(r8) :: eff_por_top
      integer  :: c, l, fc     !indices
-     
+
      SHR_ASSERT_ALL_FL((ubound(dsl)    == (/bounds%endc/)), sourcefile, __LINE__)
      SHR_ASSERT_ALL_FL((ubound(soilresis)    == (/bounds%endc/)), sourcefile, __LINE__)
 
      associate(                                              &
-          dz                =>    col%dz                             , & ! Input:  [real(r8) (:,:) ]  layer thickness (m)                             
+          dz                =>    col%dz                             , & ! Input:  [real(r8) (:,:) ]  layer thickness (m)
           watsat            =>    soilstate_inst%watsat_col      , & ! Input:  [real(r8) (:,:)] volumetric soil water at saturation (porosity)
-          bsw               =>    soilstate_inst%bsw_col             , & ! Input:  [real(r8) (:,:) ]  Clapp and Hornberger "b"                        
-          sucsat            =>    soilstate_inst%sucsat_col          , & ! Input:  [real(r8) (:,:) ]  minimum soil suction (mm)                       
-!          eff_porosity      =>    soilstate_inst%eff_porosity_col    , & ! Input:  [real(r8) (:,:) ]  effective porosity = porosity - vol_ice         
-          t_soisno          =>    temperature_inst%t_soisno_col      ,  & ! Input:  [real(r8) (:,:) ]  soil temperature (Kelvin)                       
-         
-          h2osoi_ice        =>    waterstatebulk_inst%h2osoi_ice_col , & ! Input:  [real(r8) (:,:)] ice lens (kg/m2)                       
-          h2osoi_liq        =>    waterstatebulk_inst%h2osoi_liq_col  & ! Input:  [real(r8) (:,:)] liquid water (kg/m2)                   
+          bsw               =>    soilstate_inst%bsw_col             , & ! Input:  [real(r8) (:,:) ]  Clapp and Hornberger "b"
+          sucsat            =>    soilstate_inst%sucsat_col          , & ! Input:  [real(r8) (:,:) ]  minimum soil suction (mm)
+!          eff_porosity      =>    soilstate_inst%eff_porosity_col    , & ! Input:  [real(r8) (:,:) ]  effective porosity = porosity - vol_ice
+          t_soisno          =>    temperature_inst%t_soisno_col      ,  & ! Input:  [real(r8) (:,:) ]  soil temperature (Kelvin)
+
+          h2osoi_ice        =>    waterstatebulk_inst%h2osoi_ice_col , & ! Input:  [real(r8) (:,:)] ice lens (kg/m2)
+          h2osoi_liq        =>    waterstatebulk_inst%h2osoi_liq_col  & ! Input:  [real(r8) (:,:)] liquid water (kg/m2)
           )
 
    do fc = 1,num_nolakec
       c = filter_nolakec(fc)
-      l = col%landunit(c)  
+      l = col%landunit(c)
       if (lun%itype(l)/=istwet .AND. lun%itype(l)/=istice_mec) then
          if (lun%itype(l) == istsoil .or. lun%itype(l) == istcrop) then
             vwc_liq = max(h2osoi_liq(c,1),1.0e-6_r8)/(dz(c,1)*denh2o)
@@ -397,35 +401,35 @@ contains
             d0 = 2.12e-5*(t_soisno(c,1)/273.15)**1.75 ![Bitelli et al., JH, 08]
             eps = watsat(c,1) - aird
             dg = eps*d0*(eps/watsat(c,1))**(3._r8/max(3._r8,bsw(c,1)))
-            
+
 !      dsl(c) = dzmm(c,1)*max(0.001_r8,(0.8*eff_porosity(c,1) - vwc_liq)) &
 ! try arbitrary scaling (not top layer thickness)
 !            dsl(c) = 15._r8*max(0.001_r8,(0.8*eff_porosity(c,1) - vwc_liq)) &
             dsl(c) = params_inst%d_max * max(0.001_r8, (params_inst%frac_sat_soil_dsl_init * eff_por_top - vwc_liq)) &
                  !           /max(0.001_r8,(watsat(c,1)- aird))
                  / max(0.001_r8, (params_inst%frac_sat_soil_dsl_init * watsat(c,1) - aird))
-            
+
             dsl(c)=max(dsl(c),0._r8)
             dsl(c)=min(dsl(c),200._r8)
-            
+
             soilresis(c) = dsl(c)/(dg*eps*1.e3) + 20._r8
             soilresis(c) = min(1.e6_r8,soilresis(c))
 
          else if (col%itype(c) == icol_road_perv) then
             soilresis(c) = 1.e6_r8
          else if (col%itype(c) == icol_sunwall .or. col%itype(c) == icol_shadewall) then
-            soilresis(c) = 1.e6_r8          
+            soilresis(c) = 1.e6_r8
          else if (col%itype(c) == icol_roof .or. col%itype(c) == icol_road_imperv) then
             soilresis(c) = 1.e6_r8
-         endif   
+         endif
       else
          soilresis(c) =   0._r8
       endif
-   enddo   
+   enddo
    end associate
    end subroutine calc_soil_resistance_sl14
 
-   !------------------------------------------------------------------------------   
+   !------------------------------------------------------------------------------
    function do_soil_resistance_sl14()result(lres)
      !
      !DESCRIPTION

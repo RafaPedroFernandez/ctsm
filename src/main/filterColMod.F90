@@ -301,7 +301,7 @@ contains
     SHR_ASSERT_ALL_FL((ubound(grcflags) == (/bounds%endg/)), sourcefile, __LINE__)
 
     filter = col_filter_empty(bounds)
-    
+
     ! This loops over g then l then c rather than just looping over all columns, because
     ! this is likely more efficient for sparse filters (e.g., sparse grcflags or uncommon
     ! ltypes).
@@ -419,6 +419,7 @@ contains
 
     equal = .true.
 
+!$OMP MASTER
     if (this%num /= other%num) then
        equal = .false.
        write(iulog,*) ' '
@@ -436,6 +437,7 @@ contains
           end if
        end do
     end if
+!$OMP END MASTER
 
   end function equals_filter
 

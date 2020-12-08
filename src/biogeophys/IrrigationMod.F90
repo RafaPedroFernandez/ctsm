@@ -9,7 +9,7 @@ module IrrigationMod
   !   - Call CalcIrrigationNeeded in order to compute whether and how much irrigation is
   !     needed for the next call to CalcIrrigationFluxes. This should be called once per
   !     timestep.
-  ! 
+  !
   !   - Call CalcIrrigationFluxes in order to calculate irrigation withdrawal and
   !     application fluxes. It is acceptable for this to be called earlier in the timestep
   !     than CalcIrrigationNeeded.
@@ -92,8 +92,8 @@ module IrrigationMod
   use WaterStateType   , only : waterstate_type
   use WaterTracerUtils , only : CalcTracerFromBulk, CalcTracerFromBulkFixedRatio
   use GridcellType     , only : grc
-  use ColumnType       , only : col                
-  use PatchType        , only : patch                
+  use ColumnType       , only : col
+  use PatchType        , only : patch
   use subgridAveMod    , only : p2c, c2g
   use filterColMod     , only : filter_col_type, col_filter_from_logical_array
   !
@@ -101,19 +101,19 @@ module IrrigationMod
   private
 
   ! !PUBLIC TYPES:
-  
+
   ! This type is public (and its components are public, too) to aid unit testing
   type, public :: irrigation_params_type
      ! Minimum LAI for irrigation
      real(r8) :: irrig_min_lai
 
-     ! Time of day to check whether we need irrigation, seconds (0 = midnight). 
-     ! We start applying the irrigation in the time step FOLLOWING this time, 
+     ! Time of day to check whether we need irrigation, seconds (0 = midnight).
+     ! We start applying the irrigation in the time step FOLLOWING this time,
      ! since we won't begin irrigating until the next call to CalcIrrigationFluxes
      integer  :: irrig_start_time
 
-     ! Desired amount of time to irrigate per day (sec). Actual time may 
-     ! differ if this is not a multiple of dtime. Irrigation won't work properly 
+     ! Desired amount of time to irrigate per day (sec). Actual time may
+     ! differ if this is not a multiple of dtime. Irrigation won't work properly
      ! if dtime > secsperday
      integer  :: irrig_length
 
@@ -227,7 +227,7 @@ module IrrigationMod
 
   ! Conversion factors
   real(r8), parameter :: m3_over_km2_to_mm = 1.e-3_r8
-     
+
   ! Irrigation methods
   integer, parameter, public  :: irrig_method_unset = 0
   ! Drip is defined here as irrigation applied directly to soil surface
@@ -237,7 +237,7 @@ module IrrigationMod
 
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
-  
+
 contains
 
   ! ========================================================================
@@ -272,10 +272,10 @@ contains
     integer , intent(in) :: irrig_method_default
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'irrigation_params_constructor'
     !-----------------------------------------------------------------------
-    
+
     this%irrig_min_lai = irrig_min_lai
     this%irrig_start_time = irrig_start_time
     this%irrig_length = irrig_length
@@ -293,7 +293,7 @@ contains
   ! ========================================================================
   ! Infrastructure routines (initialization, restart, etc.)
   ! ========================================================================
-  
+
   !------------------------------------------------------------------------
   subroutine IrrigationInit(this, bounds, NLFilename, &
        soilstate_inst, soil_water_retention_curve, &
@@ -393,7 +393,7 @@ contains
          irrig_target_smp, irrig_depth, irrig_threshold_fraction, &
          irrig_river_volume_threshold, limit_irrigation_if_rof_enabled, &
          use_groundwater_irrigation, irrig_method_default
-    
+
     ! Initialize options to garbage defaults, forcing all to be specified explicitly in
     ! order to get reasonable results
     irrig_min_lai = nan
@@ -409,7 +409,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -449,6 +451,7 @@ contains
          irrig_method_default = irrig_method_default_int)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        ! Write settings one-by-one rather than with a nml write because
@@ -466,6 +469,7 @@ contains
        write(iulog,*) 'use_groundwater_irrigation = ', use_groundwater_irrigation
        write(iulog,*) 'irrig_method_default = ', irrig_method_default
        write(iulog,*) ' '
+!$OMP END MASTER
 
        call this%CheckNamelistValidity(use_aquifer_layer)
     end if
@@ -478,7 +482,9 @@ contains
       case ('sprinkler')
          irrig_method_default_int = irrig_method_sprinkler
       case default
+!$OMP MASTER
          write(iulog,*) 'ERROR: unknown irrig_method_default: ', trim(irrig_method_default)
+!$OMP END MASTER
          call endrun('Unknown irrig_method_default')
       end select
     end subroutine translate_irrig_method_default
@@ -517,67 +523,87 @@ contains
          limit_irrigation_if_rof_enabled => this%params%limit_irrigation_if_rof_enabled)
 
     if (irrig_min_lai < 0._r8) then
+!$OMP MASTER
        write(iulog,*) ' ERROR: irrig_min_lai must be >= 0'
        write(iulog,*) ' irrig_min_lai = ', irrig_min_lai
+!$OMP END MASTER
        call endrun(msg=' ERROR: irrig_min_lai must be >= 0 ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_start_time < 0 .or. irrig_start_time >= isecspday) then
+!$OMP MASTER
        write(iulog,*) ' ERROR: irrig_start_time must be >= 0 and < ', isecspday
        write(iulog,*) ' irrig_start_time = ', irrig_start_time
+!$OMP END MASTER
        call endrun(msg=' ERROR: irrig_start_time out of bounds ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_length <= 0 .or. irrig_length > isecspday) then
+!$OMP MASTER
        write(iulog,*) ' ERROR: irrig_length must be > 0 and <= ', isecspday
        write(iulog,*) ' irrig_length = ', irrig_length
+!$OMP END MASTER
        call endrun(msg=' ERROR: irrig_length out of bounds ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_target_smp >= 0._r8) then
+!$OMP MASTER
        write(iulog,*) ' ERROR: irrig_target_smp must be negative'
        write(iulog,*) ' irrig_target_smp = ', irrig_target_smp
+!$OMP END MASTER
        call endrun(msg=' ERROR: irrig_target_smp must be negative ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_target_smp < wilting_point_smp) then
+!$OMP MASTER
        write(iulog,*) ' ERROR: irrig_target_smp must be >= wilting_point_smp'
        write(iulog,*) ' irrig_target_smp (from namelist) = ', irrig_target_smp
        write(iulog,*) ' wilting_point_smp (hard-coded) = ', wilting_point_smp
+!$OMP END MASTER
        call endrun(msg=' ERROR: irrig_target_smp must be >= wilting_point_smp ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_depth < 0._r8) then
+!$OMP MASTER
        write(iulog,*) ' ERROR: irrig_depth must be > 0'
        write(iulog,*) ' irrig_depth = ', irrig_depth
+!$OMP END MASTER
        call endrun(msg=' ERROR: irrig_depth must be > 0 ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_threshold_fraction < 0._r8 .or. irrig_threshold_fraction > 1._r8) then
+!$OMP MASTER
        write(iulog,*) ' ERROR: irrig_threshold_fraction must be between 0 and 1'
        write(iulog,*) ' irrig_threshold_fraction = ', irrig_threshold_fraction
+!$OMP END MASTER
        call endrun(msg=' ERROR: irrig_threshold_fraction must be between 0 and 1 ' // &
             errMsg(sourcefile, __LINE__))
     end if
 
     if (limit_irrigation_if_rof_enabled) then
        if (irrig_river_volume_threshold < 0._r8 .or. irrig_river_volume_threshold > 1._r8) then
+!$OMP MASTER
           write(iulog,*) ' ERROR: irrig_river_volume_threshold must be between 0 and 1'
           write(iulog,*) ' irrig_river_volume_threshold = ', irrig_river_volume_threshold
+!$OMP END MASTER
           call endrun(msg=' ERROR: irrig_river_volume_threshold must be between 0 and 1 ' // &
                errMsg(sourcefile, __LINE__))
        end if
     end if
 
     if (use_groundwater_irrigation .and. .not. limit_irrigation_if_rof_enabled) then
+!$OMP MASTER
        write(iulog,*) ' ERROR: use_groundwater_irrigation only makes sense if limit_irrigation_if_rof_enabled is set.'
        write(iulog,*) '(If limit_irrigation_if_rof_enabled is .false., then groundwater extraction will never be invoked.)'
+!$OMP END MASTER
        call endrun(msg=' ERROR: use_groundwater_irrigation only makes sense if limit_irrigation_if_rof_enabled is set' // &
             errMsg(sourcefile, __LINE__))
     end if
 
     if (use_aquifer_layer .and. use_groundwater_irrigation) then
+!$OMP MASTER
           write(iulog,*) ' ERROR: use_groundwater_irrigation and use_aquifer_layer may not be used simultaneously'
+!$OMP END MASTER
           call endrun(msg=' ERROR: use_groundwater_irrigation and use_aquifer_layer cannot both be set to true' // &
                errMsg(sourcefile, __LINE__))
     end if
@@ -635,7 +661,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
-    
+
     character(len=*), parameter :: subname = 'InitHistory'
     !-----------------------------------------------------------------------
 
@@ -702,12 +728,12 @@ contains
     end do
 
     call this%SetIrrigMethod(bounds)
-       
+
     this%dtime = get_step_size()
     this%irrig_nsteps_per_day = this%CalcIrrigNstepsPerDay(this%dtime)
 
     this%qflx_irrig_demand_patch(bounds%begp:bounds%endp) = 0._r8
-    
+
   end subroutine IrrigationInitCold
 
   !-----------------------------------------------------------------------
@@ -724,10 +750,10 @@ contains
     integer                , intent(in) :: dtime ! model time step (sec)
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'CalcIrrigNstepsPerDay'
     !-----------------------------------------------------------------------
-    
+
     irrig_nsteps_per_day = ((this%params%irrig_length + (dtime - 1))/dtime)  ! round up
 
   end function CalcIrrigNstepsPerDay
@@ -760,7 +786,9 @@ contains
           if(irrig_method(g,m) == irrig_method_unset) then
              this%irrig_method_patch(p) = this%params%irrig_method_default
           else if (irrig_method(g,m) /= irrig_method_drip .and. irrig_method(g,m) /= irrig_method_sprinkler) then
+!$OMP MASTER
              write(iulog,*) subname //' invalid irrigation method specified'
+!$OMP END MASTER
              call endrun(decomp_index=g, clmlevel=nameg, msg='bad irrig_method '// &
                   errMsg(sourcefile, __LINE__))
           end if
@@ -784,7 +812,7 @@ contains
     !
     ! !ARGUMENTS:
     class(irrigation_type) :: this
-    type(bounds_type), intent(in)    :: bounds 
+    type(bounds_type), intent(in)    :: bounds
     type(file_desc_t), intent(inout) :: ncid   ! netcdf id
     character(len=*) , intent(in)    :: flag   ! 'read', 'write' or 'define'
     !
@@ -797,7 +825,7 @@ contains
 
     character(len=*), parameter :: subname = 'Restart'
     !-----------------------------------------------------------------------
-    
+
     ! Get expected total number of points, for later error checks
     call get_proc_global(np=nump_global)
 
@@ -868,10 +896,10 @@ contains
     class(irrigation_type), intent(inout) :: this
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'Clean'
     !-----------------------------------------------------------------------
-    
+
     deallocate(this%qflx_irrig_demand_patch)
     deallocate(this%relsat_wilting_point_col)
     deallocate(this%relsat_target_col)
@@ -886,7 +914,7 @@ contains
   ! ========================================================================
   ! Science routines
   ! ========================================================================
-  
+
   !-----------------------------------------------------------------------
   subroutine CalcIrrigationFluxes(this, bounds, num_soilc, &
        filter_soilc, num_soilp, filter_soilp, &
@@ -1040,13 +1068,13 @@ contains
 
     do fp = 1, num_soilp
        p = filter_soilp(fp)
-       
+
        if (this%n_irrig_steps_left_patch(p) > 0) then
           qflx_sfc_irrig_bulk_patch(p)     = this%sfc_irrig_rate_patch(p)
           this%qflx_irrig_demand_patch(p)  = this%irrig_rate_demand_patch(p)
           qflx_gw_demand_bulk_patch(p)     = &
                this%qflx_irrig_demand_patch(p) - qflx_sfc_irrig_bulk_patch(p)
-          
+
           this%n_irrig_steps_left_patch(p) = this%n_irrig_steps_left_patch(p) - 1
        else
           qflx_sfc_irrig_bulk_patch(p)    = 0._r8
@@ -1256,12 +1284,14 @@ contains
           else
              if (qflx_sfc_irrig_bulk_patch(p) > 0._r8 .or. &
                   waterflux_inst%qflx_sfc_irrig_col(c) > 0._r8) then
+!$OMP MASTER
                 write(iulog,*) 'If qflx_sfc_irrig_bulk_col <= 0, ' // &
                      'expect qflx_sfc_irrig_bulk_patch = waterflux_inst%qflx_sfc_irrig_col = 0'
                 write(iulog,*) 'qflx_sfc_irrig_bulk_col = ', qflx_sfc_irrig_bulk_col(c)
                 write(iulog,*) 'qflx_sfc_irrig_bulk_patch = ', qflx_sfc_irrig_bulk_patch(p)
                 write(iulog,*) 'waterflux_inst%qflx_sfc_irrig_col = ', &
                      waterflux_inst%qflx_sfc_irrig_col(c)
+!$OMP END MASTER
                 call endrun(decomp_index=p, clmlevel=namep, &
                      msg = 'If qflx_sfc_irrig_bulk_col <= 0, ' // &
                      'expect qflx_sfc_irrig_bulk_patch = waterflux_inst%qflx_sfc_irrig_col = 0', &
@@ -1291,10 +1321,12 @@ contains
        else
           if (qflx_gw_demand_bulk_patch(p) > 0._r8 .or. &
                qflx_gw_irrig_withdrawn_col(c) > 0._r8) then
+!$OMP MASTER
              write(iulog,*) 'If qflx_gw_demand_bulk_col <= 0, expect qflx_gw_demand_bulk_patch = qflx_gw_irrig_withdrawn_col = 0'
              write(iulog,*) 'qflx_gw_demand_bulk_col = ', qflx_gw_demand_bulk_col(c)
              write(iulog,*) 'qflx_gw_demand_bulk_patch = ', qflx_gw_demand_bulk_patch(p)
              write(iulog,*) 'qflx_gw_irrig_withdrawn_col = ', qflx_gw_irrig_withdrawn_col(c)
+!$OMP END MASTER
              call endrun(decomp_index=p, clmlevel=namep, &
                   msg = 'If qflx_gw_demand_bulk_col <= 0, expect qflx_gw_demand_bulk_patch = qflx_gw_irrig_withdrawn_col = 0', &
                   additional_msg = errMsg(sourcefile, __LINE__))
@@ -1454,7 +1486,7 @@ contains
 
     character(len=*), parameter :: subname = 'CalcIrrigationNeeded'
     !-----------------------------------------------------------------------
-    
+
     ! Enforce expected array sizes
     SHR_ASSERT_ALL_FL((ubound(elai) == (/bounds%endp/)), sourcefile, __LINE__)
     SHR_ASSERT_ALL_FL((ubound(t_soisno) == (/bounds%endc, nlevgrnd/)), sourcefile, __LINE__)
@@ -1464,7 +1496,7 @@ contains
 
 
     ! Determine if irrigation is needed (over irrigated soil columns)
-    
+
     ! First, determine in what grid cells we need to bother 'measuring' soil water, to see
     ! if we need irrigation
     check_for_irrig_col(bounds%begc:bounds%endc) = .false.
@@ -1544,9 +1576,11 @@ contains
           ! irrigation target is less than the irrigation threshold, which is not
           ! supposed to happen
           if (deficit(c) < 0._r8) then
+!$OMP MASTER
              write(iulog,*) subname//' ERROR: deficit < 0'
              write(iulog,*) 'This implies that irrigation target is less than irrigatio&
                   &n threshold, which should never happen'
+!$OMP END MASTER
              call endrun(decomp_index=c, clmlevel=namec, msg='deficit < 0 '// &
                   errMsg(sourcefile, __LINE__))
           end if
@@ -1620,7 +1654,7 @@ contains
 
     character(len=*), parameter :: subname = 'PointNeedsCheckForIrrig'
     !-----------------------------------------------------------------------
-    
+
     if (pftcon%irrigated(pft_type) == 1._r8 .and. &
          elai > this%params%irrig_min_lai) then
        ! see if it's the right time of day to start irrigating:
@@ -1777,7 +1811,7 @@ contains
     !-----------------------------------------------------------------------
 
     UseGroundwaterIrrigation = this%params%use_groundwater_irrigation
-    
+
   end function UseGroundwaterIrrigation
-  
+
 end module IrrigationMod

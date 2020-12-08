@@ -234,7 +234,9 @@ contains
      !    Make sure this IS being called from a threaded region
 #ifdef _OPENMP
      ! FIX(SPM, 090314) - for debugging fates and openMP
+!$OMP MASTER
      !write(iulog,*) 'SPM omp debug decompMod 1 ', &
+!$OMP END MASTER
           !OMP_GET_NUM_THREADS(),OMP_GET_MAX_THREADS(),OMP_GET_THREAD_NUM()
 
      if ( OMP_GET_NUM_THREADS() == 1 .and. OMP_GET_MAX_THREADS() > 1 )then
@@ -445,7 +447,9 @@ contains
      case(nameCohort)
         get_clmlevel_gsize = numCohort
      case default
+!$OMP MASTER
         write(iulog,*) 'get_clmlevel_gsize does not match clmlevel type: ', trim(clmlevel)
+!$OMP END MASTER
         call shr_sys_abort()
      end select
 
@@ -476,7 +480,9 @@ contains
     case(nameCohort)
        gsmap => gsMap_cohort_gdc2glo
     case default
+!$OMP MASTER
        write(iulog,*) 'get_clmlevel_gsmap: Invalid expansion character: ',trim(clmlevel)
+!$OMP END MASTER
        call shr_sys_abort()
     end select
 

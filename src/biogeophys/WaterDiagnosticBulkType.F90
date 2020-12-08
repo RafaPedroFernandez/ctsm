@@ -17,10 +17,10 @@ module WaterDiagnosticBulkType
   use decompMod      , only : bounds_type
   use abortutils     , only : endrun
   use clm_varctl     , only : use_cn, iulog, use_luna
-  use clm_varpar     , only : nlevgrnd, nlevsno   
+  use clm_varpar     , only : nlevgrnd, nlevsno
   use clm_varcon     , only : spval
-  use LandunitType   , only : lun                
-  use ColumnType     , only : col                
+  use LandunitType   , only : lun
+  use ColumnType     , only : col
   use filterColMod   , only : filter_col_type, col_filter_from_ltypes
   use WaterDiagnosticType, only : waterdiagnostic_type
   use WaterInfoBaseType, only : water_info_base_type
@@ -40,10 +40,10 @@ module WaterDiagnosticBulkType
      real(r8), pointer :: snow_depth_col         (:)   ! col snow height of snow covered area (m)
      real(r8), pointer :: snowdp_col             (:)   ! col area-averaged snow height (m)
      real(r8), pointer :: snow_layer_unity_col   (:,:) ! value 1 for each snow layer, used for history diagnostics
-     real(r8), pointer :: bw_col                 (:,:) ! col partial density of water in the snow pack (ice + liquid) [kg/m3] 
+     real(r8), pointer :: bw_col                 (:,:) ! col partial density of water in the snow pack (ice + liquid) [kg/m3]
 
-     real(r8), pointer :: h2osoi_liq_tot_col     (:)   ! vertically summed col liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)    
-     real(r8), pointer :: h2osoi_ice_tot_col     (:)   ! vertically summed col ice lens (kg/m2) (new) (-nlevsno+1:nlevgrnd)    
+     real(r8), pointer :: h2osoi_liq_tot_col     (:)   ! vertically summed col liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)
+     real(r8), pointer :: h2osoi_ice_tot_col     (:)   ! vertically summed col ice lens (kg/m2) (new) (-nlevsno+1:nlevgrnd)
      real(r8), pointer :: air_vol_col            (:,:) ! col air filled porosity
      real(r8), pointer :: h2osoi_liqvol_col      (:,:) ! col volumetric liquid water content (v/v)
      real(r8), pointer :: swe_old_col            (:,:) ! col initial snow water
@@ -63,11 +63,11 @@ module WaterDiagnosticBulkType
      ! Fractions
      real(r8), pointer :: frac_sno_col           (:)   ! col fraction of ground covered by snow (0 to 1)
      real(r8), pointer :: frac_sno_eff_col       (:)   ! col fraction of ground covered by snow (0 to 1) (note: this can be 1 even if there is no snow, but should be ignored in the no-snow case)
-     real(r8), pointer :: frac_iceold_col        (:,:) ! col fraction of ice relative to the tot water (new) (-nlevsno+1:nlevgrnd) 
+     real(r8), pointer :: frac_iceold_col        (:,:) ! col fraction of ice relative to the tot water (new) (-nlevsno+1:nlevgrnd)
      real(r8), pointer :: frac_h2osfc_col        (:)   ! col fractional area with surface water greater than zero
      real(r8), pointer :: frac_h2osfc_nosnow_col (:)   ! col fractional area with surface water greater than zero (if no snow present)
-     real(r8), pointer :: wf_col                 (:)   ! col soil water as frac. of whc for top 0.05 m (0-1) 
-     real(r8), pointer :: wf2_col                (:)   ! col soil water as frac. of whc for top 0.17 m (0-1) 
+     real(r8), pointer :: wf_col                 (:)   ! col soil water as frac. of whc for top 0.05 m (0-1)
+     real(r8), pointer :: wf2_col                (:)   ! col soil water as frac. of whc for top 0.17 m (0-1)
      real(r8), pointer :: fwet_patch             (:)   ! patch canopy fraction that is wet (0 to 1)
      real(r8), pointer :: fcansno_patch          (:)   ! patch canopy fraction that is snow covered (0 to 1)
      real(r8), pointer :: fdry_patch             (:)   ! patch canopy fraction of foliage that is green and dry [-] (new)
@@ -83,9 +83,9 @@ module WaterDiagnosticBulkType
      procedure, public  :: Summary
      procedure, public  :: ResetBulkFilter
      procedure, public  :: ResetBulk
-     procedure, private :: InitBulkAllocate 
-     procedure, private :: InitBulkHistory  
-     procedure, private :: InitBulkCold     
+     procedure, private :: InitBulkAllocate
+     procedure, private :: InitBulkHistory
+     procedure, private :: InitBulkCold
      procedure, private :: RestartBackcompatIssue783
 
   end type waterdiagnosticbulk_type
@@ -99,7 +99,7 @@ module WaterDiagnosticBulkType
   type(params_type), private ::  params_inst
 
   ! minimum allowed snow effective radius (also "fresh snow" value) [microns]
-  real(r8), public, parameter :: snw_rds_min = 54.526_r8    
+  real(r8), public, parameter :: snw_rds_min = 54.526_r8
 
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
@@ -131,7 +131,7 @@ contains
        snow_depth_input_col, h2osno_input_col)
 
     class(waterdiagnosticbulk_type), intent(inout) :: this
-    type(bounds_type) , intent(in) :: bounds  
+    type(bounds_type) , intent(in) :: bounds
     class(water_info_base_type), intent(in), target :: info
     type(water_tracer_container_type), intent(inout) :: vars
     real(r8)          , intent(in) :: snow_depth_input_col(bounds%begc:)
@@ -140,7 +140,7 @@ contains
 
     call this%Init(bounds, info, vars)
 
-    call this%InitBulkAllocate(bounds) 
+    call this%InitBulkAllocate(bounds)
 
     call this%InitBulkHistory(bounds)
 
@@ -160,7 +160,7 @@ contains
     !
     ! !ARGUMENTS:
     class(waterdiagnosticbulk_type), intent(inout) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
@@ -178,19 +178,19 @@ contains
     allocate(this%snow_depth_col         (begc:endc))                     ; this%snow_depth_col         (:)   = nan
     allocate(this%snowdp_col             (begc:endc))                     ; this%snowdp_col             (:)   = nan
     allocate(this%snow_layer_unity_col   (begc:endc,-nlevsno+1:0))        ; this%snow_layer_unity_col   (:,:) = nan
-    allocate(this%bw_col                 (begc:endc,-nlevsno+1:0))        ; this%bw_col                 (:,:) = nan   
+    allocate(this%bw_col                 (begc:endc,-nlevsno+1:0))        ; this%bw_col                 (:,:) = nan
     allocate(this%air_vol_col            (begc:endc, 1:nlevgrnd))         ; this%air_vol_col            (:,:) = nan
     allocate(this%h2osoi_liqvol_col      (begc:endc,-nlevsno+1:nlevgrnd)) ; this%h2osoi_liqvol_col      (:,:) = nan
     allocate(this%h2osoi_ice_tot_col     (begc:endc))                     ; this%h2osoi_ice_tot_col     (:)   = nan
     allocate(this%h2osoi_liq_tot_col     (begc:endc))                     ; this%h2osoi_liq_tot_col     (:)   = nan
-    allocate(this%swe_old_col            (begc:endc,-nlevsno+1:0))        ; this%swe_old_col            (:,:) = nan   
+    allocate(this%swe_old_col            (begc:endc,-nlevsno+1:0))        ; this%swe_old_col            (:,:) = nan
 
     allocate(this%snw_rds_col            (begc:endc,-nlevsno+1:0))        ; this%snw_rds_col            (:,:) = nan
     allocate(this%snw_rds_top_col        (begc:endc))                     ; this%snw_rds_top_col        (:)   = nan
     allocate(this%h2osno_top_col         (begc:endc))                     ; this%h2osno_top_col         (:)   = nan
     allocate(this%sno_liq_top_col        (begc:endc))                     ; this%sno_liq_top_col        (:)   = nan
 
-    allocate(this%dqgdT_col              (begc:endc))                     ; this%dqgdT_col              (:)   = nan   
+    allocate(this%dqgdT_col              (begc:endc))                     ; this%dqgdT_col              (:)   = nan
     allocate(this%rh_ref2m_patch         (begp:endp))                     ; this%rh_ref2m_patch         (:)   = nan
     allocate(this%rh_ref2m_u_patch       (begp:endp))                     ; this%rh_ref2m_u_patch       (:)   = nan
     allocate(this%rh_ref2m_r_patch       (begp:endp))                     ; this%rh_ref2m_r_patch       (:)   = nan
@@ -200,8 +200,8 @@ contains
     allocate(this%frac_sno_col           (begc:endc))                     ; this%frac_sno_col           (:)   = nan
     allocate(this%frac_sno_eff_col       (begc:endc))                     ; this%frac_sno_eff_col       (:)   = nan
     allocate(this%frac_iceold_col        (begc:endc,-nlevsno+1:nlevgrnd)) ; this%frac_iceold_col        (:,:) = nan
-    allocate(this%frac_h2osfc_col        (begc:endc))                     ; this%frac_h2osfc_col        (:)   = nan 
-    allocate(this%frac_h2osfc_nosnow_col (begc:endc))                     ; this%frac_h2osfc_nosnow_col        (:)   = nan 
+    allocate(this%frac_h2osfc_col        (begc:endc))                     ; this%frac_h2osfc_col        (:)   = nan
+    allocate(this%frac_h2osfc_nosnow_col (begc:endc))                     ; this%frac_h2osfc_nosnow_col        (:)   = nan
     allocate(this%wf_col                 (begc:endc))                     ; this%wf_col                 (:)   = nan
     allocate(this%wf2_col                (begc:endc))                     ; this%wf2_col                (:)   = nan
     allocate(this%fwet_patch             (begp:endp))                     ; this%fwet_patch             (:)   = nan
@@ -224,7 +224,7 @@ contains
     !
     ! !ARGUMENTS:
     class(waterdiagnosticbulk_type), intent(in) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer           :: begp, endp
@@ -435,7 +435,7 @@ contains
          long_name=this%info%lname('mass of snow in top snow layer'), &
          ptr_col=this%h2osno_top_col, set_urb=spval)
 
-    this%snw_rds_top_col(begc:endc) = spval 
+    this%snw_rds_top_col(begc:endc) = spval
     call hist_addfld1d ( &
          fname=this%info%fname('SNORDSL'), &
          units='m^-6', &
@@ -443,7 +443,7 @@ contains
          long_name=this%info%lname('top snow layer effective grain radius'), &
          ptr_col=this%snw_rds_top_col, set_urb=spval, default='inactive')
 
-    this%sno_liq_top_col(begc:endc) = spval 
+    this%sno_liq_top_col(begc:endc) = spval
     call hist_addfld1d ( &
          fname=this%info%fname('SNOLIQFL'), &
          units='fraction', &
@@ -513,7 +513,7 @@ contains
        snow_depth_input_col, h2osno_input_col)
     !
     ! !DESCRIPTION:
-    ! Initialize time constant variables and cold start conditions 
+    ! Initialize time constant variables and cold start conditions
     !
     ! !USES:
     !
@@ -543,7 +543,7 @@ contains
     end do
 
 
-    associate(snl => col%snl) 
+    associate(snl => col%snl)
 
       this%frac_h2osfc_col(bounds%begc:bounds%endc) = 0._r8
 
@@ -604,7 +604,7 @@ contains
 
   !------------------------------------------------------------------------
   subroutine RestartBulk(this, bounds, ncid, flag, writing_finidat_interp_dest_file, waterstatebulk_inst)
-    ! 
+    !
     ! !DESCRIPTION:
     ! Read/Write module information to/from restart file.
     !
@@ -618,7 +618,7 @@ contains
     !
     ! !ARGUMENTS:
     class(waterdiagnosticbulk_type), intent(inout) :: this
-    type(bounds_type), intent(in)    :: bounds 
+    type(bounds_type), intent(in)    :: bounds
     type(file_desc_t), intent(inout) :: ncid   ! netcdf id
     character(len=*) , intent(in)    :: flag   ! 'read' or 'write'
     logical, intent(in) :: writing_finidat_interp_dest_file ! true if we are writing a finidat_interp_dest file (ignored for flag=='read')
@@ -655,7 +655,7 @@ contains
          dim1name='column', &
          long_name=this%info%lname('snow depth'), &
          units='m', &
-         interpinic_flag='interp', readvar=readvar, data=this%snow_depth_col) 
+         interpinic_flag='interp', readvar=readvar, data=this%snow_depth_col)
 
     call restartvar(ncid=ncid, flag=flag, &
          varname=this%info%fname('frac_sno_eff'), &
@@ -713,8 +713,10 @@ contains
        ! ever entered, I'm putting an endrun call here to notify users of this removed
        ! code.
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) "SNICAR: This is an initial run (not a restart), and grain size/aerosol " // &
                "mass data are not defined in initial condition file. This situation is no longer handled."
+!$OMP END MASTER
        endif
        call endrun(msg = "Absent snw_rds on initial conditions file no longer handled. "// &
             errMsg(sourcefile, __LINE__))
@@ -727,7 +729,7 @@ contains
             dim1name='column', &
             long_name=this%info%lname(''), &
             units='', &
-            interpinic_flag='interp', readvar=readvar, data=this%wf_col) 
+            interpinic_flag='interp', readvar=readvar, data=this%wf_col)
     end if
 
 
@@ -765,7 +767,7 @@ contains
     !
     ! !ARGUMENTS:
     class(waterdiagnosticbulk_type), intent(inout) :: this
-    type(bounds_type), intent(in)    :: bounds 
+    type(bounds_type), intent(in)    :: bounds
     type(file_desc_t), intent(inout) :: ncid   ! netcdf id
     character(len=*) , intent(in)    :: flag   ! 'read' or 'write'
     logical, intent(in) :: writing_finidat_interp_dest_file ! true if this is a finidat_interp_dest file

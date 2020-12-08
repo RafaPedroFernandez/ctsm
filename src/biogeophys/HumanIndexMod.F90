@@ -7,10 +7,10 @@ module HumanIndexMod
 !
 ! !DESCRIPTION:
 ! Calculates Wetbulb Temperature, Stull Wet Bulb Temperature,
-!      Heat Index, Apparent Temperature, Simplified Wet Bulb 
-!      Globe Temperature, Humidex, Discomfort Index, Stull 
-!      Discomfort Index, Temperature Humidity Comfort Index, 
-!      Temperature Humidity Physiology Index, Swamp Cooler 
+!      Heat Index, Apparent Temperature, Simplified Wet Bulb
+!      Globe Temperature, Humidex, Discomfort Index, Stull
+!      Discomfort Index, Temperature Humidity Comfort Index,
+!      Temperature Humidity Physiology Index, Swamp Cooler
 !      Temperature, Kelvin to Celsius, Vapor Pressure, & QSat_2
 !
 ! !USES:
@@ -44,9 +44,9 @@ module HumanIndexMod
   character(len= *), parameter, public :: calc_human_stress_indices_none = 'NONE'
   character(len= 16), public           :: calc_human_stress_indices = calc_human_stress_indices_fast
   logical, public :: all_human_stress_indices  = .false. ! If should calculate the full set of human stress indices
-  logical, public :: fast_human_stress_indices = .true.  ! If should calculate the fast (limited) set of human 
+  logical, public :: fast_human_stress_indices = .true.  ! If should calculate the fast (limited) set of human
                                                          !  stress indices
-  type,    public :: humanindex_type   
+  type,    public :: humanindex_type
      real(r8), pointer :: tc_ref2m_patch              (:) ! Patch 2 m height surface air temperature (C)
      real(r8), pointer :: vap_ref2m_patch             (:) ! Patch 2 m height vapor pressure (Pa)
      real(r8), pointer :: appar_temp_ref2m_patch      (:) ! Patch 2 m apparent temperature (C)
@@ -104,9 +104,9 @@ module HumanIndexMod
 ! Created by Jonathan R Buzan 03-07-12
 ! Modified 03-14-12--- filter routines for WB
 !
-! Modified 08-12-12--- filter for below zero calculation. 
+! Modified 08-12-12--- filter for below zero calculation.
 !    Added WB = T at 0 and below
-! Modified 05-13-13--- Adding additional Metrics. 
+! Modified 05-13-13--- Adding additional Metrics.
 !    Added Apparent Temperature (Australian BOM)
 !    Added Simplified Wetbulb Globe Temperature
 !    Added Humidex
@@ -115,13 +115,13 @@ module HumanIndexMod
 !    Added Temperature Humidity Index
 !    Added Swamp Cooler Efficiency
 !
-! Modified 05-16-13--- Added Current Vapor Pressure and 
+! Modified 05-16-13--- Added Current Vapor Pressure and
 !    Kelvin to Celsius and converted all
 !    equations that use these inputs
-! Modified 08-30-13--- Finalized Comments.  Added a new 
+! Modified 08-30-13--- Finalized Comments.  Added a new
 !    qsat algorithm.  Changed wet bulb calculations
-!    to calculate over the large range of atmospheric 
-!    conditions.  
+!    to calculate over the large range of atmospheric
+!    conditions.
 ! Modified 03-21-14--- Changed Specific Humidity to Mixing
 !    Ratio.
 ! Modified 04-08-16--- Added new convergence routine for
@@ -147,12 +147,12 @@ contains
 subroutine Init(this, bounds )
 !
 ! !DESCRIPTION: Initialize human index object
-!       
+!
 ! !USES:
 ! !ARGUMENTS:
     implicit none
     class(humanindex_type)         :: this
-    type(bounds_type) , intent(in) :: bounds  
+    type(bounds_type) , intent(in) :: bounds
 ! !LOCAL VARIABLES:
     type(bounds_type) :: bounds_tmp
 !EOP
@@ -193,7 +193,7 @@ subroutine InitAllocate(this, bounds)
 !
 ! !ARGUMENTS:
     class(humanindex_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
 !
 ! !LOCAL VARIABLES:
     integer :: begp, endp
@@ -262,7 +262,7 @@ subroutine InitHistory(this, bounds)
 !
 ! !ARGUMENTS:
     class(humanindex_type)        :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
 !
 ! !LOCAL VARIABLES:
     integer :: begp, endp
@@ -495,7 +495,7 @@ end subroutine InitHistory
   subroutine HumanIndexReadNML( NLFilename )
 !
 ! !DESCRIPTION:
-!       
+!
 ! !USES:
     use shr_mpi_mod   , only : shr_mpi_bcast
     use abortutils    , only : endrun
@@ -524,7 +524,9 @@ end subroutine InitHistory
     if ( masterproc )then
 
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in clm_humanindex_inparm  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, 'clm_humanindex_inparm', status=ierr)
        if (ierr == 0) then
@@ -553,14 +555,14 @@ end subroutine InitHistory
   subroutine AppTemp (Tc_1, vap_pres, u10_m, app_temp)
 !
 ! !DESCRIPTION:
-! Apparent Temperature (Australian BOM): Here we use equation 22 
-!    where AT is a function of air temperature (C), water 
+! Apparent Temperature (Australian BOM): Here we use equation 22
+!    where AT is a function of air temperature (C), water
 !    vapor pressure (kPa), and 10-m wind speed (m/s). vap_pres
 !    from Erich Fischer (consistent with CLM equations)
 !
 ! Reference:  Steadman, R.G., 1994: Norms of apparent temperature
-!             in Australia, Aust. Met. Mag., 43, 1-16. 
-!       
+!             in Australia, Aust. Met. Mag., 43, 1-16.
+!
 ! !USES:
     use shr_kind_mod , only: r8 => shr_kind_r8
 !
@@ -594,14 +596,14 @@ end subroutine InitHistory
   subroutine swbgt (Tc_2, vap_pres, s_wbgt)
 !
 ! !DESCRIPTION:
-! Simplified Wet Bulb Globe Temperature: 
+! Simplified Wet Bulb Globe Temperature:
 !      Requires air temperature (C), water vapor pressure (hPa)
 !
 ! Reference:  Willett, K.M., and S. Sherwood, 2010: Exceedance of heat
-!       index thresholds for 15 regions under a warming 
+!       index thresholds for 15 regions under a warming
 !       climate using the wet-bulb globe temperature,
 !       Int. J. Climatol., doi:10.1002/joc.2257
-!       
+!
 ! !USES:
     use shr_kind_mod , only: r8 => shr_kind_r8
 !
@@ -637,11 +639,11 @@ end subroutine InitHistory
 ! !DESCRIPTION:
 ! Humidex:
 !     Requires air temperature (C), water vapor pressure (hPa)
-! Reference:  Masterson, J., and F. Richardson, 1979: Humidex, a 
-!      method of quantifying human discomfort due to 
-!      excessive heat and humidity, CLI 1-79, Environment 
+! Reference:  Masterson, J., and F. Richardson, 1979: Humidex, a
+!      method of quantifying human discomfort due to
+!      excessive heat and humidity, CLI 1-79, Environment
 !      Canada, Atmosheric Environment Service, Downsview, Ontario
-!      
+!
 ! !USES:
     use shr_kind_mod , only: r8 => shr_kind_r8
 !
@@ -677,7 +679,7 @@ end subroutine InitHistory
 ! !DESCRIPTION:
 ! Discomfort Index
 !      The wet bulb temperature is from Davies-Jones, 2008.
-!      Requires air temperature (C), wet bulb temperature (C) 
+!      Requires air temperature (C), wet bulb temperature (C)
 ! Reference:  Epstein, Y., and D.S. Moran, 2006: Thermal comfort and the heat stress indices,
 !      Ind. Health, 44, 388-398.
 ! !USES:
@@ -715,7 +717,7 @@ end subroutine InitHistory
 ! !DESCRIPTION:
 ! Discomfort Index
 ! The wet bulb temperature is from Stull, 2011.
-!       Requires air temperature (C), wet bulb temperature (C) 
+!       Requires air temperature (C), wet bulb temperature (C)
 ! Reference:  Epstein, Y., and D.S. Moran, 2006: Thermal comfort and the heat stress indices,
 !       Ind. Health, 44, 388-398.
 ! !USES:
@@ -769,34 +771,34 @@ end subroutine InitHistory
 
 !
 ! !DESCRIPTION:
-! Calculates Wet Bulb Temperature, Theta_wb, Theta_e, Moist Pot Temp, 
+! Calculates Wet Bulb Temperature, Theta_wb, Theta_e, Moist Pot Temp,
 !       Lifting Cond Temp, and Equiv Temp using Davies-Jones 2008 Method.
-!       1st calculates the lifting cond temperature (Bolton 1980 eqn 22).  
-!       Then calculates the moist pot temp (Bolton 1980 eqn 24). Then 
-!       calculates Equivalent Potential Temperature (Bolton 1980 eqn 39).  
-!       From equivalent pot temp, equiv temp and Theta_w (Davies-Jones 
+!       1st calculates the lifting cond temperature (Bolton 1980 eqn 22).
+!       Then calculates the moist pot temp (Bolton 1980 eqn 24). Then
+!       calculates Equivalent Potential Temperature (Bolton 1980 eqn 39).
+!       From equivalent pot temp, equiv temp and Theta_w (Davies-Jones
 !       2008 eqn 3.5-3.8).  An accurate 'first guess' of wet bulb temperature
 !       is determined (Davies-Jones 2008 eqn 4.8-4.11). Newton-Raphson
-!       is used for 2 iterations, determining final wet bulb temperature 
+!       is used for 2 iterations, determining final wet bulb temperature
 !       (Davies-Jones 2008 eqn 2.6).
 ! Requires Temperature,Vapor Pressure,Atmospheric Pressure,Relative Humidity,Mixing Ratio
-! Reference:  Bolton: The computation of equivalent potential temperature. 
+! Reference:  Bolton: The computation of equivalent potential temperature.
 !       Monthly weather review (1980) vol. 108 (7) pp. 1046-1053
-!       Davies-Jones: An efficient and accurate method for computing the 
-!       wet-bulb temperature along pseudoadiabats. Monthly Weather Review 
+!       Davies-Jones: An efficient and accurate method for computing the
+!       wet-bulb temperature along pseudoadiabats. Monthly Weather Review
 !       (2008) vol. 136 (7) pp. 2764-2785
-!       Flatau et al: Polynomial fits to saturation vapor pressure. 
+!       Flatau et al: Polynomial fits to saturation vapor pressure.
 !       Journal of Applied Meteorology (1992) vol. 31 pp. 1507-1513
-! Note: Pressure needs to be in mb, mixing ratio needs to be in 
-! kg/kg in some equations, and in g/kg in others.  
+! Note: Pressure needs to be in mb, mixing ratio needs to be in
+! kg/kg in some equations, and in g/kg in others.
 ! Calculates Iteration via Newton-Raphson Method.  Only 2 iterations.
-! Reference:  Davies-Jones: An efficient and accurate method for computing the 
-!       wet-bulb temperature along pseudoadiabats. Monthly Weather Review 
+! Reference:  Davies-Jones: An efficient and accurate method for computing the
+!       wet-bulb temperature along pseudoadiabats. Monthly Weather Review
 !       (2008) vol. 136 (7) pp. 2764-2785
-!       Flatau et al: Polynomial fits to saturation vapor pressure. 
+!       Flatau et al: Polynomial fits to saturation vapor pressure.
 !       Journal of Applied Meteorology (1992) vol. 31 pp. 1507-1513
-! Note: Pressure needs to be in mb, mixing ratio needs to be in 
-!       kg/kg in some equations. 
+! Note: Pressure needs to be in mb, mixing ratio needs to be in
+!       kg/kg in some equations.
 !
 ! !REVISION HISTORY:
 !
@@ -842,7 +844,7 @@ end subroutine InitHistory
 !EOP
 !
     real(r8) :: k1                  ! Quadratic Parameter (C)
-    real(r8) :: k2                  ! Quadratic Parameter scaled by X (C) 
+    real(r8) :: k2                  ! Quadratic Parameter scaled by X (C)
     real(r8) :: pmb                 ! Atmospheric Surface Pressure (mb)
     real(r8) :: D                   ! Linear Interpolation of X
 
@@ -852,7 +854,7 @@ end subroutine InitHistory
     real(r8) :: C                   ! Temperature of Freezing (K)
 
     real(r8) :: hot                 ! Dimensionless Quantity used for changing temperature regimes
-    real(r8) :: cold                ! Dimensionless Quantity used for changing temperature regimes    
+    real(r8) :: cold                ! Dimensionless Quantity used for changing temperature regimes
 
     real(r8) :: kappad = 0.2854_r8  ! Heat Capacity
     real(r8) :: T1                  ! Temperature (K)
@@ -864,8 +866,8 @@ end subroutine InitHistory
     real(r8) :: dlnes_mbdTeq        ! Log derivative of the sat. vap pressure wrt TEQ (mb/K)
     real(r8) :: rs_teq              ! Mixing Ratio wrt TEQ (kg/kg)
     real(r8) :: rsdTeq              ! Derivative of Mixing Ratio wrt TEQ (kg/kg/K)
-    real(r8) :: foftk_teq           ! Function of EPT wrt TEQ 
-    real(r8) :: fdTeq               ! Derivative of Function of EPT wrt TEQ 
+    real(r8) :: foftk_teq           ! Function of EPT wrt TEQ
+    real(r8) :: fdTeq               ! Derivative of Function of EPT wrt TEQ
 
     real(r8) :: wb_temp             ! Wet Bulb Temperature First Guess (C)
     real(r8) :: es_mb_wb_temp       ! Vapor Pressure wrt Wet Bulb Temp (mb)
@@ -901,9 +903,9 @@ end subroutine InitHistory
 
     call QSat_2(T1, pin, vapemb_sat, de_mbdT_sat, dlnes_mbdT_sat, rs_T_sat, rsdT_sat, foftk_t_sat, fdT_sat)
 
-    vapemb = vapemb_sat * relhum * 0.01_r8    ! vapor pressure (mb) 
+    vapemb = vapemb_sat * relhum * 0.01_r8    ! vapor pressure (mb)
     mixr = rs_T_sat * relhum * 0.01_r8 * grms ! change specific humidity to mixing ratio (g/kg)
-                  
+
     ! Calculate Equivalent Pot. Temp (pmb, T, mixing ratio (g/kg), pott, epott)
     ! Calculate Parameters for Wet Bulb Temp (epott, pmb)
     pi = (pmb/p0)**(kappad)
@@ -911,9 +913,9 @@ end subroutine InitHistory
     k1 = -38.5_r8*pi*pi +137.81_r8*pi -53.737_r8
     k2 = -4.392_r8*pi*pi +56.831_r8*pi -0.384_r8
 
-    ! Calculate lifting condensation level.  first eqn 
+    ! Calculate lifting condensation level.  first eqn
     ! uses vapor pressure (mb)
-    ! 2nd eqn uses relative humidity.  
+    ! 2nd eqn uses relative humidity.
     ! first equation: Bolton 1980 Eqn 21.
     !   tl = (2840._r8/(3.5_r8*log(T1) - log(vapemb) - 4.805_r8)) + 55._r8
     ! second equation: Bolton 1980 Eqn 22.  relhum = relative humidity
@@ -922,11 +924,11 @@ end subroutine InitHistory
     ! Theta_DL: Bolton 1980 Eqn 24.
     theta_dl = T1*((p0/(pmb-vapemb))**kappad)*((T1/tl)**(mixr*0.00028_r8))
 
-    ! EPT: Bolton 1980 Eqn 39.  
+    ! EPT: Bolton 1980 Eqn 39.
     epott = theta_dl*exp(((3.036_r8/tl)-0.00178_r8)*mixr*(1._r8 + 0.000448_r8*mixr))
     Teq = epott*pi    ! Equivalent Temperature at pressure
     X = (C/Teq)**3.504_r8
-   
+
     ! Calculates the regime requirements of wet bulb equations.
     if (Teq > 355.15_r8) then
        hot = 1.0_r8
@@ -941,8 +943,8 @@ end subroutine InitHistory
     endif
 
     ! Calculate Wet Bulb Temperature, initial guess
-    ! Extremely cold regime if X.gt.D then need to 
-    ! calculate dlnesTeqdTeq 
+    ! Extremely cold regime if X.gt.D then need to
+    ! calculate dlnesTeqdTeq
     if (X > D) then
        call QSat_2(Teq, pin, es_mb_teq, de_mbdTeq, dlnes_mbdTeq, rs_teq, rsdTeq, foftk_teq, fdTeq)
        wb_temp = Teq - C - ((constA*rs_teq)/(1._r8 + (constA*rs_teq*dlnes_mbdTeq)))
@@ -969,8 +971,10 @@ end subroutine InitHistory
        wb_it = wb_temp
     else
        wb_it = T1 - C  ! Place Holder.  wet bulb temperature same as dry bulb (C)
+!$OMP MASTER
        write(iulog,*) 'WARNING: Wet_Bulb algorithm failed to converge. Setting to T: WB, P, T, RH, Q, VaporP: ', &
                        wb_it, pin, T1, relhum, qin, vape
+!$OMP END MASTER
     endif
 
   end subroutine Wet_Bulb
@@ -989,8 +993,8 @@ end subroutine InitHistory
 ! Reference:  Stull, R., 2011: Wet-bulb temperature from relative humidity
 !       and air temperature, J. Appl. Meteor. Climatol., doi:10.1175/JAMC-D-11-0143.1
 !       Note: Requires air temperature (C) and relative humidity (%)
-! Note: Pressure needs to be in mb, mixing ratio needs to be in 
-!       kg/kg in some equations. 
+! Note: Pressure needs to be in mb, mixing ratio needs to be in
+!       kg/kg in some equations.
 ! !REVISION HISTORY:
 ! Created by Jonathan R Buzan 03-07-12
 !
@@ -1029,21 +1033,21 @@ end subroutine InitHistory
   subroutine HeatIndex (Tc_7, rh, hi)
 !
 ! !DESCRIPTION:
-! National Weather Service Heat Index 
+! National Weather Service Heat Index
 ! Requires air temperature (F), relative humidity (%)
 ! Valid for air temperatures above 20C. If below this set heatindex to air temperature.
-! Reference: Steadman. The assessment of sultriness. Part I: 
+! Reference: Steadman. The assessment of sultriness. Part I:
 !      A temperature-humidity index based on human physiology
 !      and clothing science. J Appl Meteorol (1979) vol. 18 (7) pp. 861-873
 !      Lans P. Rothfusz. "The heat index 'equation' (or
-!      more than you ever wanted to know about heat index)", 
+!      more than you ever wanted to know about heat index)",
 !      Scientific Services Division (NWS Southern Region Headquarters), 1 July 1990
 ! !REVISION HISTORY:
 ! Created by Jonathan R Buzan 03-07-12
 ! Modified JRBuzan 03-10-12
 ! Modified JRBuzan 05-14-13:  removed testing algorithm
 !             Switched output to Celsius
-!             Used Boundary Conditions from 
+!             Used Boundary Conditions from
 !             Keith Oleson
 ! !USES:
     use shr_kind_mod , only: r8 => shr_kind_r8
@@ -1096,10 +1100,10 @@ end subroutine InitHistory
 ! !DESCRIPTION:
 ! Temperature Humidity Index
 ! The wet bulb temperature is Davies-Jones 2008 (subroutine WetBulb)
-! Requires air temperature (C), wet bulb temperature (C) 
+! Requires air temperature (C), wet bulb temperature (C)
 ! Calculates two forms of the index:  Comfort and Physiology
-! Reference:  NWSCR (1976): Livestock hot weather stress. 
-!      Regional operations manual letter C-31-76. 
+! Reference:  NWSCR (1976): Livestock hot weather stress.
+!      Regional operations manual letter C-31-76.
 !      National Weather Service Central Region, USA
 !      Ingram: Evaporative cooling in the pig. Nature (1965)
 ! !REVISION HISTORY:
@@ -1125,7 +1129,7 @@ end subroutine InitHistory
 ! !LOCAL VARIABLES:
 !EOP
 !
-!    real(r8) :: 
+!    real(r8) ::
 
 !
 !-----------------------------------------------------------------------
@@ -1146,10 +1150,10 @@ end subroutine InitHistory
 ! !DESCRIPTION:
 ! Swamp Cooler Efficiency
 !       The wet bulb temperature is Davies-Jones 2008 (subroutine WetBulb)
-!       Requires air temperature (C), wet bulb temperature (C) 
+!       Requires air temperature (C), wet bulb temperature (C)
 !       Assumes that the Swamp Cooler Efficiency 80% (properly maintained)
-!       and 65% (improperly maintained).  
-! Reference:  Koca et al: Evaporative cooling pads: test 
+!       and 65% (improperly maintained).
+! Reference:  Koca et al: Evaporative cooling pads: test
 !       procedure and evaluation. Applied engineering
 !       in agriculture (1991) vol. 7
 ! !REVISION HISTORY:
@@ -1215,7 +1219,7 @@ end subroutine InitHistory
 ! !LOCAL VARIABLES:
 !EOP
 !
-!    real(r8) :: 
+!    real(r8) ::
 
 !
 !-----------------------------------------------------------------------
@@ -1234,7 +1238,7 @@ end subroutine InitHistory
 !
 ! !DESCRIPTION:
 ! Calculates Vapor Pressure
-!      Vapor Pressure from Erich Fischer (consistent with CLM 
+!      Vapor Pressure from Erich Fischer (consistent with CLM
 !      equations, Keith Oleson)
 ! !REVISION HISTORY:
 ! Created by Jonathan R Buzan 03-16-13
@@ -1272,10 +1276,10 @@ end subroutine InitHistory
 ! Computes saturation mixing ratio and the change in saturation
 ! mixing ratio with respect to temperature.  Uses Bolton eqn 10, 39.
 ! Davies-Jones eqns 2.3,A.1-A.10
-! Reference:  Bolton: The computation of equivalent potential temperature. 
+! Reference:  Bolton: The computation of equivalent potential temperature.
 !      Monthly weather review (1980) vol. 108 (7) pp. 1046-1053
-!      Davies-Jones: An efficient and accurate method for computing the 
-!      wet-bulb temperature along pseudoadiabats. Monthly Weather Review 
+!      Davies-Jones: An efficient and accurate method for computing the
+!      wet-bulb temperature along pseudoadiabats. Monthly Weather Review
 !      (2008) vol. 136 (7) pp. 2764-2785
 !
 ! !USES:
@@ -1322,7 +1326,7 @@ end subroutine InitHistory
     real(r8) :: pminuse              ! Vapor Pressure Difference (mb)
     real(r8) :: tcfbdiff             ! Temp diff ref (C)
     real(r8) :: p0ndplam             ! dimensionless pressure modified by ref pressure
-    
+
     real(r8) :: rsy2rs2              ! Constant function of humidity
     real(r8) :: oty2rs               ! Constant function of humidity
     real(r8) :: y0tky1               ! Constant function of Temp
@@ -1375,4 +1379,3 @@ end subroutine InitHistory
 !-----------------------------------------------------------------------
 
 end module HumanIndexMod
-

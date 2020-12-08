@@ -197,20 +197,46 @@ contains
 
     if (masterproc) then
 
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'soilwater_movement settings:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  soilwater_movement_method  = ',soilwater_movement_method
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  upper_boundary_condition   = ',upper_boundary_condition
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  lower_boundary_condition   = ',lower_boundary_condition
+!$OMP END MASTER
 
+!$OMP MASTER
        write(iulog,*) '  use_bedrock                = ',use_bedrock
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  dtmin                      = ',dtmin
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  verySmall                  = ',verySmall
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  xTolerUpper                = ',xTolerUpper
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  xTolerLower                = ',xTolerLower
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  expensive                  = ',expensive
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  inexpensive                = ',inexpensive
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  flux_calculation           = ',flux_calculation
+!$OMP END MASTER
     endif
 
   end subroutine init_soilwater_movement

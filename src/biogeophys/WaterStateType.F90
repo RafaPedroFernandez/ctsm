@@ -15,10 +15,10 @@ module WaterStateType
   use decompMod      , only : BOUNDS_SUBGRID_PATCH, BOUNDS_SUBGRID_COLUMN, BOUNDS_SUBGRID_GRIDCELL
   use clm_varctl     , only : use_bedrock, iulog
   use clm_varctl     , only : use_fates_planthydro
-  use clm_varpar     , only : nlevgrnd, nlevsoi, nlevurb, nlevmaxurbgrnd, nlevsno   
+  use clm_varpar     , only : nlevgrnd, nlevsoi, nlevurb, nlevmaxurbgrnd, nlevsno
   use clm_varcon     , only : spval, namec
-  use LandunitType   , only : lun                
-  use ColumnType     , only : col                
+  use LandunitType   , only : lun
+  use ColumnType     , only : col
   use WaterInfoBaseType, only : water_info_base_type
   use WaterTracerContainerType, only : water_tracer_container_type
   use WaterTracerUtils, only : AllocateVar1d, AllocateVar2d
@@ -33,8 +33,8 @@ module WaterStateType
      class(water_info_base_type), pointer :: info
 
      real(r8), pointer :: h2osno_no_layers_col   (:)   ! col snow that is not resolved into layers; this is non-zero only if there is too little snow for there to be explicit snow layers (mm H2O)
-     real(r8), pointer :: h2osoi_liq_col         (:,:) ! col liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)    
-     real(r8), pointer :: h2osoi_ice_col         (:,:) ! col ice lens (kg/m2) (new) (-nlevsno+1:nlevgrnd)    
+     real(r8), pointer :: h2osoi_liq_col         (:,:) ! col liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)
+     real(r8), pointer :: h2osoi_ice_col         (:,:) ! col ice lens (kg/m2) (new) (-nlevsno+1:nlevgrnd)
      real(r8), pointer :: h2osoi_vol_col         (:,:) ! col volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]  (nlevgrnd)
      real(r8), pointer :: h2osoi_vol_prs_grc     (:,:) ! grc volumetric soil water prescribed (0<=h2osoi_vol<=watsat) [m3/m3]  (nlevgrnd)
      real(r8), pointer :: h2osfc_col             (:)   ! col surface water (mm H2O)
@@ -75,7 +75,7 @@ contains
        h2osno_input_col, watsat_col, t_soisno_col, use_aquifer_layer)
 
     class(waterstate_type), intent(inout) :: this
-    type(bounds_type) , intent(in) :: bounds  
+    type(bounds_type) , intent(in) :: bounds
     class(water_info_base_type), intent(in), target :: info
     type(water_tracer_container_type), intent(inout) :: tracer_vars
     real(r8)          , intent(in) :: h2osno_input_col(bounds%begc:)
@@ -107,7 +107,7 @@ contains
     !
     ! !ARGUMENTS:
     class(waterstate_type), intent(inout) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     type(water_tracer_container_type), intent(inout) :: tracer_vars
     !
     ! !LOCAL VARIABLES:
@@ -165,7 +165,7 @@ contains
     !
     ! !ARGUMENTS:
     class(waterstate_type), intent(in) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     logical          , intent(in) :: use_aquifer_layer ! whether an aquifer layer is used in this run
     !
     ! !LOCAL VARIABLES:
@@ -220,7 +220,7 @@ contains
     !      long_name=this%info%lname('soil liquid water (natural vegetated and crop landunits only)'), &
     !      ptr_col=this%h2osoi_liq_col, l2g_scale_type='veg')
 
-    data2dptr => this%h2osoi_liq_col(begc:endc,1:nlevsoi) 
+    data2dptr => this%h2osoi_liq_col(begc:endc,1:nlevsoi)
     call hist_addfld2d ( &
          fname=this%info%fname('SOILLIQ'),  &
          units='kg/m2', type2d='levsoi', &
@@ -236,7 +236,7 @@ contains
          long_name=this%info%lname('soil ice (natural vegetated and crop landunits only)'), &
          ptr_col=data2dptr, l2g_scale_type='veg')
 
-    this%snocan_patch(begp:endp) = spval 
+    this%snocan_patch(begp:endp) = spval
     call hist_addfld1d ( &
          fname=this%info%fname('SNOCAN'), &
          units='mm',  &
@@ -244,7 +244,7 @@ contains
          long_name=this%info%lname('intercepted snow'), &
          ptr_patch=this%snocan_patch, set_lake=0._r8)
 
-    this%liqcan_patch(begp:endp) = spval 
+    this%liqcan_patch(begp:endp) = spval
     call hist_addfld1d ( &
          fname=this%info%fname('LIQCAN'), &
          units='mm',  &
@@ -284,13 +284,13 @@ contains
        h2osno_input_col, watsat_col, t_soisno_col, use_aquifer_layer)
     !
     ! !DESCRIPTION:
-    ! Initialize time constant variables and cold start conditions 
+    ! Initialize time constant variables and cold start conditions
     !
     ! !USES:
     use shr_const_mod   , only : SHR_CONST_TKFRZ
-    use landunit_varcon , only : istwet, istsoil, istcrop, istice_mec  
+    use landunit_varcon , only : istwet, istsoil, istcrop, istice_mec
     use column_varcon   , only : icol_road_perv, icol_road_imperv
-    use clm_varcon      , only : denice, denh2o, bdsno 
+    use clm_varcon      , only : denice, denh2o, bdsno
     use clm_varcon      , only : tfrz, aquifer_water_baseline
     !
     ! !ARGUMENTS:
@@ -302,7 +302,7 @@ contains
     logical               , intent(in)    :: use_aquifer_layer ! whether an aquifer layer is used in this run
     !
     ! !LOCAL VARIABLES:
-    integer            :: c,j,l,nlevs 
+    integer            :: c,j,l,nlevs
     integer            :: nbedrock
     real(r8)           :: ratio
     !-----------------------------------------------------------------------
@@ -313,7 +313,7 @@ contains
 
     ratio = this%info%get_ratio()
 
-    associate(snl => col%snl) 
+    associate(snl => col%snl)
 
       this%h2osfc_col(bounds%begc:bounds%endc) = 0._r8
       this%snocan_patch(bounds%begp:bounds%endp) = 0._r8
@@ -386,12 +386,14 @@ contains
                   endif
                end do
             else if (lun%itype(l) == istice_mec) then
-               nlevs = nlevgrnd 
+               nlevs = nlevgrnd
                do j = 1, nlevs
                   this%h2osoi_vol_col(c,j) = 1.0_r8 * ratio
                end do
             else
+!$OMP MASTER
                write(iulog,*) 'water_state_type InitCold: unhandled landunit type ', lun%itype(l)
+!$OMP END MASTER
                call endrun(msg = 'unhandled landunit type', &
                     additional_msg = errMsg(sourcefile, __LINE__))
             endif
@@ -485,7 +487,7 @@ contains
                if (lun%urbpoi(l)) then
                   if (col%itype(c) == icol_road_perv) then
                      ! Note that the following hard-coded constant (on the next line)
-                     ! seems implicitly related to aquifer_water_baseline 
+                     ! seems implicitly related to aquifer_water_baseline
                      this%wa_col(c)  = 4800._r8 * ratio
                   else
                      this%wa_col(c)  = spval
@@ -512,13 +514,13 @@ contains
   !------------------------------------------------------------------------
   subroutine Restart(this, bounds, ncid, flag, &
        watsat_col)
-    ! 
+    !
     ! !DESCRIPTION:
     ! Read/Write module information to/from restart file.
     !
     ! !USES:
     use clm_varcon       , only : denice, denh2o, pondmx, watmin
-    use landunit_varcon  , only : istcrop, istdlak, istsoil  
+    use landunit_varcon  , only : istcrop, istdlak, istsoil
     use column_varcon    , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_time_manager , only : is_first_step, is_restart
     use clm_varctl       , only : bound_h2osoi
@@ -527,7 +529,7 @@ contains
     !
     ! !ARGUMENTS:
     class(waterstate_type), intent(in) :: this
-    type(bounds_type), intent(in)    :: bounds 
+    type(bounds_type), intent(in)    :: bounds
     type(file_desc_t), intent(inout) :: ncid   ! netcdf id
     character(len=*) , intent(in)    :: flag   ! 'read' or 'write'
     real(r8)         , intent(in)    :: watsat_col (bounds%begc:, 1:)  ! volumetric soil water at saturation (porosity)
@@ -535,7 +537,7 @@ contains
     ! !LOCAL VARIABLES:
     integer  :: p,c,l,j,nlevs
     logical  :: readvar
-    real(r8) :: maxwatsat    ! maximum porosity    
+    real(r8) :: maxwatsat    ! maximum porosity
     real(r8) :: excess       ! excess volumetric soil water
     real(r8) :: totwat       ! total soil water (mm)
     !------------------------------------------------------------------------
@@ -587,7 +589,7 @@ contains
          long_name=this%info%lname('ice lens'), &
          units='kg/m2', &
          interpinic_flag='interp', readvar=readvar, data=this%h2osoi_ice_col)
-         
+
     call restartvar(ncid=ncid, flag=flag, &
          varname=this%info%fname('SNOCAN'), &
          xtype=ncd_double,  &
@@ -671,7 +673,7 @@ contains
                    else
                       maxwatsat =  watsat_col(c,j)
                    end if
-                   if (this%h2osoi_vol_col(c,j) > maxwatsat) then 
+                   if (this%h2osoi_vol_col(c,j) > maxwatsat) then
                       excess = (this%h2osoi_vol_col(c,j) - maxwatsat)*col%dz(c,j)*1000.0_r8
                       totwat = this%h2osoi_liq_col(c,j) + this%h2osoi_ice_col(c,j)
                       this%h2osoi_liq_col(c,j) = this%h2osoi_liq_col(c,j) - &
@@ -764,10 +766,12 @@ contains
        c = filter_c(fc)
        if (col%snl(c) < 0) then
           if (this%h2osno_no_layers_col(c) /= 0._r8) then
+!$OMP MASTER
              write(iulog,*) subname//' ERROR: col has snow layers but non-zero h2osno_no_layers'
              write(iulog,*) '(Called from: ', trim(caller), ')'
              write(iulog,*) 'c, snl, h2osno_no_layers = ', c, col%snl(c), &
                   this%h2osno_no_layers_col(c)
+!$OMP END MASTER
              call endrun(decomp_index=c, clmlevel=namec, &
                   msg = subname//' ERROR: col has snow layers but non-zero h2osno_no_layers')
           end if
@@ -777,10 +781,12 @@ contains
           ice_bad = (this%h2osoi_ice_col(c,j) /= 0._r8 .and. this%h2osoi_ice_col(c,j) /= spval)
           liq_bad = (this%h2osoi_liq_col(c,j) /= 0._r8 .and. this%h2osoi_liq_col(c,j) /= spval)
           if (ice_bad .or. liq_bad) then
+!$OMP MASTER
              write(iulog,*) subname//' ERROR: col has non-zero h2osoi_ice or h2osoi_liq outside resolved snow layers'
              write(iulog,*) '(Called from: ', trim(caller), ')'
              write(iulog,*) 'c, j, snl, h2osoi_ice, h2osoi_liq = ', c, j, col%snl(c), &
                   this%h2osoi_ice_col(c,j), this%h2osoi_liq_col(c,j)
+!$OMP END MASTER
              call endrun(decomp_index=c, clmlevel=namec, &
                   msg = subname//' ERROR: col has non-zero h2osoi_ice or h2osoi_liq outside resolved snow layers')
           end if

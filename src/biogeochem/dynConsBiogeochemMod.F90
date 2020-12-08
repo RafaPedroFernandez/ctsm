@@ -140,171 +140,237 @@ contains
     ! Allocate patch-level mass loss arrays
     allocate(dwt(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_leafc_seed(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_leafc_seed'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_leafn_seed(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_leafn_seed'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_deadstemc_seed(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_deadstemc_seed'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_deadstemn_seed(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_deadstemn_seed'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_frootc_to_litter(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_frootc_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_livecrootc_to_litter(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_livecrootc_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_deadcrootc_to_litter(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_deadcrootc_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_frootn_to_litter(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_frootn_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_livecrootn_to_litter(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_livecrootn_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(dwt_deadcrootn_to_litter(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_deadcrootn_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(conv_cflux(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for conv_cflux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(wood_product_cflux(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for wood_product_cflux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(crop_product_cflux(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for crop_product_cflux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(conv_nflux(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for conv_nflux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(wood_product_nflux(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for wood_product_nflux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(crop_product_nflux(begp:endp), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for crop_product_nflux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
     if ( use_c13 ) then
        allocate(dwt_leafc13_seed(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_leafc13_seed'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(dwt_deadstemc13_seed(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_deadstemc13_seed'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(dwt_frootc13_to_litter(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_frootc13_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(dwt_livecrootc13_to_litter(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_livecrootc13_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(dwt_deadcrootc13_to_litter(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_deadcrootc13_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(conv_c13flux(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for conv_c13flux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(wood_product_c13flux(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for wood_product_c13flux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(crop_product_c13flux(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for crop_product_c13flux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
     endif
     if ( use_c14 ) then
        allocate(dwt_leafc14_seed(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_leafc14_seed'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(dwt_deadstemc14_seed(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_deadstemc14_seed'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(dwt_frootc14_to_litter(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_frootc14_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(dwt_livecrootc14_to_litter(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_livecrootc14_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(dwt_deadcrootc14_to_litter(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for dwt_deadcrootc14_to_litter'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(conv_c14flux(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for conv_c14flux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(wood_product_c14flux(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for wood_product_c14flux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        allocate(crop_product_c14flux(begp:endp), stat=ier)
        if (ier /= 0) then
+!$OMP MASTER
           write(iulog,*)subname,' allocation error for crop_product_c14flux'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
     endif

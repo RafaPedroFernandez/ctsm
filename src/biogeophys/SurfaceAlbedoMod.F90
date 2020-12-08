@@ -108,7 +108,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -125,10 +127,18 @@ contains
     call shr_mpi_bcast(snowveg_affects_radiation, mpicom)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) nmlname, ' settings'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,nml=surfacealbedo_inparm)
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)
+!$OMP END MASTER
     end if
 
   end subroutine SurfaceAlbedo_readnl
@@ -192,12 +202,16 @@ contains
 
     allocate(albsat(mxsoil_color,numrad), albdry(mxsoil_color,numrad), stat=ier)
     if (ier /= 0) then
+!$OMP MASTER
        write(iulog,*)'allocation error for albsat, albdry'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__)) 
     end if
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Attempting to read soil colo data .....'
+!$OMP END MASTER
     end if
     
     if (mxsoil_color == 8) then
@@ -215,7 +229,9 @@ contains
        albdry(1:20,2) = (/0.61_r8,0.57_r8,0.53_r8,0.51_r8,0.49_r8,0.48_r8,0.45_r8,0.43_r8,&
             0.41_r8,0.39_r8,0.37_r8,0.35_r8,0.33_r8,0.31_r8,0.29_r8,0.27_r8,0.25_r8,0.23_r8,0.21_r8,0.16_r8/)
     else
+!$OMP MASTER
        write(iulog,*)'maximum color class = ',mxsoil_color,' is not supported'
+!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__)) 
     end if
 

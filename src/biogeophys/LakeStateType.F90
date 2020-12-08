@@ -11,8 +11,8 @@ module LakeStateType
   use decompMod    , only : bounds_type
   use spmdMod      , only : masterproc
   use abortUtils   , only : endrun
-  use LandunitType , only : lun                
-  use ColumnType   , only : col                
+  use LandunitType , only : lun
+  use ColumnType   , only : col
   !
   implicit none
   save
@@ -21,14 +21,14 @@ module LakeStateType
   ! !PUBLIC TYPES:
   type, public :: lakestate_type
      ! Time constant variables
-     real(r8), pointer :: lakefetch_col     (:)   ! col lake fetch from surface data (m)                    
-     real(r8), pointer :: etal_col          (:)   ! col lake extinction coefficient from surface data (1/m) 
+     real(r8), pointer :: lakefetch_col     (:)   ! col lake fetch from surface data (m)
+     real(r8), pointer :: etal_col          (:)   ! col lake extinction coefficient from surface data (1/m)
 
      ! Time varying variables
      real(r8), pointer :: lake_raw_col      (:)   ! col aerodynamic resistance for moisture (s/m)
      real(r8), pointer :: ks_col            (:)   ! col coefficient for calculation of decay of eddy diffusivity with depth
      real(r8), pointer :: ws_col            (:)   ! col surface friction velocity (m/s)
-     real(r8), pointer :: ust_lake_col      (:)   ! col friction velocity (m/s)          
+     real(r8), pointer :: ust_lake_col      (:)   ! col friction velocity (m/s)
      real(r8), pointer :: betaprime_col     (:)   ! col effective beta: sabg_lyr(p,jtop) for snow layers, beta otherwise
      real(r8), pointer :: savedtke1_col     (:)   ! col top level eddy conductivity from previous timestep (W/mK)
      real(r8), pointer :: lake_icefrac_col  (:,:) ! col mass fraction of lake layer that is frozen
@@ -39,11 +39,11 @@ module LakeStateType
 
    contains
 
-     procedure, public  :: Init         
-     procedure, public  :: Restart      
-     procedure, private :: InitAllocate 
-     procedure, private :: InitHistory  
-     procedure, private :: InitCold     
+     procedure, public  :: Init
+     procedure, public  :: Restart
+     procedure, private :: InitAllocate
+     procedure, private :: InitHistory
+     procedure, private :: InitCold
 
   end type lakestate_type
   !-----------------------------------------------------------------------
@@ -54,11 +54,11 @@ contains
   subroutine Init(this, bounds)
 
     class(lakestate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
 
     call this%InitAllocate ( bounds )
     call this%InitHistory ( bounds )
-    call this%InitCold ( bounds ) 
+    call this%InitCold ( bounds )
 
   end subroutine Init
 
@@ -74,7 +74,7 @@ contains
     !
     ! !ARGUMENTS:
     class(lakestate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
@@ -83,7 +83,7 @@ contains
 
     ! Initialize savedtke1 to spval so that c->g averaging will be done correctly
     ! TODO: can this be now be set to nan???
-    ! Initialize ust_lake to spval to detect input from restart file if not arbinit 
+    ! Initialize ust_lake to spval to detect input from restart file if not arbinit
     ! TODO: can this be removed now???
 
     begp = bounds%begp; endp= bounds%endp
@@ -92,11 +92,11 @@ contains
     allocate(this%etal_col           (begc:endc))           ; this%etal_col           (:)   = nan
     allocate(this%lakefetch_col      (begc:endc))           ; this%lakefetch_col      (:)   = nan
     allocate(this%lakeresist_col     (begc:endc))           ; this%lakeresist_col     (:)   = nan
-    allocate(this%savedtke1_col      (begc:endc))           ; this%savedtke1_col      (:)   = spval  
+    allocate(this%savedtke1_col      (begc:endc))           ; this%savedtke1_col      (:)   = spval
     allocate(this%lake_icefrac_col   (begc:endc,1:nlevlak)) ; this%lake_icefrac_col   (:,:) = nan
     allocate(this%lake_icefracsurf_col (begc:endc))         ; this%lake_icefracsurf_col (:)   = nan
     allocate(this%lake_icethick_col  (begc:endc))           ; this%lake_icethick_col  (:)   = nan
-    allocate(this%ust_lake_col       (begc:endc))           ; this%ust_lake_col       (:)   = spval   
+    allocate(this%ust_lake_col       (begc:endc))           ; this%ust_lake_col       (:)   = spval
     allocate(this%ram1_lake_patch    (begp:endp))           ; this%ram1_lake_patch      (:)   = nan
     allocate(this%lake_raw_col       (begc:endc))           ; this%lake_raw_col       (:)   = nan
     allocate(this%ks_col             (begc:endc))           ; this%ks_col             (:)   = nan
@@ -116,7 +116,7 @@ contains
     !
     ! !ARGUMENTS:
     class(lakestate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
@@ -135,7 +135,7 @@ contains
     call hist_addfld1d (fname='LAKEICEFRAC_SURF',  units='unitless', &
          avgflag='A', long_name='surface lake layer ice mass fraction', &
          ptr_col=this%lake_icefracsurf_col, set_nolake=spval)
-    
+
     this%lake_icethick_col(begc:endc) = spval ! This will be more useful than LAKEICEFRAC for many users.
     call hist_addfld1d (fname='LAKEICETHICK', units='m', &
          avgflag='A', long_name='thickness of lake ice (including physical expansion on freezing)', &
@@ -168,23 +168,23 @@ contains
     use clm_varctl , only : fsurdat
     use clm_varctl , only : iulog
     use clm_varpar , only : nlevlak
-    use clm_varcon , only : tkwat 
+    use clm_varcon , only : tkwat
     use fileutils  , only : getfil
     use ncdio_pio  , only : file_desc_t, ncd_defvar, ncd_io, ncd_double, ncd_int, ncd_inqvdlen
     use ncdio_pio  , only : ncd_pio_openfile, ncd_inqfdims, ncd_pio_closefile, ncd_inqdid, ncd_inqdlen
     !
     ! !ARGUMENTS:
     class(lakestate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer             :: c,g,i,j,l,lev
-    logical             :: readvar 
+    logical             :: readvar
     type(file_desc_t)   :: ncid                   ! netcdf id
     character(len=256)  :: locfn                  ! local filename
     real(r8)            :: depthratio             ! ratio of lake depth to standard deep lake depth
-    real(r8) ,pointer   :: lakefetch_in (:)       ! read in - lakefetch 
-    real(r8) ,pointer   :: etal_in (:)            ! read in - etal 
+    real(r8) ,pointer   :: lakefetch_in (:)       ! read in - lakefetch
+    real(r8) ,pointer   :: etal_in (:)            ! read in - etal
     !-----------------------------------------------------------------------
 
     !-------------------------------------------------
@@ -199,8 +199,10 @@ contains
     call ncd_io(ncid=ncid, varname='ETALAKE', flag='read', data=etal_in, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) 'WARNING:: ETALAKE not found on surface data set. All lake columns will have eta', &
                ' set equal to default value as a function of depth.'
+!$OMP END MASTER
        end if
        etal_in(:) = -1._r8
     end if
@@ -215,8 +217,10 @@ contains
     call ncd_io(ncid=ncid, varname='LAKEFETCH', flag='read', data=lakefetch_in, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) 'WARNING:: LAKEFETCH not found on surface data set. All lake columns will have fetch', &
                ' set equal to default value as a function of depth.'
+!$OMP END MASTER
        end if
        lakefetch_in(:) = -1._r8
     end if
@@ -231,7 +235,7 @@ contains
     !-------------------------------------------------
     ! Initialize time varying variables
     !-------------------------------------------------
-         
+
     do c = bounds%begc, bounds%endc
        l = col%landunit(c)
        if (lun%lakpoi(l)) then
@@ -247,7 +251,7 @@ contains
           ! Set lake top eddy conductivity from previous timestep
           this%savedtke1_col(c) = tkwat
 
-          ! Set column friction vlocity 
+          ! Set column friction vlocity
           this%ust_lake_col(c)  = 0.1_r8
        end if
     end do
@@ -256,7 +260,7 @@ contains
 
   !------------------------------------------------------------------------
   subroutine Restart(this, bounds, ncid, flag)
-    ! 
+    !
     ! !DESCRIPTION:
     ! Read/Write module information to/from restart file.
     !
@@ -266,7 +270,7 @@ contains
     !
     ! !ARGUMENTS:
     class(lakestate_type) :: this
-    type(bounds_type), intent(in)    :: bounds  
+    type(bounds_type), intent(in)    :: bounds
     type(file_desc_t), intent(inout) :: ncid   ! netcdf id
     character(len=*) , intent(in)    :: flag   ! 'read' or 'write'
     !
@@ -293,4 +297,3 @@ contains
   end subroutine Restart
 
 end module LakeStateType
-

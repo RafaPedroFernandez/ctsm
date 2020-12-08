@@ -665,25 +665,63 @@ contains
          if (lun%itype(l) == istsoil) then
             diff = abs(patch%wtlunit(p) - pft_wtlunit_before_rest_read(p))
             if (diff > tol .and. patch%wtgcell(p) > 1.0e-16_r8) then
+!$OMP MASTER
                write(iulog,*) 'ERROR: PATCH weights are SIGNIFICANTLY different between :'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) 'the restart (finidat) file : ', patch%wtlunit(p)
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) 'and the surface dataset (fsurdat): ', pft_wtlunit_before_rest_read(p)
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) 'weight gridcell: ', patch%wtgcell(p)
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*)
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) 'Maximum allowed difference: ', tol
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) 'Difference found: ', diff
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) 'This match is a requirement for non-transient runs'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*)
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) 'Possible solutions to this problem:'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) '(1) Make sure you are using the intended finidat and fsurdat files'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) '(2) If you are running a present-day simulation, then make sure that your'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) '    initial conditions file is from the END of a 20th century transient run'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) '(3) If you are confident that you are using the correct finidat and fsurdat files,'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) '    yet are still experiencing this error, then you can bypass this check by setting:'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) '      check_finidat_pct_consistency = .false.'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) '    in user_nl_clm'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) '    In this case, CLM will take the weights from the initial conditions file.'
+!$OMP END MASTER
+!$OMP MASTER
                write(iulog,*) ' '
+!$OMP END MASTER
                call endrun(decomp_index=p, clmlevel=namep, msg=errMsg(sourcefile, __LINE__))
             end if
          end if

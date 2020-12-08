@@ -205,10 +205,18 @@ contains
       ! (this could happen, for example, if there were multiple columns in the
       ! istsoil landunit, which we aren't prepared to handle)
       if (fields_assigned(g,n)) then
+!$OMP MASTER
          write(iulog,*) subname//' ERROR: attempt to assign coupling fields twice for the same index.'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'One possible cause is having multiple columns in the istsoil landunit,'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'which this routine cannot handle.'
+!$OMP END MASTER
+!$OMP MASTER
          write(iulog,*) 'g, n = ', g, n
+!$OMP END MASTER
          call endrun(decomp_index=c, clmlevel=namec, msg=errMsg(sourcefile, __LINE__))
       end if
 
@@ -225,7 +233,9 @@ contains
 
          ! Check for bad values of qice
          if ( abs(this%qice_grc(g,n)) > 1.0_r8) then
+!$OMP MASTER
             write(iulog,*) 'WARNING: qice out of bounds: g, n, qice =', g, n, this%qice_grc(g,n)
+!$OMP END MASTER
          end if
       end if
 

@@ -554,8 +554,12 @@ contains
     call ncd_pio_closefile(ncid)
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'Successfully read fmax, soil color, sand and clay boundary data'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)
+!$OMP END MASTER
     endif
     
     ! --------------------------------------------------------------------
@@ -908,7 +912,9 @@ contains
             interpinic_flag='interp', readvar=readvar, data=this%grain_flag_patch)
     end if
     if ( flag == 'read' .and. num_reseed_patch > 0 )then
+!$OMP MASTER
        if ( masterproc ) write(iulog, *) 'Reseed dead plants for CNVegState'
+!$OMP END MASTER
        do i = 1, num_reseed_patch
           p = filter_reseed_patch(i)
           ! phenology variables

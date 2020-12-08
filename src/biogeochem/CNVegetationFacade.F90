@@ -68,7 +68,7 @@ module CNVegetationFacade
   use WaterFluxBulkType                   , only : waterfluxbulk_type
   use Wateratm2lndBulkType                   , only : wateratm2lndbulk_type
   use SoilStateType                   , only : soilstate_type
-  use TemperatureType                 , only : temperature_type 
+  use TemperatureType                 , only : temperature_type
   use CropType                        , only : crop_type
   use ch4Mod                          , only : ch4_type
   use CNDVType                        , only : dgvs_type
@@ -150,7 +150,7 @@ module CNVegetationFacade
      ! - vocemis_inst
      ! - fireemis_inst
      ! - drydepvel_inst
-     
+
    contains
      procedure, public :: Init
      procedure, public :: InitAccBuffer
@@ -224,7 +224,7 @@ contains
 
     ! Note - always initialize the memory for cnveg_state_inst (used in biogeophys/)
     call this%cnveg_state_inst%Init(bounds)
-    
+
     skip_steps = nskip_steps
 
     if (use_cn) then
@@ -257,7 +257,7 @@ contains
             this%cnveg_carbonstate_inst%frootc_patch(begp:endp),         &
             this%cnveg_carbonstate_inst%frootc_storage_patch(begp:endp), &
             this%cnveg_carbonstate_inst%deadstemc_patch(begp:endp) )
-       call this%cnveg_nitrogenflux_inst%Init(bounds) 
+       call this%cnveg_nitrogenflux_inst%Init(bounds)
 
        call this%c_products_inst%Init(bounds, species_non_isotope_type('C'))
        if (use_c13) then
@@ -314,7 +314,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in '//nmlname//'  namelist'
+!$OMP END MASTER
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -335,10 +337,12 @@ contains
     this%dribble_crophrv_xsmrpool_2atm = dribble_crophrv_xsmrpool_2atm
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=cn_general)    ! Name here MUST be the same as in nmlname above!
        write(iulog,*) ' '
+!$OMP END MASTER
     end if
 
     !-----------------------------------------------------------------------
@@ -350,7 +354,7 @@ contains
   subroutine InitAccBuffer(this, bounds)
     !
     ! !DESCRIPTION:
-    ! Initialize accumulation buffer for types contained here 
+    ! Initialize accumulation buffer for types contained here
     !
     ! !USES:
     !
@@ -442,9 +446,9 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_vegetation_type), intent(inout) :: this
-    type(bounds_type), intent(in)    :: bounds 
-    type(file_desc_t), intent(inout) :: ncid   
-    character(len=*) , intent(in)    :: flag   
+    type(bounds_type), intent(in)    :: bounds
+    type(file_desc_t), intent(inout) :: ncid
+    character(len=*) , intent(in)    :: flag
     integer  :: reseed_patch(bounds%endp-bounds%begp+1)
     integer  :: num_reseed_patch
     !
@@ -662,7 +666,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_vegetation_type), intent(inout) :: this
-    type(bounds_type)                       , intent(in)    :: bounds        
+    type(bounds_type)                       , intent(in)    :: bounds
 
     ! Index of clump on which we're currently operating. Note that this implies that this
     ! routine must be called from within a clump loop.
@@ -767,7 +771,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_vegetation_type)               , intent(inout) :: this
-    type(bounds_type)                       , intent(in)    :: bounds  
+    type(bounds_type)                       , intent(in)    :: bounds
     integer                                 , intent(in)    :: num_allc          ! number of columns in allc filter
     integer                                 , intent(in)    :: filter_allc(:)    ! filter for all active columns
     integer                                 , intent(in)    :: num_soilc         ! number of soil columns in filter
@@ -904,7 +908,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_vegetation_type)               , intent(inout) :: this
-    type(bounds_type)                       , intent(in)    :: bounds  
+    type(bounds_type)                       , intent(in)    :: bounds
     integer                                 , intent(in)    :: num_soilc         ! number of soil columns in filter
     integer                                 , intent(in)    :: filter_soilc(:)   ! filter for soil columns
     integer                                 , intent(in)    :: num_soilp         ! number of soil patches in filter
@@ -914,7 +918,7 @@ contains
     integer                                 , intent(in)    :: num_exposedvegp        ! number of points in filter_exposedvegp
     integer                                 , intent(in)    :: filter_exposedvegp(:)  ! patch filter for non-snow-covered veg
     integer                                 , intent(in)    :: num_noexposedvegp       ! number of points in filter_noexposedvegp
-    integer                                 , intent(in)    :: filter_noexposedvegp(:) ! patch filter where frac_veg_nosno is 0 
+    integer                                 , intent(in)    :: filter_noexposedvegp(:) ! patch filter where frac_veg_nosno is 0
     logical                                 , intent(in)    :: doalb             ! true = surface albedo calculation time step
     type(soilbiogeochem_state_type)         , intent(inout) :: soilbiogeochem_state_inst
     type(soilbiogeochem_carbonflux_type)    , intent(inout) :: soilbiogeochem_carbonflux_inst
@@ -976,7 +980,7 @@ contains
          this%dgvs_inst, photosyns_inst, saturated_excess_runoff_inst, energyflux_inst,          &
          nutrient_competition_method, this%cnfire_method, this%dribble_crophrv_xsmrpool_2atm)
 
-    ! fire carbon emissions 
+    ! fire carbon emissions
     call CNFireEmisUpdate(bounds, num_soilp, filter_soilp, &
          this%cnveg_carbonflux_inst, this%cnveg_carbonstate_inst, fireemis_inst )
 
@@ -1005,7 +1009,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_vegetation_type)               , intent(inout) :: this
-    type(bounds_type)                       , intent(in)    :: bounds  
+    type(bounds_type)                       , intent(in)    :: bounds
     integer                                 , intent(in)    :: num_allc          ! number of columns in allc filter
     integer                                 , intent(in)    :: filter_allc(:)    ! filter for all active columns
     integer                                 , intent(in)    :: num_soilc         ! number of soil columns in filter
@@ -1033,9 +1037,9 @@ contains
     character(len=*), parameter :: subname = 'EcosystemDynamicsPostDrainage'
     !-----------------------------------------------------------------------
 
-    ! Update the nitrogen leaching rate as a function of soluble mineral N 
+    ! Update the nitrogen leaching rate as a function of soluble mineral N
     ! and total soil water outflow.
-    
+
     call CNDriverLeaching(bounds, &
          num_soilc, filter_soilc, &
          num_soilp, filter_soilp, &
@@ -1043,7 +1047,7 @@ contains
          this%cnveg_nitrogenflux_inst, this%cnveg_nitrogenstate_inst, &
          soilbiogeochem_nitrogenflux_inst, soilbiogeochem_nitrogenstate_inst)
 
-    ! Set controls on very low values in critical state variables 
+    ! Set controls on very low values in critical state variables
 
     call t_startf('CNPrecisionControl')
     call CNPrecisionControl(bounds, num_soilp, filter_soilp, &
@@ -1088,7 +1092,7 @@ contains
     ! On the radiation time step, use C state variables to calculate
     ! vegetation structure (LAI, SAI, height)
 
-    if (doalb) then   
+    if (doalb) then
        call CNVegStructUpdate(bounds,num_soilp, filter_soilp, &
             waterdiagnosticbulk_inst, frictionvel_inst, this%dgvs_inst, this%cnveg_state_inst, &
             crop_inst, this%cnveg_carbonstate_inst, canopystate_inst)
@@ -1111,7 +1115,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_vegetation_type)               , intent(inout) :: this
-    type(bounds_type)                       , intent(in)    :: bounds  
+    type(bounds_type)                       , intent(in)    :: bounds
     integer                                 , intent(in)    :: num_soilc         ! number of soil columns in filter
     integer                                 , intent(in)    :: filter_soilc(:)   ! filter for soil columns
     type(soilbiogeochem_carbonflux_type)    , intent(inout) :: soilbiogeochem_carbonflux_inst
@@ -1127,7 +1131,9 @@ contains
     DA_nstep = get_nstep_since_startup_or_lastDA_restart_or_pause()
     if (DA_nstep <= skip_steps )then
        if (masterproc) then
+!$OMP MASTER
           write(iulog,*) '--WARNING-- skipping CN balance check for first timesteps after startup or data assimilation'
+!$OMP END MASTER
        end if
     else
 
@@ -1163,7 +1169,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_vegetation_type), intent(inout) :: this
-    type(bounds_type)  , intent(in)    :: bounds                  
+    type(bounds_type)  , intent(in)    :: bounds
     integer            , intent(inout) :: num_natvegp       ! number of naturally-vegetated patches in filter
     integer            , intent(inout) :: filter_natvegp(:) ! filter for naturally-vegetated patches
     type(atm2lnd_type) , intent(inout) :: atm2lnd_inst
@@ -1197,8 +1203,10 @@ contains
 
           if (masterproc) then
              nstep = get_nstep()
+!$OMP MASTER
              write(iulog,*) 'End of year. CNDV called now: ncdate=', &
                   ncdate,' nbdate=',nbdate,' kyr=',kyr,' nstep=', nstep
+!$OMP END MASTER
           end if
 
           call CNDVDriver(bounds, &
@@ -1229,7 +1237,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_vegetation_type), intent(in) :: this
-    type(bounds_type)  , intent(in) :: bounds                  
+    type(bounds_type)  , intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
 
@@ -1241,7 +1249,9 @@ contains
        if (is_end_curr_year() .and. .not. is_first_step())  then
           call t_startf('clm_drv_io_hdgvm')
           call CNDVHist( bounds, this%dgvs_inst )
+!$OMP MASTER
           if (masterproc) write(iulog,*) 'Annual CNDV calculations are complete'
+!$OMP END MASTER
           call t_stopf('clm_drv_io_hdgvm')
        end if
     end if
@@ -1472,12 +1482,12 @@ contains
     else
 ! To get leaf biomass:
 ! bleaf = LAI / slatop
-! g/m2 =  m2/m2  / m2/g 
-! To get root biomass: 
+! g/m2 =  m2/m2  / m2/g
+! To get root biomass:
 ! broot = bleaf * froot_leaf(ivt(p))
 ! g/m2 = g/m2 * g/g
        do p=bounds%begp, bounds%endp
-          if (pftcon%slatop(patch%itype(p)) > 0._r8) then 
+          if (pftcon%slatop(patch%itype(p)) > 0._r8) then
              froot_carbon_patch(p) = tlai(p) &
                   / pftcon%slatop(patch%itype(p)) &
                   *pftcon%froot_leaf(patch%itype(p))
@@ -1517,12 +1527,12 @@ contains
     else
 ! To get leaf biomass:
 ! bleaf = LAI / slatop
-! g/m2 =  m2/m2  / m2/g 
-! To get root biomass: 
+! g/m2 =  m2/m2  / m2/g
+! To get root biomass:
 ! broot = bleaf * froot_leaf(ivt(p))
 ! g/m2 = g/m2 * g/g
        do p=bounds%begp, bounds%endp
-          if (pftcon%slatop(patch%itype(p)) > 0._r8) then 
+          if (pftcon%slatop(patch%itype(p)) > 0._r8) then
              croot_carbon_patch(p) = tlai(p) &
                   / pftcon%slatop(patch%itype(p)) &
                   *pftcon%stem_leaf(patch%itype(p)) &

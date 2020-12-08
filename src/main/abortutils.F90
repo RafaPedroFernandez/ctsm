@@ -42,9 +42,13 @@ CONTAINS
     !-----------------------------------------------------------------------
 
     if (present (additional_msg)) then
+!$OMP MASTER
        write(iulog,*)'ENDRUN: ', trim(additional_msg)
+!$OMP END MASTER
     else
+!$OMP MASTER
        write(iulog,*)'ENDRUN:'
+!$OMP END MASTER
     end if
 
     call shr_sys_abort(msg)
@@ -83,9 +87,13 @@ CONTAINS
     call GetGlobalWrite(decomp_index, clmlevel)
 
     if (present (additional_msg)) then
+!$OMP MASTER
        write(iulog,*)'ENDRUN: ', additional_msg
+!$OMP END MASTER
     else
+!$OMP MASTER
        write(iulog,*)'ENDRUN:'
+!$OMP END MASTER
     end if
 
     call shr_sys_abort(msg)

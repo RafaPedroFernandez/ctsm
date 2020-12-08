@@ -71,7 +71,9 @@ contains
     !-----------------------------------------------------------------------
 
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'paramMod.F90::'//trim(subname)//' :: reading CLM '//' parameters '
+!$OMP END MASTER
     end if
 
     call getfil (paramfile, locfn, 0)

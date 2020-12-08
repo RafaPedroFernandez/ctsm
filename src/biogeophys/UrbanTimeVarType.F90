@@ -168,14 +168,30 @@ contains
    call shr_mpi_bcast(urbantv_tintalgo, mpicom)
 
    if (masterproc) then
+!$OMP MASTER
       write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) 'urbantv_streams settings:'
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  stream_year_first_urbantv  = ',stream_year_first_urbantv
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  stream_year_last_urbantv   = ',stream_year_last_urbantv
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  model_year_align_urbantv   = ',model_year_align_urbantv
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  stream_fldFileName_urbantv = ',stream_fldFileName_urbantv
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) '  urbantv_tintalgo           = ',urbantv_tintalgo
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*) ' '
+!$OMP END MASTER
    endif
 
    call clm_domain_mct (bounds, dom_clm)
@@ -298,10 +314,18 @@ contains
       end if
    end do
    if ( found ) then
+!$OMP MASTER
       write(iulog,*)'ERROR: no valid urban data for g= ',gindx
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*)'landunit type:   ',lun%itype(l)
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*)'urban_valid:     ',urban_valid(gindx)
+!$OMP END MASTER
+!$OMP MASTER
       write(iulog,*)'t_building_max:  ',this%t_building_max(lindx)
+!$OMP END MASTER
       call endrun(msg=errmsg(sourcefile, __LINE__))
    end if
 

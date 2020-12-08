@@ -349,7 +349,9 @@ CONTAINS
             if (clmveg == nc3irrig                            ) wesveg = 2 
             if (clmveg >= npcropmin .and. clmveg <= npcropmax ) wesveg = 2 
             if (wesveg == wveg_unset )then
+!$OMP MASTER
                write(iulog,*) 'clmveg = ', clmveg, 'lun%itype = ', lun%itype(l)
+!$OMP END MASTER
                call endrun(decomp_index=pi, clmlevel=namep, &
                     msg='ERROR: Not able to determine Wesley vegetation type'//&
                     errMsg(sourcefile, __LINE__))

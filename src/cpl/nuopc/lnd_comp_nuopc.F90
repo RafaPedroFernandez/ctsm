@@ -362,7 +362,7 @@ contains
     character(len=CL)       :: username              ! user running the model
     character(len=*),parameter :: subname=trim(modName)//':(InitializeRealize) '
     !-------------------------------------------------------------------------------
-
+!$  integer :: omp_get_max_threads
     rc = ESMF_SUCCESS
     call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
 
@@ -384,7 +384,60 @@ contains
     call ESMF_VMGet(vm, pet=localPet, peCount=localPeCount, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-    !$  call omp_set_num_threads(localPeCount)
+!$  call omp_set_num_threads(localPeCount)
+
+    !----------------------
+    ! Obtain attribute values
+    !----------------------
+
+    call NUOPC_CompAttributeGet(gcomp, name='case_name', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) caseid
+    ctitle= trim(caseid)
+
+    call NUOPC_CompAttributeGet(gcomp, name='scmlon', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) scmlon
+
+    call NUOPC_CompAttributeGet(gcomp, name='scmlat', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) scmlat
+
+    call NUOPC_CompAttributeGet(gcomp, name='single_column', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) single_column
+
+    call NUOPC_CompAttributeGet(gcomp, name='brnch_retain_casename', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) brnch_retain_casename
+
+    call NUOPC_CompAttributeGet(gcomp, name='start_type', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) starttype
+
+    call NUOPC_CompAttributeGet(gcomp, name='model_version', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) model_version
+
+    call NUOPC_CompAttributeGet(gcomp, name='hostname', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) hostname
+
+    call NUOPC_CompAttributeGet(gcomp, name='username', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) username
+
+    !TODO: the following strings must not be hard-wired - must have module variables
+    if (     trim(starttype) == trim('startup')) then
+       nsrest = nsrStartup
+    else if (trim(starttype) == trim('continue') ) then
+       nsrest = nsrContinue
+    else if (trim(starttype) == trim('branch')) then
+       nsrest = nsrBranch
+    else
+       call shr_sys_abort( subname//' ERROR: unknown starttype' )
+    end if
+>>>>>>> stable with esmf threading
 
     !----------------------
     ! Consistency check on namelist filename
@@ -661,7 +714,7 @@ contains
     call ESMF_VMGet(vm, pet=localPet, peCount=localPeCount, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-    !$  call omp_set_num_threads(localPeCount)
+!$  call omp_set_num_threads(localPeCount)
 
     call shr_file_getLogUnit (shrlogunit)
     call shr_file_setLogUnit (iulog)

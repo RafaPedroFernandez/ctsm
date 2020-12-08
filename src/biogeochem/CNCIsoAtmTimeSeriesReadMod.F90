@@ -125,8 +125,12 @@ contains
     call getfil(atm_c14_filename, locfn, 0)
 
     if ( masterproc ) then
+!$OMP MASTER
        write(iulog, *) 'C14_init_BombSpike: preparing to open file:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog, *) trim(locfn)
+!$OMP END MASTER
     endif
 
     call ncd_pio_openfile (ncid, trim(locfn), 0)
@@ -160,7 +164,9 @@ contains
     ! check to make sure that time dimension is well behaved
     do t = 2, ntim
        if ( atm_c14file_time(t) - atm_c14file_time(t-1) <= 0._r8 ) then
+!$OMP MASTER
           write(iulog, *) 'C14_init_BombSpike: error.  time axis must be monotonically increasing'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        endif
     end do
@@ -244,8 +250,12 @@ contains
     call getfil(atm_c13_filename, locfn, 0)
 
     if ( masterproc ) then
+!$OMP MASTER
        write(iulog, *) 'C13_init_TimeSeries: preparing to open file:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog, *) trim(locfn)
+!$OMP END MASTER
     endif
 
     call ncd_pio_openfile (ncid, trim(locfn), 0)
@@ -275,7 +285,9 @@ contains
     ! check to make sure that time dimension is well behaved
     do t = 2, ntim
        if ( atm_c13file_time(t) - atm_c13file_time(t-1) <= 0._r8 ) then
+!$OMP MASTER
           write(iulog, *) 'C13_init_TimeSeries: error.  time axis must be monotonically increasing'
+!$OMP END MASTER
           call endrun(msg=errMsg(sourcefile, __LINE__))
        endif
     end do

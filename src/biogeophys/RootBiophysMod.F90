@@ -91,15 +91,27 @@ contains
 
     if (masterproc) then
 
+!$OMP MASTER
        write(iulog,*) ' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) 'rooting_profile settings:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*) '  rooting_profile_method_water  = ',rooting_profile_method_water
+!$OMP END MASTER
        if ( rooting_profile_method_water == jackson_1996_root )then
+!$OMP MASTER
           write(iulog,*) '  (rooting_profile_varindex_water  = ',rooting_profile_varindex_water, ')'
+!$OMP END MASTER
        end if
+!$OMP MASTER
        write(iulog,*) '  rooting_profile_method_carbon = ',rooting_profile_method_carbon
+!$OMP END MASTER
        if ( rooting_profile_method_carbon == jackson_1996_root )then
+!$OMP MASTER
           write(iulog,*) '  (rooting_profile_varindex_carbon  = ',rooting_profile_varindex_carbon, ')'
+!$OMP END MASTER
        end if
 
     endif

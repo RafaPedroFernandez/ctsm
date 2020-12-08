@@ -93,8 +93,10 @@ contains
        end select
 
     case default
+!$OMP MASTER
        write(iulog,*) subname//' ERROR: unknown snow_cover_fraction_method: ', &
             snow_cover_fraction_method
+!$OMP END MASTER
        call endrun(msg = 'unknown snow_cover_fraction_method', &
             additional_msg = errMsg(sourcefile, __LINE__))
     end select

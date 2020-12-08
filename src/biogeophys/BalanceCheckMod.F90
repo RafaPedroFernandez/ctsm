@@ -28,10 +28,10 @@ module BalanceCheckMod
   use WaterFluxType      , only : waterflux_type
   use WaterType          , only : water_type
   use TotalWaterAndHeatMod, only : ComputeWaterMassNonLake, ComputeWaterMassLake
-  use GridcellType       , only : grc                
-  use LandunitType       , only : lun                
-  use ColumnType         , only : col                
-  use PatchType          , only : patch                
+  use GridcellType       , only : grc
+  use LandunitType       , only : lun
+  use ColumnType         , only : col
+  use PatchType          , only : patch
   use landunit_varcon    , only : istdlak, istsoil,istcrop,istwet,istice_mec
   use column_varcon      , only : icol_roof, icol_sunwall, icol_shadewall
   use column_varcon      , only : icol_road_perv, icol_road_imperv
@@ -84,7 +84,9 @@ contains
     ! Skip a minimum of two time steps, but otherwise skip the number of time-steps in the skip_size rounded to the nearest integer
     skip_steps = max(2, nint( (skip_size / dtime) ) )
 
+!$OMP MASTER
     if ( masterproc ) write(iulog,*) ' Skip balance checking for the first ', skip_steps, ' time steps'
+!$OMP END MASTER
 
   end subroutine BalanceCheckInit
 
@@ -334,7 +336,7 @@ contains
    !-----------------------------------------------------------------------
   subroutine BeginWaterColumnBalanceSingle(bounds, &
        num_nolakec, filter_nolakec, num_lakec, filter_lakec, &
-       soilhydrology_inst, lakestate_inst, waterstate_inst, & 
+       soilhydrology_inst, lakestate_inst, waterstate_inst, &
        waterdiagnostic_inst, waterbalance_inst, &
        use_aquifer_layer)
     !
@@ -343,7 +345,7 @@ contains
     ! single tracer
     !
     ! !ARGUMENTS:
-    type(bounds_type)         , intent(in)    :: bounds     
+    type(bounds_type)         , intent(in)    :: bounds
     integer                   , intent(in)    :: num_nolakec          ! number of column non-lake points in column filter
     integer                   , intent(in)    :: filter_nolakec(:)    ! column filter for non-lake points
     integer                   , intent(in)    :: num_lakec            ! number of column lake points in column filter
@@ -419,7 +421,7 @@ contains
          caller = 'BeginWaterBalanceSingle-lake', &
          h2osno_total = h2osno_old(bounds%begc:bounds%endc))
 
-    end associate 
+    end associate
 
   end subroutine BeginWaterColumnBalanceSingle
 
@@ -455,7 +457,7 @@ contains
      use SurfaceAlbedoType , only : surfalb_type
      !
      ! !ARGUMENTS:
-     type(bounds_type)     , intent(in)    :: bounds  
+     type(bounds_type)     , intent(in)    :: bounds
      integer               , intent(in)    :: num_allc        ! number of columns in allc filter
      integer               , intent(in)    :: filter_allc(:)  ! filter for all columns
      type(atm2lnd_type)    , intent(in)    :: atm2lnd_inst
@@ -491,13 +493,13 @@ contains
      real(r8) :: errseb_max_val                         ! Maximum value of error in surface energy conservation error over all columns [W m-2]
      real(r8) :: errsoi_col_max_val                     ! Maximum value of column-level soil/lake energy conservation error over all columns [W m-2]
 
-     real(r8), parameter :: h2o_warning_thresh       = 1.e-9_r8                       ! Warning threshhold for error in errh2o and errh2osnow 
+     real(r8), parameter :: h2o_warning_thresh       = 1.e-9_r8                       ! Warning threshhold for error in errh2o and errh2osnow
      real(r8), parameter :: energy_warning_thresh    = 1.e-7_r8                       ! Warning threshhold for error in errsol, errsol, errseb, errlonv
      real(r8), parameter :: error_thresh             = 1.e-5_r8                       ! Error threshhold for conservation error
 
      !-----------------------------------------------------------------------
 
-     associate(                                                                   & 
+     associate(                                                                   &
           forc_solad              =>    atm2lnd_inst%forc_solad_grc             , & ! Input:  [real(r8) (:,:) ]  direct beam radiation (vis=forc_sols , nir=forc_soll )
           forc_solai              =>    atm2lnd_inst%forc_solai_grc             , & ! Input:  [real(r8) (:,:) ]  diffuse radiation     (vis=forc_solsd, nir=forc_solld)
           forc_rain         =>    wateratm2lnd_inst%forc_rain_downscaled_col    , & ! Input:  [real(r8) (:)   ]  column level rain rate [mm/s]
@@ -507,15 +509,15 @@ contains
           forc_lwrad              =>    atm2lnd_inst%forc_lwrad_downscaled_col  , & ! Input:  [real(r8) (:)   ]  downward infrared (longwave) radiation (W/m**2)
 
           h2osno_old              =>    waterbalance_inst%h2osno_old_col          , & ! Input:  [real(r8) (:)   ]  snow water (mm H2O) at previous time step
-          frac_sno_eff            =>    waterdiagnosticbulk_inst%frac_sno_eff_col        , & ! Input:  [real(r8) (:)   ]  effective snow fraction                 
+          frac_sno_eff            =>    waterdiagnosticbulk_inst%frac_sno_eff_col        , & ! Input:  [real(r8) (:)   ]  effective snow fraction
           frac_sno                =>    waterdiagnosticbulk_inst%frac_sno_col            , & ! Input:  [real(r8) (:)   ]  fraction of ground covered by snow (0 to 1)
-          snow_depth              =>    waterdiagnosticbulk_inst%snow_depth_col          , & ! Input:  [real(r8) (:)   ]  snow height (m)                         
+          snow_depth              =>    waterdiagnosticbulk_inst%snow_depth_col          , & ! Input:  [real(r8) (:)   ]  snow height (m)
           begwb_grc               =>    waterbalance_inst%begwb_grc             , & ! Input:  [real(r8) (:)   ]  grid cell-level water mass begining of the time step
           endwb_grc               =>    waterbalance_inst%endwb_grc             , & ! Output: [real(r8) (:)   ]  grid cell-level water mass end of the time step
           begwb_col               =>    waterbalance_inst%begwb_col             , & ! Input:  [real(r8) (:)   ]  column-level water mass begining of the time step
           endwb_col               =>    waterbalance_inst%endwb_col             , & ! Output: [real(r8) (:)   ]  column-level water mass end of the time step
           errh2o_col              =>    waterbalance_inst%errh2o_col            , & ! Output: [real(r8) (:)   ]  column-level water conservation error (mm H2O)
-          errh2osno               =>    waterbalance_inst%errh2osno_col           , & ! Output: [real(r8) (:)   ]  error in h2osno (kg m-2)                
+          errh2osno               =>    waterbalance_inst%errh2osno_col           , & ! Output: [real(r8) (:)   ]  error in h2osno (kg m-2)
           snow_sources            =>    waterbalance_inst%snow_sources_col         , & ! Output: [real(r8) (:)   ]  snow sources (mm H2O /s)
           snow_sinks              =>    waterbalance_inst%snow_sinks_col           , & ! Output: [real(r8) (:)   ]  snow sinks (mm H2O /s)
           qflx_liq_grnd_col       =>    waterflux_inst%qflx_liq_grnd_col        , & ! Input:  [real(r8) (:)   ]  liquid on ground after interception (mm H2O/s) [+]
@@ -532,12 +534,12 @@ contains
           qflx_liqdew_to_top_layer      => waterflux_inst%qflx_liqdew_to_top_layer_col     , & ! Input:  [real(r8) (:)   ]  rate of liquid water deposited on top soil or snow layer (dew) (mm H2O /s) [+]
           qflx_prec_grnd          =>    waterdiagnosticbulk_inst%qflx_prec_grnd_col, & ! Input:  [real(r8) (:)   ]  water onto ground including canopy runoff [kg/(m2 s)]
           qflx_snow_h2osfc        =>    waterflux_inst%qflx_snow_h2osfc_col     , & ! Input:  [real(r8) (:)   ]  snow falling on surface water (mm/s)
-          qflx_h2osfc_to_ice      =>    waterflux_inst%qflx_h2osfc_to_ice_col   , & ! Input:  [real(r8) (:)   ]  conversion of h2osfc to ice             
+          qflx_h2osfc_to_ice      =>    waterflux_inst%qflx_h2osfc_to_ice_col   , & ! Input:  [real(r8) (:)   ]  conversion of h2osfc to ice
           qflx_drain_perched_col  =>    waterflux_inst%qflx_drain_perched_col   , & ! Input:  [real(r8) (:)   ]  column level sub-surface runoff (mm H2O /s)
           qflx_drain_perched_grc  =>    waterlnd2atm_inst%qflx_rofliq_drain_perched_grc, & ! Input: [real(r8) (:)] grid cell-level sub-surface runoff (mm H2O /s)
           qflx_flood_col          =>    waterflux_inst%qflx_floodc_col          , & ! Input:  [real(r8) (:)   ]  column level total runoff due to flooding
           forc_flood_grc          =>    wateratm2lnd_inst%forc_flood_grc        , & ! Input:  [real(r8) (:)   ]  grid cell-level total grid cell-level runoff from river model
-          qflx_snow_drain         =>    waterflux_inst%qflx_snow_drain_col      , & ! Input:  [real(r8) (:)   ]  drainage from snow pack                         
+          qflx_snow_drain         =>    waterflux_inst%qflx_snow_drain_col      , & ! Input:  [real(r8) (:)   ]  drainage from snow pack
           qflx_surf_col           =>    waterflux_inst%qflx_surf_col            , & ! Input:  [real(r8) (:)   ]  column level surface runoff (mm H2O /s)
           qflx_surf_grc           =>    waterlnd2atm_inst%qflx_rofliq_qsur_grc  , & ! Input:  [real(r8) (:)   ]  grid cell-level surface runoff (mm H20 /s)
           qflx_qrgwl_col          =>    waterflux_inst%qflx_qrgwl_col           , & ! Input:  [real(r8) (:)   ]  column level qflx_surf at glaciers, wetlands, lakes
@@ -557,10 +559,10 @@ contains
           eflx_lwrad_net          =>    energyflux_inst%eflx_lwrad_net_patch    , & ! Input:  [real(r8) (:)   ]  net infrared (longwave) rad (W/m**2) [+ = to atm]
           eflx_sh_tot             =>    energyflux_inst%eflx_sh_tot_patch       , & ! Input:  [real(r8) (:)   ]  total sensible heat flux (W/m**2) [+ to atm]
           eflx_lh_tot             =>    energyflux_inst%eflx_lh_tot_patch       , & ! Input:  [real(r8) (:)   ]  total latent heat flux (W/m**2)  [+ to atm]
-          eflx_soil_grnd          =>    energyflux_inst%eflx_soil_grnd_patch    , & ! Input:  [real(r8) (:)   ]  soil heat flux (W/m**2) [+ = into soil] 
+          eflx_soil_grnd          =>    energyflux_inst%eflx_soil_grnd_patch    , & ! Input:  [real(r8) (:)   ]  soil heat flux (W/m**2) [+ = into soil]
           eflx_wasteheat_patch    =>    energyflux_inst%eflx_wasteheat_patch    , & ! Input:  [real(r8) (:)   ]  sensible heat flux from urban heating/cooling sources of waste heat (W/m**2)
           eflx_heat_from_ac_patch =>    energyflux_inst%eflx_heat_from_ac_patch , & ! Input:  [real(r8) (:)   ]  sensible heat flux put back into canyon due to removal by AC (W/m**2)
-          eflx_traffic_patch      =>    energyflux_inst%eflx_traffic_patch      , & ! Input:  [real(r8) (:)   ]  traffic sensible heat flux (W/m**2)     
+          eflx_traffic_patch      =>    energyflux_inst%eflx_traffic_patch      , & ! Input:  [real(r8) (:)   ]  traffic sensible heat flux (W/m**2)
           eflx_dynbal             =>    energyflux_inst%eflx_dynbal_grc         , & ! Input:  [real(r8) (:)   ]  energy conversion flux due to dynamic land cover change(W/m**2) [+ to atm]
           errsoi_col              =>    energyflux_inst%errsoi_col              , & ! Output: [real(r8) (:)   ]  column-level soil/lake energy conservation error (W/m**2)
           errsol                  =>    energyflux_inst%errsol_patch            , & ! Output: [real(r8) (:)   ]  solar radiation conservation error (W/m**2)
@@ -571,12 +573,12 @@ contains
           sabg_snow               =>    solarabs_inst%sabg_snow_patch           , & ! Input:  [real(r8) (:)   ]  solar radiation absorbed by snow (W/m**2)
           sabg_chk                =>    solarabs_inst%sabg_chk_patch            , & ! Input:  [real(r8) (:)   ]  sum of soil/snow using current fsno, for balance check
           fsa                     =>    solarabs_inst%fsa_patch                 , & ! Input:  [real(r8) (:)   ]  solar radiation absorbed (total) (W/m**2)
-          fsr                     =>    solarabs_inst%fsr_patch                 , & ! Input:  [real(r8) (:)   ]  solar radiation reflected (W/m**2)      
+          fsr                     =>    solarabs_inst%fsr_patch                 , & ! Input:  [real(r8) (:)   ]  solar radiation reflected (W/m**2)
           sabv                    =>    solarabs_inst%sabv_patch                , & ! Input:  [real(r8) (:)   ]  solar radiation absorbed by vegetation (W/m**2)
           sabg                    =>    solarabs_inst%sabg_patch                , & ! Input:  [real(r8) (:)   ]  solar radiation absorbed by ground (W/m**2)
-          
-          elai                    =>    canopystate_inst%elai_patch             , & ! Input:  [real(r8) (:,:)]  
-          esai                    =>    canopystate_inst%esai_patch             , & ! Input:  [real(r8) (:,:)]  
+
+          elai                    =>    canopystate_inst%elai_patch             , & ! Input:  [real(r8) (:,:)]
+          esai                    =>    canopystate_inst%esai_patch             , & ! Input:  [real(r8) (:,:)]
 
           fabd                    =>    surfalb_inst%fabd_patch                 , & ! Input:  [real(r8) (:,:)]  flux absorbed by canopy per unit direct flux
           fabi                    =>    surfalb_inst%fabi_patch                 , & ! Input:  [real(r8) (:,:)]  flux absorbed by canopy per unit indirect flux
@@ -600,7 +602,7 @@ contains
 
        do c = bounds%begc,bounds%endc
           g = col%gridcell(c)
-          l = col%landunit(c)       
+          l = col%landunit(c)
 
           if (col%itype(c) == icol_sunwall .or.  col%itype(c) == icol_shadewall) then
              forc_rain_col(c) = 0.
@@ -640,9 +642,9 @@ contains
           end if
 
        end do
-       
-       errh2o_max_val = maxval(abs(errh2o_col(bounds%begc:bounds%endc)))
 
+       errh2o_max_val = maxval(abs(errh2o_col(bounds%begc:bounds%endc)))
+!$OMP MASTER
        if (errh2o_max_val > h2o_warning_thresh) then
 
            indexc = maxloc( abs(errh2o_col(bounds%begc:bounds%endc)), 1 ) + bounds%begc - 1
@@ -652,7 +654,7 @@ contains
            ! ' global indexc= ',GetGlobalIndex(decomp_index=indexc, clmlevel=namec), &
              ' errh2o= ',errh2o_col(indexc)
          if ((errh2o_max_val > error_thresh) .and. (DAnstep > skip_steps)) then
-              
+
               write(iulog,*)'CTSM is stopping because errh2o > ', error_thresh, ' mm'
               write(iulog,*)'nstep                     = ',nstep
               write(iulog,*)'errh2o_col                = ',errh2o_col(indexc)
@@ -681,13 +683,13 @@ contains
                    write(iulog,*)'qflx_flood                 = ',qflx_flood_col(indexc)*dtime
                    write(iulog,*)'qflx_glcice_dyn_water_flux = ', qflx_glcice_dyn_water_flux_col(indexc)*dtime
               end if
-              
+
               write(iulog,*)'CTSM is stopping'
               call endrun(decomp_index=indexc, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
          end if
-       
+
        end if
-       
+!$OMP END MASTER
 
        ! Water balance check at the grid cell level
 
@@ -773,9 +775,9 @@ contains
              g = col%gridcell(c)
              l = col%landunit(c)
 
-             ! As defined here, snow_sources - snow_sinks will equal the change in h2osno at 
-             ! any given time step but only if there is at least one snow layer.  h2osno 
-             ! also includes snow that is part of the soil column (an initial snow layer is 
+             ! As defined here, snow_sources - snow_sinks will equal the change in h2osno at
+             ! any given time step but only if there is at least one snow layer.  h2osno
+             ! also includes snow that is part of the soil column (an initial snow layer is
              ! only created if h2osno > 10mm).
 
              if (col%snl(c) < 0) then
@@ -786,10 +788,10 @@ contains
                      + qflx_snwcp_discarded_ice_col(c) + qflx_snwcp_discarded_liq_col(c) &
                      + qflx_sl_top_soil(c)
 
-                if (lun%itype(l) == istdlak) then 
+                if (lun%itype(l) == istdlak) then
                    snow_sources(c) = qflx_snow_grnd_col(c) &
                         + frac_sno_eff(c) * (qflx_liq_grnd_col(c) &
-                        +  qflx_soliddew_to_top_layer(c) + qflx_liqdew_to_top_layer(c) ) 
+                        +  qflx_soliddew_to_top_layer(c) + qflx_liqdew_to_top_layer(c) )
                    snow_sinks(c)   = frac_sno_eff(c) * (qflx_solidevap_from_top_layer(c) &
                         + qflx_liqevap_from_top_layer(c) ) + qflx_snwcp_ice(c) + qflx_snwcp_liq(c)  &
                         + qflx_snwcp_discarded_ice_col(c) + qflx_snwcp_discarded_liq_col(c)  &
@@ -822,9 +824,11 @@ contains
 
 
        errh2osno_max_val = maxval( abs(errh2osno(bounds%begc:bounds%endc)))
-       
+
+!$OMP MASTER
        if (errh2osno_max_val > h2o_warning_thresh) then
             indexc = maxloc( abs(errh2osno(bounds%begc:bounds%endc)), 1) + bounds%begc -1
+
             write(iulog,*)'WARNING:  snow balance error '
             write(iulog,*)'nstep= ',nstep, &
                  ' local indexc= ',indexc, &
@@ -832,7 +836,6 @@ contains
                  ' col%itype= ',col%itype(indexc), &
                  ' lun%itype= ',lun%itype(col%landunit(indexc)), &
                  ' errh2osno= ',errh2osno(indexc)
-
             if ((errh2osno_max_val > error_thresh) .and. (DAnstep > skip_steps) ) then
                  write(iulog,*)'CTSM is stopping because errh2osno > ', error_thresh, ' mm'
                  write(iulog,*)'nstep              = ',nstep
@@ -862,6 +865,7 @@ contains
             end if
 
        end if
+!$OMP END MASTER
 
        ! Energy balance checks
 
@@ -894,7 +898,7 @@ contains
 
              ! Surface energy balance
              ! Changed to using (eflx_lwrad_net) here instead of (forc_lwrad - eflx_lwrad_out) because
-             ! there are longwave interactions between urban columns (and therefore patches). 
+             ! there are longwave interactions between urban columns (and therefore patches).
              ! For surfaces other than urban, (eflx_lwrad_net) equals (forc_lwrad - eflx_lwrad_out),
              ! and a separate check is done above for these terms.
 
@@ -907,7 +911,7 @@ contains
                      - eflx_sh_tot(p) - eflx_lh_tot(p) - eflx_soil_grnd(p) &
                      + eflx_wasteheat_patch(p) + eflx_heat_from_ac_patch(p) + eflx_traffic_patch(p)
              end if
-             !TODO MV - move this calculation to a better place - does not belong in BalanceCheck 
+             !TODO MV - move this calculation to a better place - does not belong in BalanceCheck
              netrad(p) = fsa(p) - eflx_lwrad_net(p)
           else
              errsol(p) = 0._r8
@@ -918,8 +922,9 @@ contains
 
        ! Solar radiation energy balance check
 
-       errsol_max_val = maxval( abs(errsol(bounds%begp:bounds%endp)), mask = (errsol(bounds%begp:bounds%endp) /= spval) ) 
+       errsol_max_val = maxval( abs(errsol(bounds%begp:bounds%endp)), mask = (errsol(bounds%begp:bounds%endp) /= spval) )
 
+!$OMP MASTER
        if  ((errsol_max_val > energy_warning_thresh) .and. (DAnstep > skip_steps)) then
 
            indexp = maxloc( abs(errsol(bounds%begp:bounds%endp)), 1 , mask = (errsol(bounds%begp:bounds%endp) /= spval) ) + bounds%begp -1
@@ -927,7 +932,7 @@ contains
            write(iulog,*)'WARNING:: BalanceCheck, solar radiation balance error (W/m2)'
            write(iulog,*)'nstep         = ',nstep
            write(iulog,*)'errsol        = ',errsol(indexp)
-           
+
            if (errsol_max_val > error_thresh) then
                write(iulog,*)'CTSM is stopping because errsol > ', error_thresh, ' W/m2'
                write(iulog,*)'fsa           = ',fsa(indexp)
@@ -943,11 +948,12 @@ contains
            end if
 
        end if
-       
+!$OMP END MASTER
        ! Longwave radiation energy balance check
 
        errlon_max_val = maxval( abs(errlon(bounds%begp:bounds%endp)), mask = (errlon(bounds%begp:bounds%endp) /= spval) )
 
+!$OMP MASTER
        if ((errlon_max_val > energy_warning_thresh) .and. (DAnstep > skip_steps)) then
             indexp = maxloc( abs(errlon(bounds%begp:bounds%endp)), 1 , mask = (errlon(bounds%begp:bounds%endp) /= spval) ) + bounds%begp -1
             write(iulog,*)'indexp         = ',indexp
@@ -959,11 +965,12 @@ contains
                  call endrun(decomp_index=indexp, clmlevel=namep, msg=errmsg(sourcefile, __LINE__))
             end if
        end if
-
+!$OMP END MASTER
        ! Surface energy balance check
 
        errseb_max_val = maxval( abs(errseb(bounds%begp:bounds%endp)))
 
+!$OMP MASTER
        if ((errseb_max_val > energy_warning_thresh) .and. (DAnstep > skip_steps)) then
 
            indexp = maxloc( abs(errseb(bounds%begp:bounds%endp)), 1 ) + bounds%begp -1
@@ -974,6 +981,7 @@ contains
            write(iulog,*)'nstep          = ' ,nstep
            write(iulog,*)'errseb         = ' ,errseb(indexp)
 
+
            if ( errseb_max_val > error_thresh ) then
               write(iulog,*)'CTSM is stopping because errseb > ', error_thresh, ' W/m2'
               write(iulog,*)'sabv           = ' ,sabv(indexp)
@@ -981,7 +989,6 @@ contains
                    frac_sno(indexc)*sabg_snow(indexp)),sabg_chk(indexp)
               write(iulog,*)'forc_tot      = '  ,forc_solad(indexg,1) + forc_solad(indexg,2) + &
                    forc_solai(indexg,1) + forc_solai(indexg,2)
-
               write(iulog,*)'eflx_lwrad_net = ' ,eflx_lwrad_net(indexp)
               write(iulog,*)'eflx_sh_tot    = ' ,eflx_sh_tot(indexp)
               write(iulog,*)'eflx_lh_tot    = ' ,eflx_lh_tot(indexp)
@@ -997,13 +1004,14 @@ contains
            end if
 
        end if
-
+!$OMP END MASTER
        ! Soil energy balance check
 
        errsoi_col_max_val  =  maxval( abs(errsoi_col(bounds%begc:bounds%endc)) , mask = col%active(bounds%begc:bounds%endc))
 
        if (errsoi_col_max_val > 1.0e-5_r8 ) then
            indexc = maxloc( abs(errsoi_col(bounds%begc:bounds%endc)), 1 , mask = col%active(bounds%begc:bounds%endc) ) + bounds%begc -1
+!$OMP MASTER
            write(iulog,*)'WARNING: BalanceCheck: soil balance error (W/m2)'
            write(iulog,*)'nstep         = ',nstep
            write(iulog,*)'errsoi_col    = ',errsoi_col(indexc)
@@ -1012,8 +1020,9 @@ contains
               write(iulog,*)'CTSM is stopping'
               call endrun(decomp_index=indexc, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
            end if
-       end if 
-       
+!$OMP END MASTER
+       end if
+
      end associate
 
    end subroutine BalanceCheck

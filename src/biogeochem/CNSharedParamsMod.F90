@@ -148,9 +148,13 @@ contains
     ! Read namelist from standard input.
     if (masterproc) then
 
+!$OMP MASTER
        write(iulog,*) 'Attempting to read CN/BGC shared namelist parameters .....'
+!$OMP END MASTER
        unitn = getavu()
+!$OMP MASTER
        write(iulog,*) 'Read in ' // namelist_group // ' namelist from: ', trim(namelist_file)
+!$OMP END MASTER
        open( unitn, file=trim(namelist_file), status='old' )
        call shr_nl_find_group_name(unitn, namelist_group, status=ierr)
        if (ierr == 0) then
@@ -177,12 +181,22 @@ contains
 
     ! Output read parameters to the lnd.log
     if (masterproc) then
+!$OMP MASTER
        write(iulog,*) 'CN/BGC shared namelist parameters:'
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)' '
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)'  decomp_depth_efolding = ', decomp_depth_efolding
+!$OMP END MASTER
+!$OMP MASTER
        write(iulog,*)'  constrain_stress_deciduous_onset = ',constrain_stress_deciduous_onset
+!$OMP END MASTER
 
+!$OMP MASTER
        write(iulog,*)
+!$OMP END MASTER
 
     end if
 
