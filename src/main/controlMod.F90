@@ -10,6 +10,7 @@ module controlMod
   !       Display the file in a browser to see it neatly formatted in html.
   !
   ! !USES:
+!$ use omp_lib                         , only: omp_get_num_threads
   use shr_kind_mod                     , only: r8 => shr_kind_r8, SHR_KIND_CL
   use shr_nl_mod                       , only: shr_nl_find_group_name
   use shr_const_mod                    , only: SHR_CONST_CDAY

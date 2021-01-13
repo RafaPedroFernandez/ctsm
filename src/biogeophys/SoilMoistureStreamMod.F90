@@ -410,9 +410,7 @@ contains
                      if ( soilm_ignore_data_if_missing )then
                         cycle
                      else
-!$OMP MASTER
                         write(iulog,*) 'Input soil moisture dataset is not vegetated as expected: gridcell=', &
-!$OMP END MASTER
                                         g, ' active = ', col%active(c)
                         call endrun(subname // ' ERROR:: The input soil moisture stream is NOT vegetated for one of the land points' )
                      end if
