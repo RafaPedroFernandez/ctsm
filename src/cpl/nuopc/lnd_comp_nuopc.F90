@@ -437,7 +437,6 @@ contains
     else
        call shr_sys_abort( subname//' ERROR: unknown starttype' )
     end if
->>>>>>> stable with esmf threading
 
     !----------------------
     ! Consistency check on namelist filename
