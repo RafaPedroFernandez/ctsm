@@ -64,7 +64,7 @@ contains
     use clm_varctl       , only : nsrStartup, nsrContinue, nsrBranch
     use clm_cpl_indices  , only : clm_cpl_indices_set
     use mct_mod          , only : mct_aVect_init, mct_aVect_zero, mct_gsMap_lsize
-    use lnd_set_decomp_and_domain, only : lnd_set_decomp_and_domain_from_surfrd         
+    use lnd_set_decomp_and_domain, only : lnd_set_decomp_and_domain_from_surfrd
     use ESMF
     !
     ! !ARGUMENTS:
@@ -107,6 +107,8 @@ contains
     integer :: ni,nj
     character(len=32), parameter :: sub = 'lnd_init_mct'
     character(len=*),  parameter :: format = "('("//trim(sub)//") :',A)"
+!$  integer, external :: omp_get_max_threads  ! max number of threads that can execute concurrently in a single parallel region
+
     !-----------------------------------------------------------------------
 
     ! Set cdata data
@@ -115,6 +117,9 @@ contains
 
     ! Determine attriute vector indices
     call clm_cpl_indices_set()
+
+!$    nthrds = omp_get_max_threads()
+!$    call omp_set_num_threads(nthrds)
 
     ! Initialize clm MPI communicator
     call spmd_init( mpicom_lnd, LNDID )

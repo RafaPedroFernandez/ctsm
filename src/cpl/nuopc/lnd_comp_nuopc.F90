@@ -66,6 +66,7 @@ module lnd_comp_nuopc
   logical                :: glc_present
   logical                :: rof_prognostic
   logical                :: atm_prognostic
+  integer                :: nthrds
   integer, parameter     :: dbug = 0
   character(*),parameter :: modName =  "(lnd_comp_nuopc)"
 
@@ -382,7 +383,17 @@ contains
     call ESMF_VMGet(vm, pet=localPet, peCount=localPeCount, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-    !$  call omp_set_num_threads(localPeCount)
+    if(localPeCount == 1) then
+       call NUOPC_CompAttributeGet(gcomp, "nthreads", value=cvalue, rc=rc)
+       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
+       read(cvalue,*) nthrds
+    else
+       nthrds = localPeCount
+    endif
+    !$  call omp_set_num_threads(nthrds)
+    if(localPet==0) then
+       write(iulog,*) 'nthrds set to ',nthrds
+    endif
 
     !----------------------
     ! Consistency check on namelist filename
@@ -616,7 +627,6 @@ contains
     type(ESMF_Time)        :: currTime
     type(ESMF_Time)        :: nextTime
     type(ESMF_State)       :: importState, exportState
-    type(ESMF_VM)          :: vm
     character(ESMF_MAXSTR) :: cvalue
     character(ESMF_MAXSTR) :: case_name      ! case name
     integer                :: ymd            ! CTSM current date (YYYYMMDD)
@@ -631,8 +641,6 @@ contains
     integer                :: tod_sync       ! Sync current time of day (sec)
     integer                :: dtime          ! time step increment (sec)
     integer                :: nstep          ! time step index
-    integer                :: localPet
-    integer                :: localpecount
     logical                :: rstwr          ! .true. ==> write restart file before returning
     logical                :: nlend          ! .true. ==> last time-step
     logical                :: dosend         ! true => send data back to driver
@@ -654,12 +662,7 @@ contains
     rc = ESMF_SUCCESS
     call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
 
-    call ESMF_GridCompGet(gcomp, vm=vm, localPet=localPet, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-    call ESMF_VMGet(vm, pet=localPet, peCount=localPeCount, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-
-    !$  call omp_set_num_threads(localPeCount)
+    !$  call omp_set_num_threads(nthrds)
 
     call shr_file_getLogUnit (shrlogunit)
     call shr_file_setLogUnit (iulog)
