@@ -182,176 +182,144 @@ contains
   end subroutine lnd_set_decomp_and_domain_from_readmesh
 
   !===============================================================================
-  subroutine lnd_set_decomp_and_domain_from_createmesh(domain_file, vm, mesh_ctsm, ni, nj, rc)
+  subroutine lnd_set_mesh_for_single_column(single_column_domainfile, scol_lon, scol_lat,  &
+       scol_area, scol_mask, scol_frac, mesh_ctsm, scol_valid, rc)
 
-    ! Generate a new mesh from the input domain file and set the mask to 1
-
-    use decompInitMod , only : decompInit_lnd, decompInit_lnd3D
-    use decompMod     , only : ldecomp, bounds_type, get_proc_bounds
-    use domainMod     , only : ldomain, domain_init
-    use clm_varctl    , only : use_soil_moisture_streams
-    use clm_varctl    , only : scmlat, scmlon, single_column
-    use clm_varpar    , only : nlevsoi
-    use ncdio_pio     , only : pio_subsystem, io_type
-    use pio
+    ! Generate a mesh for single column
+    use netcdf
+    use clm_varcon, only : spval
 
     ! input/output variables
-    character(len=CL)   , intent(in)  :: domain_file
-    type(ESMF_VM)       , intent(in)  :: vm
-    type(ESMF_Mesh)     , intent(out) :: mesh_ctsm
-    integer             , intent(out) :: ni,nj  ! global grid dimensions
-    integer             , intent(out) :: rc
+    character(len=CL) , intent(in)    :: single_column_domainfile
+    real(r8)          , intent(inout) :: scol_lon
+    real(r8)          , intent(inout) :: scol_lat
+    real(r8)          , intent(out)   :: scol_area
+    integer           , intent(out)   :: scol_mask
+    real(r8)          , intent(out)   :: scol_frac
+    type(ESMF_Mesh)   , intent(out)   :: mesh_ctsm
+    logical           , intent(out)   :: scol_valid
+    integer           , intent(out)   :: rc
 
     ! local variables
-    type(ESMF_Grid)       :: lgrid
-    type(ESMF_Mesh)       :: mesh_lndcreate
-    type(ESMF_DistGrid)   :: distgrid_ctsm
-    integer, pointer      :: gindex_ctsm(:)       ! global index space for just land points
-    logical               :: isgrid2d
-    integer               :: i,j,g,n
-    integer               :: nv
-    integer               :: ierr
-    integer               :: dimid
-    integer               :: varid_xv, varid_yv
-    integer               :: varid_xc, varid_yc
-    integer               :: varid_area
-    real(r8), allocatable :: xc(:,:), yc(:,:)     ! coordinates of centers
-    real(r8), allocatable :: xv(:,:,:), yv(:,:,:) ! coordinates of corners
-    integer               :: maxIndex(2)
-    real(r8)              :: mincornerCoord(2)
-    real(r8)              :: maxcornerCoord(2)
-    integer               :: spatialDim
-    integer               :: numownedelements
-    real(r8) , pointer    :: ownedElemCoords(:)
-    integer, allocatable  :: lnd_mask(:)
-    type(bounds_type)     :: bounds               ! bounds
-    integer               :: begg,endg
-    integer               :: nlnd
-    integer               :: start(2)             ! start index to read in for single column mode
-    integer               :: count(2)             ! number of points to read in
-    real(r8)              :: scol_data(1)         ! temporary
-    integer , allocatable :: mask(:)              ! temporary
-    real(r8), allocatable :: lats(:)              ! temporary
-    real(r8), allocatable :: lons(:)              ! temporary
-    real(r8), allocatable :: pos_lons(:)          ! temporary
-    real(r8)              :: pos_scmlon           ! temporary
-    real(r8)              :: scol_area            ! temporary
-    type(file_desc_t)     :: pioid
-    integer               :: rcode                ! error code
+    type(ESMF_Grid)        :: lgrid
+    integer                :: i,j,ni,nj
+    integer                :: ncid
+    integer                :: dimid, ier
+    integer                :: varid_xc
+    integer                :: varid_yc
+    integer                :: varid_area
+    integer                :: varid_mask
+    integer                :: varid_frac
+    integer                :: start(2)       ! Start index to read in
+    integer                :: start3(3)      ! Start index to read in
+    integer                :: count3(3)      ! Number of points to read in
+    integer                :: status         ! status flag
+    real (r8), allocatable :: lats(:)        ! temporary
+    real (r8), allocatable :: lons(:)        ! temporary
+    real (r8), allocatable :: pos_lons(:)    ! temporary
+    real (r8), allocatable :: glob_grid(:,:) ! temporary
+    real (r8)              :: pos_scol_lon   ! temporary
+    real (r8)              :: scol_data
+    integer                :: maxIndex(2)
+    real(r8)               :: mincornerCoord(2)
+    real(r8)               :: maxcornerCoord(2)
+    character(len=*), parameter :: subname= ' (lnd_set_decomp_and_domain_for_scolumn) '
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
 
-    rcode = pio_openfile(pio_subsystem, pioid, io_type, trim(domain_file), pio_nowrite)
-    call pio_check_err(rcode, 'error opening file '//trim(domain_file))
-    call pio_seterrorhandling(pioid, PIO_BCAST_ERROR)
-    rcode = pio_inq_dimid(pioid, 'ni', dimid)
-    call pio_check_err(rcode, 'pio_inq_dimid for ni in file '//trim(domain_file))
-    rcode = pio_inquire_dimension(pioid, dimid, len=ni)
-    call pio_check_err(rcode, 'pio_inq_dimension for ni in file '//trim(domain_file))
-    rcode = pio_inq_dimid(pioid, 'nj', dimid)
-    call pio_check_err(rcode, 'pio_inq_dimid for nj in file '//trim(domain_file))
-    rcode = pio_inquire_dimension(pioid, dimid, len=nj)
-    call pio_check_err(rcode, 'pio_inq_dimension for nj in file '//trim(domain_file))
-    rcode = pio_inq_dimid(pioid, 'nv', dimid)
-    call pio_check_err(rcode, 'pio_inq_dimid for nv in file '//trim(domain_file))
-    rcode = pio_inquire_dimension(pioid, dimid, len=nv)
-    call pio_check_err(rcode, 'pio_inq_dimension for nv in file '//trim(domain_file))
-    rcode = pio_inq_varid(pioid, 'xc' , varid_xc)
-    call pio_check_err(rcode, 'pio_inq_varid for yc in file '//trim(domain_file))
-    rcode = pio_inq_varid(pioid, 'yc' , varid_yc)
-    call pio_check_err(rcode, 'pio_inq_varid for yc in file '//trim(domain_file))
-    rcode = pio_inq_varid(pioid, 'xv' , varid_xv)
-    call pio_check_err(rcode, 'pio_inq_varid for xv in file '//trim(domain_file))
-    rcode = pio_inq_varid(pioid, 'yv' , varid_yv)
-    call pio_check_err(rcode, 'pio_inq_varid for yv in file '//trim(domain_file))
-    rcode = pio_inq_varid(pioid, 'area', varid_area)
-    call pio_check_err(rcode, 'pio_inq_varid for area in file '//trim(domain_file))
-
-    if (single_column) then
+    if (trim(single_column_domainfile) /= 'null') then
 
        ! In this case the domain file is not a single point file - but normally a
        ! global domain file where a nearest neighbor search will be done to find
        ! the closest point in the domin file to scol_lon and scol_lat
 
-       ! get center lats and lons from domain file
-       allocate(xc(ni,nj))
-       allocate(yc(ni,nj))
-       rcode = pio_get_var(pioid, varid_xc, xc)
-       call pio_check_err(rcode, 'pio_get_var for xc in file '//trim(domain_file))
-       rcode = pio_get_var(pioid, varid_yc, yc)
-       call pio_check_err(rcode, 'pio_get_var for yc in file '//trim(domain_file))
+       status = nf90_open(single_column_domainfile, NF90_NOWRITE, ncid)
+       if (status /= nf90_noerr) then
+          call shr_sys_abort (trim(subname) //': Cannot open '//trim(single_column_domainfile))
+       endif
+       status = nf90_inq_dimid (ncid, 'ni', dimid)
+       status = nf90_inquire_dimension(ncid, dimid, len=ni)
+       status = nf90_inq_dimid (ncid, 'nj', dimid)
+       status = nf90_inquire_dimension(ncid, dimid, len=nj)
 
-       ! find nearest neighbor indices of scmlon and scmlat in domain file
+       status = nf90_open(single_column_domainfile, NF90_NOWRITE, ncid)
+       if (status /= nf90_noerr) then
+          call shr_sys_abort (trim(subname) //': Cannot open '//trim(single_column_domainfile))
+       endif
+       status = nf90_inq_dimid (ncid, 'ni', dimid)
+       status = nf90_inquire_dimension(ncid, dimid, len=ni)
+       status = nf90_inq_dimid (ncid, 'nj', dimid)
+       status = nf90_inquire_dimension(ncid, dimid, len=nj)
+
+       status = nf90_inq_varid(ncid, 'xc' , varid_xc)
+       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid xc')
+       status = nf90_inq_varid(ncid, 'yc' , varid_yc)
+       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid yc')
+       status = nf90_inq_varid(ncid, 'area' , varid_area)
+       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid area')
+       status = nf90_inq_varid(ncid, 'mask' , varid_mask)
+       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid mask')
+       status = nf90_inq_varid(ncid, 'frac' , varid_frac)
+       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid frac')
+
+       ! Read in domain file for single column
        allocate(lats(nj))
        allocate(lons(ni))
        allocate(pos_lons(ni))
+       allocate(glob_grid(ni,nj))
+
+       ! The follow assumes that xc and yc are 2 dimensional values
+       start3=(/1,1,1/)
+       count3=(/ni,nj,1/)
+       status = nf90_get_var(ncid, varid_xc, glob_grid, start3, count3)
+       if (status /= nf90_noerr) call shr_sys_abort (subname//' get_var xc')
        do i = 1,ni
-          lons(i) = xc(i,1)
+          lons(i) = glob_grid(i,1)
        end do
+       status = nf90_get_var(ncid, varid_yc, glob_grid, start3, count3)
+       if (status /= nf90_noerr) call shr_sys_abort (subname//' get_var yc')
        do j = 1,nj
-          lats(j) = yc(1,j)
+          lats(j) = glob_grid(1,j)
        end do
+
+       ! find nearest neighbor indices of scol_lon and scol_lat in single_column_domain file
+       ! convert lons array and scol_lon to 0,360 and find index of value closest to 0
+       ! and obtain single-column longitude/latitude indices to retrieve
        pos_lons(:)  = mod(lons(:)  + 360._r8, 360._r8)
-       pos_scmlon = mod(scmlon + 360._r8, 360._r8)
-       start(1) = (MINLOC(abs(pos_lons - pos_scmlon), dim=1))
-       start(2) = (MINLOC(abs(lats      -scmlat    ), dim=1))
-       count(:) = 1
-       deallocate(lons)
-       deallocate(lats)
-
-       ! read in value of nearest neighbor lon and RESET scmlat
-       rcode = pio_get_var(pioid, varid_xc, start, count, scol_data)
-       call pio_check_err(rcode, 'pio_get_var for xc in file '//trim(domain_file))
-       scmlon = scol_data(1)
-
-       ! read in value of nearest neighbor lon and RESET scmlon
-       rcode = pio_get_var(pioid, varid_yc, start, count, scol_data)
-       call pio_check_err(rcode, 'pio_get_var for yc in file '//trim(domain_file))
-       scmlat = scol_data(1)
-
-       ! get area of gridcell
-       rcode = pio_get_var(pioid, varid_area, start, count, scol_data)
-       call pio_check_err(rcode, 'pio_get_var for area in file '//trim(domain_file))
-       scol_area = scol_data(1)
+       pos_scol_lon = mod(scol_lon + 360._r8, 360._r8)
+       start(1) = (MINLOC(abs(pos_lons - pos_scol_lon), dim=1))
+       start(2) = (MINLOC(abs(lats      -scol_lat    ), dim=1))
 
        ! reset ni and nj to be single point values
        ni = 1
        nj = 1
 
        ! determine mincornerCoord and maxcornerCoord neede to create ESMF grid
-       maxIndex(1)       = 1                        ! number of lons
-       maxIndex(2)       = 1                        ! number of lats
-       mincornerCoord(1) = scmlon - scol_area/2._r8 ! min lon
-       mincornerCoord(2) = scmlat - scol_area/2._r8 ! min lat
-       maxcornerCoord(1) = scmlon + scol_area/2._r8 ! max lon
-       maxcornerCoord(2) = scmlat + scol_area/2._r8 ! max lat
-       deallocate(xc,yc)
+       ! determine mincornerCoord and maxcornerCoord neede to create ESMF grid
+       maxIndex(1)       = 1                          ! number of lons
+       maxIndex(2)       = 1                          ! number of lats
+       mincornerCoord(1) = scol_lon - scol_area/2._r8 ! min lon
+       mincornerCoord(2) = scol_lat - scol_area/2._r8 ! min lat
+       maxcornerCoord(1) = scol_lon + scol_area/2._r8 ! max lon
+       maxcornerCoord(2) = scol_lat + scol_area/2._r8 ! max lat
 
     else
 
-       ! allocate xv and yv and read them in
-       allocate(xv(nv,ni,nj))
-       allocate(yv(nv,ni,nj))
-       rcode = pio_get_var(pioid, varid_xv, xv)
-       call pio_check_err(rcode, 'pio_get_var for xv in file '//trim(domain_file))
-       rcode = pio_get_var(pioid, varid_yv, yv)
-       call pio_check_err(rcode, 'pio_get_var for yv in file '//trim(domain_file))
+       ! Use center and come up with arbitrary area delta lon and lat = .1 degree
+       ! Set mask and frac to 1
+       maxIndex(1)       = 1              ! number of lons
+       maxIndex(2)       = 1              ! number of lats
+       mincornerCoord(1) = scol_lon - .1_r8 ! min lon
+       mincornerCoord(2) = scol_lat - .1_r8 ! min lat
+       maxcornerCoord(1) = scol_lon + .1_r8 ! max lon
+       maxcornerCoord(2) = scol_lat + .1_r8 ! max lat
 
-       ! determine mincornerCoord and maxcornerCoord neede to create ESMF grid
-       maxIndex(1)       = ni          ! number of lons
-       maxIndex(2)       = nj          ! number of lats
-       mincornerCoord(1) = xv(1,1,1)   ! min lon
-       mincornerCoord(2) = yv(1,1,1)   ! min lat
-       maxcornerCoord(1) = xv(3,ni,nj) ! max lon
-       maxcornerCoord(2) = yv(3,ni,nj) ! max lat
-       deallocate(xv,yv)
+       scol_area = spval
+       scol_mask = 1
+       scol_frac = 1._r8
 
     end if
-
-    ! close file
-    call pio_seterrorhandling(pioid, PIO_INTERNAL_ERROR)
-    call pio_closefile(pioid)
 
     ! create the ESMF grid
     lgrid = ESMF_GridCreateNoPeriDimUfrm (maxindex=maxindex, &
@@ -360,62 +328,59 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! create the mesh from the lgrid
-    mesh_lndcreate =  ESMF_MeshCreate(lgrid, rc=rc)
+    mesh_ctsm = ESMF_MeshCreate(lgrid, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    ! Set the mesh mask to 1
-    call ESMF_MeshGet(mesh_lndcreate, spatialDim=spatialDim, numOwnedElements=numOwnedElements, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-    allocate(ownedElemCoords(spatialDim*numownedelements))
-    call ESMF_MeshGet(mesh_lndcreate, ownedElemCoords=ownedElemCoords, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    allocate(lnd_mask(numownedelements))
-    lnd_mask(:) = 1
-    ! call ESMF_MeshSet(mesh_lndcreate, elementMask=lnd_mask, rc=rc)
-    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    ! determine if single column point is valid
+    if (scol_frac == 0._r8) then
+       scol_valid = .false.
+    else
+       scol_valid = .true.
+    end if
+
+  end subroutine lnd_set_mesh_for_single_column
+
+  !===============================================================================
+  subroutine lnd_set_decomp_and_domain_from_single_column(scol_lon, scol_lat, &
+       scol_area, scol_mask, scol_frac)
+
+    use decompInitMod , only : decompInit_lnd, decompInit_lnd3D
+    use decompMod     , only : bounds_type, get_proc_bounds
+    use domainMod     , only : ldomain, domain_init
+    use clm_varctl    , only : use_soil_moisture_streams
+    use clm_varpar    , only : nlevsoi
+
+    ! input/output variables
+    real(r8) , intent(in) :: scol_lon
+    real(r8) , intent(in) :: scol_lat
+    real(r8) , intent(in) :: scol_area
+    integer  , intent(in) :: scol_mask
+    real(r8) , intent(in) :: scol_frac
+
+    ! local variables
+    type(bounds_type) :: bounds                ! bounds
+    !-------------------------------------------------------------------------------
 
     ! Determine ldecomp and ldomain
-    call decompInit_lnd(lni=ni, lnj=nj, amask=lnd_mask)
+    call decompInit_lnd(lni=1, lnj=1, amask=(/1/))
     if (use_soil_moisture_streams) then
-       call decompInit_lnd3D(lni=ni, lnj=nj, lnk=nlevsoi)
+       call decompInit_lnd3D(lni=1, lnj=1, lnk=nlevsoi)
     end if
 
     ! Initialize processor bounds
     call get_proc_bounds(bounds)
-    begg = bounds%begg
-    endg = bounds%endg
-
-    ! Create gindex_ctsm
-    nlnd = endg - begg + 1
-    allocate(gindex_ctsm(nlnd))
-    do g = begg, endg
-       n = 1 + (g - begg)
-       gindex_ctsm(n) = ldecomp%gdc2glo(g)
-    end do
 
     ! Initialize domain data structure
-    isgrid2d = .true.
-    call domain_init(domain=ldomain, isgrid2d=isgrid2d, ni=ni, nj=nj, nbeg=begg, nend=endg)
+    call domain_init(domain=ldomain, isgrid2d=.false., ni=1, nj=1, nbeg=1, nend=1)
 
-    ! Determine ldomain%mask and ldomain%frac
-    do g = begg, endg
-       ldomain%mask(g) = 1
-       ldomain%frac(g) = 1._r8
-    end do
+    ! Initialize ldomain attributes
+    ldomain%lonc(1) = scol_lon
+    ldomain%latc(1) = scol_lat
+    ldomain%area(1) = scol_area
+    ldomain%mask(1) = scol_mask
+    ldomain%frac(1) = scol_frac
 
-    ! Generate a new mesh on the gindex decomposition
-    distGrid_ctsm = ESMF_DistGridCreate(arbSeqIndexList=gindex_ctsm, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    mesh_ctsm = ESMF_MeshCreate(mesh_lndcreate, elementDistGrid=distgrid_ctsm, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    ! Set ldomain%lonc, ldomain%latc and ldomain%area
-    call lnd_set_ldomain_gridinfo_from_mesh(mesh_ctsm, vm, gindex_ctsm, begg, endg, isgrid2d, ni, nj, ldomain, rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    deallocate(lnd_mask)
-
-  end subroutine lnd_set_decomp_and_domain_from_createmesh
+  end subroutine lnd_set_decomp_and_domain_from_single_column
 
   !===============================================================================
   subroutine lnd_get_global_dims(ni, nj, gsize, isgrid2d)
