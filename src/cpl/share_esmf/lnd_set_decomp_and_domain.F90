@@ -182,48 +182,24 @@ contains
   end subroutine lnd_set_decomp_and_domain_from_readmesh
 
   !===============================================================================
-  subroutine lnd_set_mesh_for_single_column(single_column_domainfile, scol_lon, scol_lat,  &
-       scol_area, scol_mask, scol_frac, mesh_ctsm, scol_valid, rc)
+  subroutine lnd_set_mesh_for_single_column(scol_lon, scol_lat, mesh, rc)
 
     ! Generate a mesh for single column
     use netcdf
     use clm_varcon, only : spval
 
     ! input/output variables
-    character(len=CL) , intent(in)    :: single_column_domainfile
-    real(r8)          , intent(inout) :: scol_lon
-    real(r8)          , intent(inout) :: scol_lat
-    real(r8)          , intent(out)   :: scol_area
-    integer           , intent(out)   :: scol_mask
-    real(r8)          , intent(out)   :: scol_frac
-    type(ESMF_Mesh)   , intent(out)   :: mesh_ctsm
-    logical           , intent(out)   :: scol_valid
-    integer           , intent(out)   :: rc
+    real(r8)        , intent(in)  :: scol_lon
+    real(r8)        , intent(in)  :: scol_lat
+    type(ESMF_Mesh) , intent(out) :: mesh
+    integer         , intent(out) :: rc
 
     ! local variables
     type(ESMF_Grid)        :: lgrid
-    integer                :: i,j,ni,nj
-    integer                :: ncid
-    integer                :: dimid, ier
-    integer                :: varid_xc
-    integer                :: varid_yc
-    integer                :: varid_area
-    integer                :: varid_mask
-    integer                :: varid_frac
-    integer                :: start(2)       ! Start index to read in
-    integer                :: start3(3)      ! Start index to read in
-    integer                :: count3(3)      ! Number of points to read in
-    integer                :: status         ! status flag
-    real (r8), allocatable :: lats(:)        ! temporary
-    real (r8), allocatable :: lons(:)        ! temporary
-    real (r8), allocatable :: pos_lons(:)    ! temporary
-    real (r8), allocatable :: glob_grid(:,:) ! temporary
-    real (r8)              :: pos_scol_lon   ! temporary
-    real (r8)              :: scol_data
     integer                :: maxIndex(2)
     real(r8)               :: mincornerCoord(2)
     real(r8)               :: maxcornerCoord(2)
-    character(len=*), parameter :: subname= ' (lnd_set_decomp_and_domain_for_scolumn) '
+    character(len=*), parameter :: subname= ' (lnd_set_mesh_for_single_column) '
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -328,32 +304,24 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! create the mesh from the lgrid
-    mesh_ctsm = ESMF_MeshCreate(lgrid, rc=rc)
+    mesh = ESMF_MeshCreate(lgrid, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    ! determine if single column point is valid
-    if (scol_frac == 0._r8) then
-       scol_valid = .false.
-    else
-       scol_valid = .true.
-    end if
 
   end subroutine lnd_set_mesh_for_single_column
 
   !===============================================================================
-  subroutine lnd_set_decomp_and_domain_from_single_column(scol_lon, scol_lat, &
-       scol_area, scol_mask, scol_frac)
+  subroutine lnd_set_decomp_and_domain_for_single_column(scol_lon, scol_lat, scol_mask, scol_frac)
 
     use decompInitMod , only : decompInit_lnd, decompInit_lnd3D
     use decompMod     , only : bounds_type, get_proc_bounds
     use domainMod     , only : ldomain, domain_init
     use clm_varctl    , only : use_soil_moisture_streams
     use clm_varpar    , only : nlevsoi
+    use clm_varcon    , only : spval
 
     ! input/output variables
     real(r8) , intent(in) :: scol_lon
     real(r8) , intent(in) :: scol_lat
-    real(r8) , intent(in) :: scol_area
     integer  , intent(in) :: scol_mask
     real(r8) , intent(in) :: scol_frac
 
@@ -376,11 +344,11 @@ contains
     ! Initialize ldomain attributes
     ldomain%lonc(1) = scol_lon
     ldomain%latc(1) = scol_lat
-    ldomain%area(1) = scol_area
+    ldomain%area(1) = spval
     ldomain%mask(1) = scol_mask
     ldomain%frac(1) = scol_frac
 
-  end subroutine lnd_set_decomp_and_domain_from_single_column
+  end subroutine lnd_set_decomp_and_domain_for_single_column
 
   !===============================================================================
   subroutine lnd_get_global_dims(ni, nj, gsize, isgrid2d)
