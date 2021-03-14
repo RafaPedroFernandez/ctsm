@@ -712,8 +712,6 @@ contains
     use domainMod  , only : domain_type, lon1d, lat1d
     use clm_varcon , only : re
 
-    ! for reading in fatmlndfrc to override mesh data
-    use clm_varctl , only : fatmlndfrc
     use clm_varcon , only : grlnd
     use fileutils  , only : getfil
     use ncdio_pio  , only : ncd_io, file_desc_t, ncd_pio_openfile, ncd_pio_closefile
@@ -739,12 +737,6 @@ contains
     real(r8) , pointer :: lndlons_glob(:)
     real(r8) , pointer :: rtemp_glob(:)
     type(ESMF_Field)   :: areaField
-
-    ! for sanity check - remove when this is done
-    type(file_desc_t) :: ncid  ! netcdf id
-    character(len=CL) :: locfn ! local file name
-    real(r8), pointer :: lonc_atmlndfrc(:)
-    real(r8), pointer :: latc_atmlndfrc(:)
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -812,31 +804,6 @@ contains
        end do
        deallocate(rtemp_glob)
     end if
-
-    ! Sanity check- remove this when it is done
-    call getfil( trim(fatmlndfrc), locfn, 0 )
-    call ncd_pio_openfile (ncid, trim(locfn), 0)
-    allocate(lonc_atmlndfrc(numownedelements))
-    allocate(latc_atmlndfrc(numownedelements))
-    call ncd_io(ncid=ncid, varname= 'xc' , flag='read', data=lonc_atmlndfrc , dim1name=grlnd)
-    call ncd_io(ncid=ncid, varname= 'yc' , flag='read', data=latc_atmlndfrc , dim1name=grlnd)
-    do g = begg,endg
-       n = g - begg + 1
-       if ( abs(lonc_atmlndfrc(n) - ldomain%lonc(g)) > 1.e-11 .and. &
-            abs(lonc_atmlndfrc(n) - ldomain%lonc(g)) /= 360._r8) then
-          write(6,'(a,3(d20.13,2x))')'ERROR: lonc_atmlndfrac(n), ldomain%lonc(g), abs(diff) = ',&
-               lonc_atmlndfrc(n), ldomain%lonc(g), abs(lonc_atmlndfrc(n) - ldomain%lonc(g))
-          call shr_sys_abort()
-       end if
-       if (abs(latc_atmlndfrc(n) - ldomain%latc(g)) > 1.e-11) then
-          write(6,'(a,3(d20.13,2x))')'ERROR: latc_atmlndfrac(n), ldomain%latc(g), abs(diff) = ',&
-               latc_atmlndfrc(n), ldomain%latc(g), abs(latc_atmlndfrc(n) - ldomain%latc(g))
-          call shr_sys_abort()
-       end if
-    end do
-    deallocate(lonc_atmlndfrc)
-    deallocate(latc_atmlndfrc)
-    call ncd_pio_closefile(ncid)
 
   end subroutine lnd_set_ldomain_gridinfo_from_mesh
 
