@@ -62,6 +62,7 @@ module lnd_comp_nuopc
   integer                :: flds_scalar_index_nx = 0
   integer                :: flds_scalar_index_ny = 0
   integer                :: flds_scalar_index_nextsw_cday = 0
+  integer                :: nthrds
 
   logical                :: glc_present
   logical                :: rof_prognostic
@@ -76,7 +77,7 @@ module lnd_comp_nuopc
   real(R8)               :: orb_mvelp       ! attribute - moving vernal equinox longitude
   real(R8)               :: orb_eccen       ! attribute and update-  orbital eccentricity
 
-  logical                :: scol_valid      ! if single_column, does point have a mask of zero 
+  logical                :: scol_valid      ! if single_column, does point have a mask of zero
 
   character(len=*) , parameter :: orb_fixed_year       = 'fixed_year'
   character(len=*) , parameter :: orb_variable_year    = 'variable_year'
@@ -318,7 +319,7 @@ contains
     use decompMod                 , only : ldecomp, bounds_type, get_proc_bounds
     use lnd_set_decomp_and_domain , only : lnd_set_decomp_and_domain_from_readmesh
     use lnd_set_decomp_and_domain , only : lnd_set_mesh_for_single_column
-    use lnd_set_decomp_and_domain , only : lnd_set_decomp_and_domain_for_single_column 
+    use lnd_set_decomp_and_domain , only : lnd_set_decomp_and_domain_for_single_column
 
     ! input/output variables
     type(ESMF_GridComp)  :: gcomp
@@ -344,7 +345,6 @@ contains
     integer                 :: curr_tod              ! Start time of day (sec)
     integer                 :: dtime_sync            ! coupling time-step from the input synchronization clock
     integer                 :: localPet
-    integer                 :: localpecount
     real(r8)                :: nextsw_cday           ! calday from clock of next radiation computation
     character(len=CL)       :: starttype             ! start-type (startup, continue, branch, hybrid)
     character(len=CL)       :: calendar              ! calendar type name
@@ -369,6 +369,7 @@ contains
     character(CL) ,pointer  :: lfieldnamelist(:) => null()
     integer                 :: fieldCount
     integer                 :: rank
+    integer                 :: localPeCount          ! ESMF_AWARE_THREADING thread count
     real(r8), pointer       :: fldptr1d(:)
     real(r8), pointer       :: fldptr2d(:,:)
     character(len=CL)       :: model_version         ! Model version
@@ -381,7 +382,7 @@ contains
     call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
 
     !----------------------------------------------------------------------------
-    ! Single column logic - if mask is zero for nearest neighbor search then 
+    ! Single column logic - if mask is zero for nearest neighbor search then
     ! set all export state fields to zero and return
     !----------------------------------------------------------------------------
 
@@ -468,12 +469,14 @@ contains
     endif
 #endif
 
-    call ESMF_GridCompGet(gcomp, vm=vm, localPet=localPet, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-    call ESMF_VMGet(vm, pet=localPet, peCount=localPeCount, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-
-!$  call omp_set_num_threads(localPeCount)
+    if(localPeCount == 1) then
+       call NUOPC_CompAttributeGet(gcomp, "nthreads", value=cvalue, rc=rc)
+       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
+       read(cvalue,*) nthrds
+    else
+       nthrds = localPeCount
+    endif
+!$  call omp_set_num_threads(nthrds)
 
     !----------------------
     ! Obtain attribute values
@@ -752,7 +755,6 @@ contains
     integer                :: dtime          ! time step increment (sec)
     integer                :: nstep          ! time step index
     integer                :: localPet
-    integer                :: localpecount
     logical                :: rstwr          ! .true. ==> write restart file before returning
     logical                :: nlend          ! .true. ==> last time-step
     logical                :: dosend         ! true => send data back to driver
@@ -786,8 +788,6 @@ contains
     ! Reset share log units
     !--------------------------------
 
-!$  call omp_set_num_threads(localPeCount)
-
     call shr_file_getLogUnit (shrlogunit)
     call shr_file_setLogUnit (iulog)
 
@@ -797,15 +797,11 @@ contains
        call memmon_dump_fort('memmon.out','lnd_comp_nuopc_ModelAdvance:start::',lbnum)
     endif
 #endif
+!$  call omp_set_num_threads(nthrds)
 
     !--------------------------------
     ! Query the Component for its clock, importState and exportState and vm
     !--------------------------------
-
-    call ESMF_GridCompGet(gcomp, vm=vm, localPet=localPet, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-    call ESMF_VMGet(vm, pet=localPet, peCount=localPeCount, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
 
     call NUOPC_ModelGet(gcomp, modelClock=clock, importState=importState, exportState=exportState, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
