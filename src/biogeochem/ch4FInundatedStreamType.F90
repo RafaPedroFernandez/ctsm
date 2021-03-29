@@ -365,23 +365,15 @@ contains
    call shr_mpi_bcast(stream_fldFileName_ch4finundated, mpicom)
    call shr_mpi_bcast(ch4finundatedmapalgo            , mpicom)
 
+!$OMP MASTER
    if (masterproc) then
-!$OMP MASTER
       write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) namelist_name, ' stream settings:'
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  stream_fldFileName_ch4finundated = ',stream_fldFileName_ch4finundated
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  ch4finundatedmapalgo             = ',ch4finundatedmapalgo
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) ' '
-!$OMP END MASTER
    endif
+!$OMP END MASTER
    this%stream_fldFileName_ch4finundated = stream_fldFileName_ch4finundated
    this%ch4finundatedmapalgo             = ch4finundatedmapalgo
    if (      finundation_mtd == finundation_mtd_ZWT_inversion  )then

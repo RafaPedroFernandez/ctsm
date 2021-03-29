@@ -402,7 +402,7 @@ contains
     read(cvalue,*) scol_spval
     call NUOPC_CompAttributeGet(gcomp, name='single_column_lnd_domainfile', value=single_column_lnd_domainfile, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
+    single_column = .false.
     if (scol_lon > scol_spval .and. scol_lat > scol_spval) then
        single_column = (trim(single_column_lnd_domainfile) /= 'UNSET')
 

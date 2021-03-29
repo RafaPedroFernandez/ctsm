@@ -32,7 +32,7 @@ module surfrdUtilsMod
   !-----------------------------------------------------------------------
 
 contains
-  
+
   !-----------------------------------------------------------------------
   subroutine check_sums_equal_1(arr, lb, name, caller, ier, sumto)
     !
@@ -74,8 +74,6 @@ contains
     if (found) then
 !$OMP MASTER
        write(iulog,*) trim(caller), ' ERROR: sum of ', trim(name), ' not ', TotalSum(nindx), ' at nl=', nindx
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'sum is: ', sum(arr(nindx,:))
 !$OMP END MASTER
        if( present(ier) ) then
@@ -223,20 +221,10 @@ contains
              wt_lunit(g,max_landunit) = residual(max_landunit)
 !$OMP MASTER
              write(iulog,*) 'WARNING: The values of namelist parameters '
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*) 'toosmall_* have resulted in the removal of all '
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*) 'landunits in grid cell g = ', g, '. The model '
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*) 'requires at least one landunit per grid cell, '
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*) 'so the model has put back in this grid cell '
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*) 'the largest landunit.'
 !$OMP END MASTER
           end if
@@ -459,21 +447,15 @@ contains
        ! Merge CFTs into the list of crops that CLM knows how to model
        ! -----------------------------------------------------------------------
 
+!$OMP MASTER
        if (verbose .and. masterproc .and. use_crop) then
-!$OMP MASTER
           write(iulog, *) trim(subname) // ' merging wheat, barley, and rye into temperate cereals'
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog, *) trim(subname) // ' clm knows how to model corn, temperate cereals, and soybean'
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog, *) trim(subname) // ' all other crops are lumped with the generic crop pft'
-!$OMP END MASTER
        else if (verbose .and. masterproc .and. .not. use_crop) then
-!$OMP MASTER
           write(iulog, *) trim(subname) // ' merging crops into C3 generic crops'
-!$OMP END MASTER
        end if
+!$OMP END MASTER
 
        do g = begg, endg
           do m = 1, maxveg

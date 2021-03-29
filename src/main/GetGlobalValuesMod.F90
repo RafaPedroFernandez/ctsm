@@ -34,7 +34,7 @@ contains
     use mct_mod    , only: mct_gsMap, mct_gsMap_orderedPoints
     use shr_sys_mod, only: shr_sys_abort
     !
-    ! Arguments 
+    ! Arguments
     integer          , intent(in) :: decomp_index
     character(len=*) , intent(in) :: clmlevel
     !
@@ -88,7 +88,7 @@ contains
     use clm_varctl , only: iulog
     use mct_mod
     !
-    ! Arguments 
+    ! Arguments
     integer, intent(in) :: bounds1  ! lower bound of the input & returned arrays
     integer, intent(in) :: bounds2  ! upper bound of the input & returned arrays
     integer, intent(in) :: decomp_index(bounds1:)
@@ -140,17 +140,17 @@ contains
     use shr_log_mod  , only : errMsg => shr_log_errMsg
     use clm_varctl   , only : iulog
     use clm_varcon   , only : nameg, namel, namec, namep
-    use GridcellType , only : grc                
-    use LandunitType , only : lun                
-    use ColumnType   , only : col                
-    use PatchType    , only : patch                
+    use GridcellType , only : grc
+    use LandunitType , only : lun
+    use ColumnType   , only : col
+    use PatchType    , only : patch
     !
     ! Arguments:
     integer          , intent(in) :: decomp_index
     character(len=*) , intent(in) :: clmlevel
     !
     ! Local Variables:
-    integer :: igrc, ilun, icol, ipft 
+    integer :: igrc, ilun, icol, ipft
     !-----------------------------------------------------------------------
 
     if (trim(clmlevel) == nameg) then
@@ -158,14 +158,8 @@ contains
        igrc = decomp_index
 !$OMP MASTER
        write(iulog,*)'local  gridcell index = ',igrc
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global gridcell index = ',GetGlobalIndex(decomp_index=igrc, clmlevel=nameg)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'gridcell longitude    = ',grc%londeg(igrc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'gridcell latitude     = ',grc%latdeg(igrc)
 !$OMP END MASTER
 
@@ -175,20 +169,10 @@ contains
        igrc = lun%gridcell(ilun)
 !$OMP MASTER
        write(iulog,*)'local  landunit index = ',ilun
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global landunit index = ',GetGlobalIndex(decomp_index=ilun, clmlevel=namel)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global gridcell index = ',GetGlobalIndex(decomp_index=igrc, clmlevel=nameg)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'gridcell longitude    = ',grc%londeg(igrc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'gridcell latitude     = ',grc%latdeg(igrc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'landunit type         = ',lun%itype(decomp_index)
 !$OMP END MASTER
 
@@ -199,29 +183,15 @@ contains
        igrc = col%gridcell(icol)
 !$OMP MASTER
        write(iulog,*)'local  column   index = ',icol
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global column   index = ',GetGlobalIndex(decomp_index=icol, clmlevel=namec)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global landunit index = ',GetGlobalIndex(decomp_index=ilun, clmlevel=namel)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global gridcell index = ',GetGlobalIndex(decomp_index=igrc, clmlevel=nameg)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'gridcell longitude    = ',grc%londeg(igrc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'gridcell latitude     = ',grc%latdeg(igrc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'column   type         = ',col%itype(icol)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'landunit type         = ',lun%itype(ilun)
 !$OMP END MASTER
-   
+
     else if (trim(clmlevel) == namep) then
 
        ipft = decomp_index
@@ -230,36 +200,18 @@ contains
        igrc = patch%gridcell(ipft)
 !$OMP MASTER
        write(iulog,*)'local  patch      index = ',ipft
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global patch      index = ',GetGlobalIndex(decomp_index=ipft, clmlevel=namep)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global column   index = ',GetGlobalIndex(decomp_index=icol, clmlevel=namec)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global landunit index = ',GetGlobalIndex(decomp_index=ilun, clmlevel=namel)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'global gridcell index = ',GetGlobalIndex(decomp_index=igrc, clmlevel=nameg)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'gridcell longitude    = ',grc%londeg(igrc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'gridcell latitude     = ',grc%latdeg(igrc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'pft      type         = ',patch%itype(ipft)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'column   type         = ',col%itype(icol)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'landunit type         = ',lun%itype(ilun)
 !$OMP END MASTER
 
-    else		       
+    else
        call shr_sys_abort('clmlevel '//trim(clmlevel)//'not supported '//errmsg(sourcefile, __LINE__))
 
     end if

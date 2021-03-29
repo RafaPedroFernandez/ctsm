@@ -949,18 +949,16 @@ contains
 
     do t = 1,ntapes
        if (hist_type1d_pertape(t) /= ' ' .and. (.not. hist_dov2xy(t))) then
+!$OMP MASTER
           select case (trim(hist_type1d_pertape(t)))
           case ('PFTS','COLS', 'LAND', 'GRID')
-!$OMP MASTER
              if ( masterproc ) &
              write(iulog,*)'history tape ',t,' will have 1d output type of ',hist_type1d_pertape(t)
-!$OMP END MASTER
           case default
-!$OMP MASTER
              write(iulog,*) trim(subname),' ERROR: unknown namelist type1d per tape=',hist_type1d_pertape(t)
-!$OMP END MASTER
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end select
+!$OMP END MASTER
        end if
     end do
 

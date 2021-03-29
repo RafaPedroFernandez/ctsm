@@ -912,8 +912,6 @@ contains
     if ( masterproc )then
 !$OMP MASTER
        write(iulog,*) '   urban air conditioning/heating and wasteheat   = ', urban_hac
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '   urban traffic flux   = ', urban_traffic
 !$OMP END MASTER
     end if

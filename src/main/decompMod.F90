@@ -8,7 +8,7 @@ module decompMod
   ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
   ! Must use shr_sys_abort rather than endrun here to avoid circular dependency
-  use shr_sys_mod , only : shr_sys_abort 
+  use shr_sys_mod , only : shr_sys_abort
   use clm_varctl  , only : iulog
   use clm_varcon  , only : grlnd, nameg, namel, namec, namep, nameCohort
   use mct_mod     , only : mct_gsMap
@@ -214,6 +214,7 @@ contains
 
   !------------------------------------------------------------------------------
    subroutine get_clump_bounds_new (n, bounds)
+!$   use omp_lib, only : omp_get_num_threads, omp_get_max_threads, omp_get_thread_num
      !
      ! !DESCRIPTION:
      ! Determine clump bounds
@@ -225,18 +226,11 @@ contains
      ! !LOCAL VARIABLES:
      character(len=32), parameter :: subname = 'get_clump_bounds'  ! Subroutine name
      integer :: cid                                                ! clump id
-#ifdef _OPENMP
-     integer, external :: OMP_GET_MAX_THREADS
-     integer, external :: OMP_GET_NUM_THREADS
-     integer, external :: OMP_GET_THREAD_NUM
-#endif
      !------------------------------------------------------------------------------
      !    Make sure this IS being called from a threaded region
 #ifdef _OPENMP
      ! FIX(SPM, 090314) - for debugging fates and openMP
-!$OMP MASTER
      !write(iulog,*) 'SPM omp debug decompMod 1 ', &
-!$OMP END MASTER
           !OMP_GET_NUM_THREADS(),OMP_GET_MAX_THREADS(),OMP_GET_THREAD_NUM()
 
      if ( OMP_GET_NUM_THREADS() == 1 .and. OMP_GET_MAX_THREADS() > 1 )then
@@ -255,7 +249,7 @@ contains
      bounds%endg = clumps(cid)%endg
      bounds%begCohort = clumps(cid)%begCohort
      bounds%endCohort = clumps(cid)%endCohort
-     
+
      bounds%level = BOUNDS_LEVEL_CLUMP
      bounds%clump_index = n
 

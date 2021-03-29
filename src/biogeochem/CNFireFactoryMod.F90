@@ -74,20 +74,14 @@ contains
 
     call shr_mpi_bcast (fire_method, mpicom)
 
+!$OMP MASTER
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,nml=cnfire_inparm)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
     end if
+!$OMP END MASTER
   end subroutine CNFireReadNML
   !-----------------------------------------------------------------------
 
@@ -114,9 +108,9 @@ contains
     ! !LOCAL VARIABLES:
     character(len=*), parameter :: subname = 'create_cnfire_method'
     !-----------------------------------------------------------------------
-    
+
     select case (trim(fire_method))
-       
+
     case ("nofire")
        allocate(cnfire_nofire_type :: cnfire_method)
     case ("li2014qianfrc")

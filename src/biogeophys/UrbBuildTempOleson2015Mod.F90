@@ -13,11 +13,11 @@ module UrbBuildTempOleson2015Mod
   use perf_mod          , only : t_startf, t_stopf
   use clm_varctl        , only : iulog
   use UrbanParamsType   , only : urbanparams_type
-  use UrbanTimeVarType  , only : urbantv_type  
+  use UrbanTimeVarType  , only : urbantv_type
   use EnergyFluxType    , only : energyflux_type
   use TemperatureType   , only : temperature_type
-  use LandunitType      , only : lun                
-  use ColumnType        , only : col                
+  use LandunitType      , only : lun
+  use ColumnType        , only : col
   !
   ! !PUBLIC TYPES:
   implicit none
@@ -25,7 +25,7 @@ module UrbBuildTempOleson2015Mod
   private
   !
   ! !PUBLIC MEMBER FUNCTIONS:
-  public  :: BuildingTemperature ! Calculation of interior building air temperature, inner 
+  public  :: BuildingTemperature ! Calculation of interior building air temperature, inner
                                  ! surface temperatures of walls and roof, and floor temperature
 
   character(len=*), parameter, private :: sourcefile = &
@@ -53,7 +53,7 @@ contains
 ! qrd_sunw + qcd_sunw + qcv_sunw = 0
 ! qrd_shdw + qcd_shdw + qcv_shdw = 0
 ! qrd_floor + qcd_floor + qcv_floor = 0
-! Vbld*rho_dair*cpair*(dt_building/dt) = sum(Asfc*hcv_sfc*(t_sfc - t_building) 
+! Vbld*rho_dair*cpair*(dt_building/dt) = sum(Asfc*hcv_sfc*(t_sfc - t_building)
 !                                        + Vvent*rho_dair*cpair*(taf - t_building)
 !   where Vlbd is volume of building air,
 !         rho_dair is density of dry air at t_building (kg m-3),
@@ -67,7 +67,7 @@ contains
 !         Vvent is ventilation airflow rate (m3 s-1)
 !         taf is urban canyon air temperature (K)
 !
-! This methodology was introduced as part of CLM5.0. 
+! This methodology was introduced as part of CLM5.0.
 !
 ! Conduction fluxes are obtained from terms of soil temperature equations
 ! Radiation fluxes are obtained from linearizing the longwave radiation equations taking into
@@ -76,14 +76,14 @@ contains
 ! qrd is positive away from the surface toward room air, so qrd = emitted - absorbed,
 !   so positive qrd will result in a decrease in temperature
 ! qcd_floor is positive away from surface toward room air, so positive
-!   qcd will result in a decrease in temperature 
-! qcv is positive toward room air, so positive qcv (t_surface > t_room) will 
+!   qcd will result in a decrease in temperature
+! qcv is positive toward room air, so positive qcv (t_surface > t_room) will
 !   result in a decrease in temperature
 
 ! The LAPACK routine DGESV is used to compute the solution to the real system of linear equations
 !     a * x = b,
 !  where a is an n-by-n matrix and x and b are n-by-nrhs matrices.
-! 
+!
 !  The LU decomposition with partial pivoting and row interchanges is
 !  used to factor a as
 !     a = P * L * U,
@@ -96,22 +96,22 @@ contains
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
-!  Download DGESV + dependencies 
-!  <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgesv.f"> 
-!  [TGZ]</a> 
-!  <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgesv.f"> 
-!  [ZIP]</a> 
-!  <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgesv.f"> 
+!  Download DGESV + dependencies
+!  <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgesv.f">
+!  [TGZ]</a>
+!  <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgesv.f">
+!  [ZIP]</a>
+!  <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgesv.f">
 !  [TXT]</a>
 !
 !  Definition:
 !  ===========
 !
 !       SUBROUTINE DGESV( N, NRHS, A, LDA, IPIV, B, LDB, INFO )
-! 
+!
 !       .. Scalar Arguments ..
 !       INTEGER            INFO, LDA, LDB, N, NRHS
 !       ..
@@ -119,15 +119,15 @@ contains
 !       INTEGER            IPIV( * )
 !       DOUBLE PRECISION   A( LDA, * ), B( LDB, * )
 !       ..
-!  
+!
 !
 !  =============
-! 
-! 
+!
+!
 !  DGESV computes the solution to a real system of linear equations
 !     A * X = B,
 !  where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
-! 
+!
 !  The LU decomposition with partial pivoting and row interchanges is
 !  used to factor A as
 !     A = P * L * U,
@@ -142,36 +142,36 @@ contains
 !           N is INTEGER
 !           The number of linear equations, i.e., the order of the
 !           matrix A.  N >= 0.
-! 
+!
 !  \param[in] NRHS
 !           NRHS is INTEGER
 !           The number of right hand sides, i.e., the number of columns
 !           of the matrix B.  NRHS >= 0.
-! 
+!
 !  \param[in,out] A
 !           A is DOUBLE PRECISION array, dimension (LDA,N)
 !           On entry, the N-by-N coefficient matrix A.
 !           On exit, the factors L and U from the factorization
 !           A = P*L*U; the unit diagonal elements of L are not stored.
-! 
+!
 !  \param[in] LDA
 !           LDA is INTEGER
 !           The leading dimension of the array A.  LDA >= max(1,N).
-! 
+!
 !  \param[out] IPIV
 !           IPIV is INTEGER array, dimension (N)
 !           The pivot indices that define the permutation matrix P;
 !           row i of the matrix was interchanged with row IPIV(i).
-! 
+!
 !  \param[in,out] B
 !           B is DOUBLE PRECISION array, dimension (LDB,NRHS)
 !           On entry, the N-by-NRHS matrix of right hand side matrix B.
 !           On exit, if INFO = 0, the N-by-NRHS solution matrix X.
-! 
+!
 !  \param[in] LDB
 !           LDB is INTEGER
 !           The leading dimension of the array B.  LDB >= max(1,N).
-! 
+!
 !  \param[out] INFO
 !           INFO is INTEGER
 !           = 0:  successful exit
@@ -183,10 +183,10 @@ contains
 !  Authors:
 !  ========
 !
-!  \author Univ. of Tennessee 
-!  \author Univ. of California Berkeley 
-!  \author Univ. of Colorado Denver 
-!  \author NAG Ltd. 
+!  \author Univ. of Tennessee
+!  \author Univ. of California Berkeley
+!  \author Univ. of Colorado Denver
+!  \author NAG Ltd.
 !
 !  \date November 2011
 !
@@ -230,10 +230,10 @@ contains
     integer  :: fc,fl,c,l                  ! indices
     real(r8) :: dtime                      ! land model time step (s)
     real(r8) :: building_hwr(bounds%begl:bounds%endl)      ! building height to building width ratio (-)
-    real(r8) :: t_roof_inner_bef(bounds%begl:bounds%endl)  ! roof inside surface temperature at previous time step (K)              
-    real(r8) :: t_sunw_inner_bef(bounds%begl:bounds%endl)  ! sunwall inside surface temperature at previous time step (K)              
-    real(r8) :: t_shdw_inner_bef(bounds%begl:bounds%endl)  ! shadewall inside surface temperature at previous time step (K)              
-    real(r8) :: t_floor_bef(bounds%begl:bounds%endl)       ! floor temperature at previous time step (K)              
+    real(r8) :: t_roof_inner_bef(bounds%begl:bounds%endl)  ! roof inside surface temperature at previous time step (K)
+    real(r8) :: t_sunw_inner_bef(bounds%begl:bounds%endl)  ! sunwall inside surface temperature at previous time step (K)
+    real(r8) :: t_shdw_inner_bef(bounds%begl:bounds%endl)  ! shadewall inside surface temperature at previous time step (K)
+    real(r8) :: t_floor_bef(bounds%begl:bounds%endl)       ! floor temperature at previous time step (K)
     real(r8) :: t_building_bef(bounds%begl:bounds%endl)    ! internal building air temperature at previous time step [K]
     real(r8) :: t_building_bef_hac(bounds%begl:bounds%endl)! internal building air temperature before applying HAC [K]
     real(r8) :: hcv_roofi(bounds%begl:bounds%endl)         ! roof convective heat transfer coefficient (W m-2 K-1)
@@ -290,7 +290,7 @@ contains
     real(r8) :: enrgy_bal_buildair(bounds%begl:bounds%endl)! building air energy balance (W m-2)
     real(r8) :: sum                        ! sum of view factors for floor, wall, roof
     integer  :: n                          ! number of linear equations (= neq)
-    integer  :: nrhs                       ! number of right hand sides (= 1) 
+    integer  :: nrhs                       ! number of right hand sides (= 1)
     real(r8) :: a(neq,neq)                 ! n-by-n coefficient matrix a
     integer  :: lda                        ! leading dimension of the matrix a
     integer  :: ldb                        ! leading dimension of the matrix b
@@ -310,7 +310,7 @@ contains
     zi                => col%zi                            , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
     z                 => col%z                             , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
 
-    ht_roof           => lun%ht_roof                       , & ! Input:  [real(r8) (:)]  height of urban roof (m) 
+    ht_roof           => lun%ht_roof                       , & ! Input:  [real(r8) (:)]  height of urban roof (m)
     canyon_hwr        => lun%canyon_hwr                    , & ! Input:  [real(r8) (:)]  ratio of building height to street hwidth (-)
     wtlunit_roof      => lun%wtlunit_roof                  , & ! Input:  [real(r8) (:)]  weight of roof with respect to landunit
     urbpoi            => lun%urbpoi                        , & ! Input:  [logical (:)]  true => landunit is an urban point
@@ -383,7 +383,7 @@ contains
     ! Get terms from soil temperature equations to compute conduction flux
     ! Negative is toward surface - heat added
     ! Note that the conduction flux here is in W m-2 wall area but for purposes of solving the set of
-    ! simultaneous equations this must be converted to W m-2 floor area. This is done below when 
+    ! simultaneous equations this must be converted to W m-2 floor area. This is done below when
     ! setting up the equation coefficients.
 
     do fc = 1,num_nolakec
@@ -655,19 +655,15 @@ contains
          ! Solve equations
          call dgesv(n, nrhs, a, lda, ipiv, result, ldb, info)
 
-         ! If dgesv fails, abort 
+         ! If dgesv fails, abort
          if (info /= 0) then
 !$OMP MASTER
            write(iulog,*)'fl: ',fl
-!$OMP END MASTER
-!$OMP MASTER
            write(iulog,*)'l: ',l
-!$OMP END MASTER
-!$OMP MASTER
            write(iulog,*)'dgesv info: ',info
-!$OMP END MASTER
            write (iulog,*) 'dgesv error'
            write (iulog,*) 'clm model is stopping'
+!$OMP END MASTER
            call endrun()
          end if
          ! Assign new temperatures
@@ -719,7 +715,7 @@ contains
                        - 4._r8*em_floori(l)*sb*t_floor_bef(l)**3._r8*vf_fw(l)*(1._r8-em_shdwi(l))*vf_wr(l)*(t_floor(l) &
                        - t_floor_bef(l)) &
                        + em_roofi(l)*sb*t_roof_inner_bef(l)**4._r8 &
-                       + 4._r8*em_roofi(l)*sb*t_roof_inner_bef(l)**3._r8*(t_roof_inner(l) - t_roof_inner_bef(l)) 
+                       + 4._r8*em_roofi(l)*sb*t_roof_inner_bef(l)**3._r8*(t_roof_inner(l) - t_roof_inner_bef(l))
 
          qrd_sunw(l) = - em_sunwi(l)*em_roofi(l)*sb*t_roof_inner_bef(l)**4._r8*vf_rw(l) &
                        - 4._r8*em_sunwi(l)*em_roofi(l)*sb*t_roof_inner_bef(l)**3._r8*vf_rw(l)*(t_roof_inner(l) &
@@ -910,7 +906,7 @@ contains
 
     ! Restrict internal building air temperature to between min and max
     ! Calculate heating or air conditioning flux from energy required to change
-    ! internal building air temperature to t_building_min or t_building_max. 
+    ! internal building air temperature to t_building_min or t_building_max.
 
     do fl = 1,num_urbanl
        l = filter_urbanl(fl)
@@ -939,7 +935,7 @@ contains
        end if
     end do
 
-    end associate 
+    end associate
   end subroutine BuildingTemperature
 
   !-----------------------------------------------------------------------

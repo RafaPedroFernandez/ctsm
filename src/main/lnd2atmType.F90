@@ -64,8 +64,8 @@ module lnd2atmType
 
      procedure, public  :: Init
      procedure, private :: ReadNamelist
-     procedure, private :: InitAllocate 
-     procedure, private :: InitHistory  
+     procedure, private :: InitAllocate
+     procedure, private :: InitHistory
 
   end type lnd2atm_type
   !------------------------------------------------------------------------
@@ -105,13 +105,13 @@ contains
   subroutine Init(this, bounds, NLFilename)
 
     class(lnd2atm_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     character(len=*), intent(in) :: NLFilename ! Namelist filename
 
     call this%InitAllocate(bounds)
     call this%ReadNamelist(NLFilename)
     call this%InitHistory(bounds)
-    
+
   end subroutine Init
 
   !------------------------------------------------------------------------
@@ -122,7 +122,7 @@ contains
     !
     ! !ARGUMENTS:
     class (lnd2atm_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     real(r8) :: ival  = 0.0_r8  ! initial value
@@ -225,14 +225,8 @@ contains
     if (masterproc) then
 !$OMP MASTER
        write(iulog,*)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname, ' settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,nml=lnd2atm_inparm)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) ' '
 !$OMP END MASTER
     end if
@@ -250,7 +244,7 @@ contains
     !
     ! !ARGUMENTS:
     class(lnd2atm_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer  :: begc, endc

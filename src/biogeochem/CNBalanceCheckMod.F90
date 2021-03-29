@@ -19,14 +19,14 @@ module CNBalanceCheckMod
   use SoilBiogeochemNitrogenfluxType  , only : soilbiogeochem_nitrogenflux_type
   use SoilBiogeochemCarbonfluxType    , only : soilbiogeochem_carbonflux_type
   use CNProductsMod                   , only : cn_products_type
-  use ColumnType                      , only : col                
+  use ColumnType                      , only : col
   use GridcellType                    , only : grc
   use CNSharedParamsMod               , only : use_fun
 
   !
   implicit none
   private
-  ! 
+  !
   ! !PUBLIC TYPES:
   type, public :: cn_balance_type
      private
@@ -44,7 +44,7 @@ module CNBalanceCheckMod
      procedure , public  :: BeginCNColumnBalance
      procedure , public  :: CBalanceCheck
      procedure , public  :: NBalanceCheck
-     procedure , private :: InitAllocate 
+     procedure , private :: InitAllocate
   end type cn_balance_type
   !
 
@@ -57,7 +57,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine Init(this, bounds)
     class(cn_balance_type)         :: this
-    type(bounds_type) , intent(in) :: bounds  
+    type(bounds_type) , intent(in) :: bounds
 
     call this%InitAllocate(bounds)
   end subroutine Init
@@ -65,7 +65,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine InitAllocate(this, bounds)
     class(cn_balance_type)         :: this
-    type(bounds_type) , intent(in) :: bounds  
+    type(bounds_type) , intent(in) :: bounds
 
     integer :: begc, endc
     integer :: begg, endg
@@ -157,7 +157,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_balance_type)         , intent(inout) :: this
-    type(bounds_type)              , intent(in)    :: bounds          
+    type(bounds_type)              , intent(in)    :: bounds
     integer                        , intent(in)    :: num_soilc       ! number of soil columns filter
     integer                        , intent(in)    :: filter_soilc(:) ! filter for soil columns
     type(cnveg_carbonstate_type)   , intent(in)    :: cnveg_carbonstate_inst
@@ -167,13 +167,13 @@ contains
     integer :: fc,c
     !-----------------------------------------------------------------------
 
-    associate(                                            & 
+    associate(                                            &
          col_begcb    => this%begcb_col                  , & ! Output: [real(r8) (:)]  (gC/m2) column carbon mass, beginning of time step
          col_begnb    => this%begnb_col                  , & ! Output: [real(r8) (:)]  (gN/m2) column nitrogen mass, beginning of time step
          totcolc      => cnveg_carbonstate_inst%totc_col , & ! Input:  [real(r8) (:)]  (gC/m2) total column carbon, incl veg and cpool
-         totcoln      => cnveg_nitrogenstate_inst%totn_col & ! Input:  [real(r8) (:)]  (gN/m2) total column nitrogen, incl veg 
+         totcoln      => cnveg_nitrogenstate_inst%totn_col & ! Input:  [real(r8) (:)]  (gN/m2) total column nitrogen, incl veg
          )
-    
+
     do fc = 1,num_soilc
        c = filter_soilc(fc)
        col_begcb(c) = totcolc(c)
@@ -183,7 +183,7 @@ contains
     end associate
 
   end subroutine BeginCNColumnBalance
- 
+
   !-----------------------------------------------------------------------
   subroutine CBalanceCheck(this, bounds, num_soilc, filter_soilc, &
        soilbiogeochem_carbonflux_inst, cnveg_carbonflux_inst, &
@@ -197,7 +197,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_balance_type)               , intent(inout) :: this
-    type(bounds_type)                    , intent(in)    :: bounds          
+    type(bounds_type)                    , intent(in)    :: bounds
     integer                              , intent(in)    :: num_soilc       ! number of soil columns in filter
     integer                              , intent(in)    :: filter_soilc(:) ! filter for soil columns
     type(soilbiogeochem_carbonflux_type) , intent(in)    :: soilbiogeochem_carbonflux_inst
@@ -212,14 +212,14 @@ contains
     real(r8) :: dt             ! radiation time step (seconds)
     real(r8) :: col_cinputs, grc_cinputs
     real(r8) :: col_coutputs, grc_coutputs
-    real(r8) :: col_errcb(bounds%begc:bounds%endc) 
+    real(r8) :: col_errcb(bounds%begc:bounds%endc)
     real(r8) :: grc_errcb(bounds%begg:bounds%endg)
     real(r8) :: som_c_leached_grc(bounds%begg:bounds%endg)
     real(r8) :: hrv_xsmrpool_amount_left_to_dribble(bounds%begg:bounds%endg)
     real(r8) :: dwt_conv_cflux_amount_left_to_dribble(bounds%begg:bounds%endg)
     !-----------------------------------------------------------------------
 
-    associate(                                                                            & 
+    associate(                                                                            &
          grc_begcb               =>    this%begcb_grc                                   , & ! Input:  [real(r8) (:) ]  (gC/m2) gridcell-level carbon mass, beginning of time step
          grc_endcb               =>    this%endcb_grc                                   , & ! Output: [real(r8) (:) ]  (gC/m2) gridcell-level carbon mass, end of time step
          totgrcc                 =>    cnveg_carbonstate_inst%totc_grc                  , & ! Input:  [real(r8) (:)]  (gC/m2) total gridcell carbon, incl veg and cpool
@@ -228,16 +228,16 @@ contains
          tot_woodprod_grc        =>    c_products_inst%tot_woodprod_grc                 , & ! Input:  [real(r8) (:)]  (gC/m2) total carbon in wood products
          dwt_seedc_to_leaf_grc   =>    cnveg_carbonflux_inst%dwt_seedc_to_leaf_grc      , & ! Input:  [real(r8) (:)]  (gC/m2/s) seed source sent to leaf
          dwt_seedc_to_deadstem_grc =>  cnveg_carbonflux_inst%dwt_seedc_to_deadstem_grc  , & ! Input:  [real(r8) (:)]  (gC/m2/s) seed source sent to deadstem
-         col_begcb               =>    this%begcb_col                                   , & ! Input:  [real(r8) (:) ]  (gC/m2) carbon mass, beginning of time step 
-         col_endcb               =>    this%endcb_col                                   , & ! Output: [real(r8) (:) ]  (gC/m2) carbon mass, end of time step 
+         col_begcb               =>    this%begcb_col                                   , & ! Input:  [real(r8) (:) ]  (gC/m2) carbon mass, beginning of time step
+         col_endcb               =>    this%endcb_col                                   , & ! Output: [real(r8) (:) ]  (gC/m2) carbon mass, end of time step
          wood_harvestc           =>    cnveg_carbonflux_inst%wood_harvestc_col          , & ! Input:  [real(r8) (:) ]  (gC/m2/s) wood harvest (to product pools)
          grainc_to_cropprodc     =>    cnveg_carbonflux_inst%grainc_to_cropprodc_col    , & ! Input:  [real(r8) (:) ]  (gC/m2/s) grain C to 1-year crop product pool
          gpp                     =>    cnveg_carbonflux_inst%gpp_col                    , & ! Input:  [real(r8) (:) ]  (gC/m2/s) gross primary production
          er                      =>    cnveg_carbonflux_inst%er_col                     , & ! Input:  [real(r8) (:) ]  (gC/m2/s) total ecosystem respiration, autotrophic + heterotrophic
          col_fire_closs          =>    cnveg_carbonflux_inst%fire_closs_col             , & ! Input:  [real(r8) (:) ]  (gC/m2/s) total column-level fire C loss
-         col_hrv_xsmrpool_to_atm =>    cnveg_carbonflux_inst%hrv_xsmrpool_to_atm_col    , & ! Input:  [real(r8) (:) ]  (gC/m2/s) excess MR pool harvest mortality 
+         col_hrv_xsmrpool_to_atm =>    cnveg_carbonflux_inst%hrv_xsmrpool_to_atm_col    , & ! Input:  [real(r8) (:) ]  (gC/m2/s) excess MR pool harvest mortality
          col_xsmrpool_to_atm     =>   cnveg_carbonflux_inst%xsmrpool_to_atm_col         , & ! Input:  [real(r8) (:) ]  (gC/m2/s) excess MR pool crop harvest loss to atm
-         som_c_leached           =>    soilbiogeochem_carbonflux_inst%som_c_leached_col , & ! Input:  [real(r8) (:) ]  (gC/m2/s) total SOM C loss from vertical transport 
+         som_c_leached           =>    soilbiogeochem_carbonflux_inst%som_c_leached_col , & ! Input:  [real(r8) (:) ]  (gC/m2/s) total SOM C loss from vertical transport
 
          totcolc                 =>    cnveg_carbonstate_inst%totc_col                    & ! Input:  [real(r8) (:) ]  (gC/m2) total column carbon, incl veg and cpool
          )
@@ -291,55 +291,27 @@ contains
 
       end do ! end of columns loop
 
+!$OMP MASTER
       if (err_found) then
          c = err_index
-!$OMP MASTER
          write(iulog,*)'column cbalance error    = ', col_errcb(c), c
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'Latdeg,Londeg=',grc%latdeg(col%gridcell(c)),grc%londeg(col%gridcell(c))
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'begcb                    = ',col_begcb(c)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'endcb                    = ',col_endcb(c)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'delta store              = ',col_endcb(c)-col_begcb(c)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'--- Inputs ---'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'gpp                      = ',gpp(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'--- Outputs ---'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'er                       = ',er(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'col_fire_closs           = ',col_fire_closs(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'col_hrv_xsmrpool_to_atm  = ',col_hrv_xsmrpool_to_atm(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'col_xsmrpool_to_atm      = ',col_xsmrpool_to_atm(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'wood_harvestc            = ',wood_harvestc(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'grainc_to_cropprodc      = ',grainc_to_cropprodc(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'-1*som_c_leached         = ',som_c_leached(c)*dt
-!$OMP END MASTER
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
+!$OMP END MASTER
 
       ! Repeat error check at the gridcell level
       call c2g( bounds = bounds, &
@@ -376,7 +348,7 @@ contains
          ! calculate total gridcell-level inputs
          ! slevis notes:
          ! nbp_grc = nep_grc - fire_closs_grc - hrv_xsmrpool_to_atm_dribbled_grc - dwt_conv_cflux_dribbled_grc - product_closs_grc
-         grc_cinputs = nbp_grc(g) + & 
+         grc_cinputs = nbp_grc(g) + &
                        dwt_seedc_to_leaf_grc(g) + dwt_seedc_to_deadstem_grc(g)
 
          ! calculate total gridcell-level outputs
@@ -399,43 +371,23 @@ contains
          end if
       end do ! end of gridcell loop
 
+!$OMP MASTER
       if (err_found) then
          g = err_index
-!$OMP MASTER
          write(iulog,*)'gridcell cbalance error =', grc_errcb(g), g
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'latdeg, londeg          =', grc%latdeg(g), grc%londeg(g)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'begcb                   =', grc_begcb(g)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'endcb                   =', grc_endcb(g)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'delta store             =', grc_endcb(g) - grc_begcb(g)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'--- Inputs ---'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'nbp_grc                 =', nbp_grc(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'dwt_seedc_to_leaf_grc   =', dwt_seedc_to_leaf_grc(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'dwt_seedc_to_deadstem_grc =', dwt_seedc_to_deadstem_grc(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'--- Outputs ---'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'-1*som_c_leached_grc    = ', som_c_leached_grc(g) * dt
-!$OMP END MASTER
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
+!$OMP END MASTER
 
     end associate
 
@@ -456,7 +408,7 @@ contains
     !
     ! !ARGUMENTS:
     class(cn_balance_type)                  , intent(inout) :: this
-    type(bounds_type)                       , intent(in)    :: bounds          
+    type(bounds_type)                       , intent(in)    :: bounds
     integer                                 , intent(in)    :: num_soilc       ! number of soil columns in filter
     integer                                 , intent(in)    :: filter_soilc                                      (:) ! filter for soil columns
     type(soilbiogeochem_nitrogenflux_type)  , intent(in)    :: soilbiogeochem_nitrogenflux_inst
@@ -471,9 +423,9 @@ contains
     integer :: fc             ! lake filter indices
     logical :: err_found      ! error flag
     real(r8):: dt             ! radiation time step (seconds)
-    real(r8):: col_ninputs(bounds%begc:bounds%endc) 
-    real(r8):: col_noutputs(bounds%begc:bounds%endc) 
-    real(r8):: col_errnb(bounds%begc:bounds%endc) 
+    real(r8):: col_ninputs(bounds%begc:bounds%endc)
+    real(r8):: col_noutputs(bounds%begc:bounds%endc)
+    real(r8):: col_errnb(bounds%begc:bounds%endc)
     real(r8):: col_ninputs_partial(bounds%begc:bounds%endc)
     real(r8):: col_noutputs_partial(bounds%begc:bounds%endc)
     real(r8):: grc_ninputs_partial(bounds%begg:bounds%endg)
@@ -483,7 +435,7 @@ contains
     real(r8):: grc_errnb(bounds%begg:bounds%endg)
     !-----------------------------------------------------------------------
 
-    associate(                                                                             & 
+    associate(                                                                             &
          grc_begnb           => this%begnb_grc                                           , & ! Input:  [real(r8) (:) ]  (gN/m2) gridcell nitrogen mass, beginning of time step
          grc_endnb           => this%endnb_grc                                           , & ! Output: [real(r8) (:) ]  (gN/m2) gridcell nitrogen mass, end of time step
          totgrcn             => cnveg_nitrogenstate_inst%totn_grc                        , & ! Input:  [real(r8) (:) ]  (gN/m2) total gridcell nitrogen, incl veg
@@ -495,24 +447,24 @@ contains
          dwt_conv_nflux_grc  =>  cnveg_nitrogenflux_inst%dwt_conv_nflux_grc              , & ! Input:  [real(r8) (:)]  (gN/m2/s) dwt_conv_nflux_patch summed to the gridcell-level
          col_begnb           => this%begnb_col                                           , & ! Input:  [real(r8) (:) ]  (gN/m2) column nitrogen mass, beginning of time step
          col_endnb           => this%endnb_col                                           , & ! Output: [real(r8) (:) ]  (gN/m2) column nitrogen mass, end of time step
-         ndep_to_sminn       => soilbiogeochem_nitrogenflux_inst%ndep_to_sminn_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) atmospheric N deposition to soil mineral N        
-         nfix_to_sminn       => soilbiogeochem_nitrogenflux_inst%nfix_to_sminn_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) symbiotic/asymbiotic N fixation to soil mineral N 
-         ffix_to_sminn       => soilbiogeochem_nitrogenflux_inst%ffix_to_sminn_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) free living N fixation to soil mineral N         
-         fert_to_sminn       => soilbiogeochem_nitrogenflux_inst%fert_to_sminn_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s)                                         
-         soyfixn_to_sminn    => soilbiogeochem_nitrogenflux_inst%soyfixn_to_sminn_col    , & ! Input:  [real(r8) (:) ]  (gN/m2/s)                                         
-         supplement_to_sminn => soilbiogeochem_nitrogenflux_inst%supplement_to_sminn_col , & ! Input:  [real(r8) (:) ]  (gN/m2/s) supplemental N supply                           
-         denit               => soilbiogeochem_nitrogenflux_inst%denit_col               , & ! Input:  [real(r8) (:) ]  (gN/m2/s) total rate of denitrification           
-         sminn_leached       => soilbiogeochem_nitrogenflux_inst%sminn_leached_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) soil mineral N pool loss to leaching   
-         smin_no3_leached    => soilbiogeochem_nitrogenflux_inst%smin_no3_leached_col    , & ! Input:  [real(r8) (:) ]  (gN/m2/s) soil mineral NO3 pool loss to leaching 
-         smin_no3_runoff     => soilbiogeochem_nitrogenflux_inst%smin_no3_runoff_col     , & ! Input:  [real(r8) (:) ]  (gN/m2/s) soil mineral NO3 pool loss to runoff   
-         f_n2o_nit           => soilbiogeochem_nitrogenflux_inst%f_n2o_nit_col           , & ! Input:  [real(r8) (:) ]  (gN/m2/s) flux of N2o from nitrification 
+         ndep_to_sminn       => soilbiogeochem_nitrogenflux_inst%ndep_to_sminn_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) atmospheric N deposition to soil mineral N
+         nfix_to_sminn       => soilbiogeochem_nitrogenflux_inst%nfix_to_sminn_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) symbiotic/asymbiotic N fixation to soil mineral N
+         ffix_to_sminn       => soilbiogeochem_nitrogenflux_inst%ffix_to_sminn_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) free living N fixation to soil mineral N
+         fert_to_sminn       => soilbiogeochem_nitrogenflux_inst%fert_to_sminn_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s)
+         soyfixn_to_sminn    => soilbiogeochem_nitrogenflux_inst%soyfixn_to_sminn_col    , & ! Input:  [real(r8) (:) ]  (gN/m2/s)
+         supplement_to_sminn => soilbiogeochem_nitrogenflux_inst%supplement_to_sminn_col , & ! Input:  [real(r8) (:) ]  (gN/m2/s) supplemental N supply
+         denit               => soilbiogeochem_nitrogenflux_inst%denit_col               , & ! Input:  [real(r8) (:) ]  (gN/m2/s) total rate of denitrification
+         sminn_leached       => soilbiogeochem_nitrogenflux_inst%sminn_leached_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) soil mineral N pool loss to leaching
+         smin_no3_leached    => soilbiogeochem_nitrogenflux_inst%smin_no3_leached_col    , & ! Input:  [real(r8) (:) ]  (gN/m2/s) soil mineral NO3 pool loss to leaching
+         smin_no3_runoff     => soilbiogeochem_nitrogenflux_inst%smin_no3_runoff_col     , & ! Input:  [real(r8) (:) ]  (gN/m2/s) soil mineral NO3 pool loss to runoff
+         f_n2o_nit           => soilbiogeochem_nitrogenflux_inst%f_n2o_nit_col           , & ! Input:  [real(r8) (:) ]  (gN/m2/s) flux of N2o from nitrification
          som_n_leached       => soilbiogeochem_nitrogenflux_inst%som_n_leached_col       , & ! Input:  [real(r8) (:) ]  (gN/m2/s) total SOM N loss from vertical transport
 
-         col_fire_nloss      => cnveg_nitrogenflux_inst%fire_nloss_col                   , & ! Input:  [real(r8) (:) ]  (gN/m2/s) total column-level fire N loss 
+         col_fire_nloss      => cnveg_nitrogenflux_inst%fire_nloss_col                   , & ! Input:  [real(r8) (:) ]  (gN/m2/s) total column-level fire N loss
          wood_harvestn       => cnveg_nitrogenflux_inst%wood_harvestn_col                , & ! Input:  [real(r8) (:) ]  (gN/m2/s) wood harvest (to product pools)
          grainn_to_cropprodn => cnveg_nitrogenflux_inst%grainn_to_cropprodn_col          , & ! Input:  [real(r8) (:) ]  (gN/m2/s) grain N to 1-year crop product pool
 
-         totcoln             => cnveg_nitrogenstate_inst%totn_col                          & ! Input:  [real(r8) (:) ]  (gN/m2) total column nitrogen, incl veg 
+         totcoln             => cnveg_nitrogenstate_inst%totn_col                          & ! Input:  [real(r8) (:) ]  (gN/m2) total column nitrogen, incl veg
          )
 
       ! set time steps
@@ -531,11 +483,11 @@ contains
 
          ! calculate total column-level inputs
          col_ninputs(c) = ndep_to_sminn(c) + nfix_to_sminn(c) + supplement_to_sminn(c)
-         
+
          if(use_fun)then
-            col_ninputs(c) = col_ninputs(c) + ffix_to_sminn(c) ! for FUN, free living fixation is a seprate flux. RF. 
+            col_ninputs(c) = col_ninputs(c) + ffix_to_sminn(c) ! for FUN, free living fixation is a seprate flux. RF.
          endif
-     
+
          if (use_crop) then
             col_ninputs(c) = col_ninputs(c) + fert_to_sminn(c) + soyfixn_to_sminn(c)
          end if
@@ -576,58 +528,36 @@ contains
             err_found = .true.
             err_index = c
          end if
-         
+
+!$OMP MASTER
          if (abs(col_errnb(c)) > 1e-7_r8) then
-!$OMP MASTER
             write(iulog,*) 'nbalance warning at c =', c, col_errnb(c), col_endnb(c)
-!$OMP END MASTER
-!$OMP MASTER
             write(iulog,*)'inputs,ffix,nfix,ndep = ',ffix_to_sminn(c)*dt,nfix_to_sminn(c)*dt,ndep_to_sminn(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
             write(iulog,*)'outputs,lch,roff,dnit = ',smin_no3_leached(c)*dt, smin_no3_runoff(c)*dt,f_n2o_nit(c)*dt
-!$OMP END MASTER
          end if
+!$OMP END MASTER
 
       end do ! end of columns loop
 
+!$OMP MASTER
       if (err_found) then
          c = err_index
-!$OMP MASTER
          write(iulog,*)'column nbalance error    = ',col_errnb(c), c
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'Latdeg,Londeg            = ',grc%latdeg(col%gridcell(c)),grc%londeg(col%gridcell(c))
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'begnb                    = ',col_begnb(c)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'endnb                    = ',col_endnb(c)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'delta store              = ',col_endnb(c)-col_begnb(c)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'input mass               = ',col_ninputs(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'output mass              = ',col_noutputs(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'net flux                 = ',(col_ninputs(c)-col_noutputs(c))*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'inputs,ffix,nfix,ndep    = ',ffix_to_sminn(c)*dt,nfix_to_sminn(c)*dt,ndep_to_sminn(c)*dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*)'outputs,ffix,nfix,ndep   = ',smin_no3_leached(c)*dt, smin_no3_runoff(c)*dt,f_n2o_nit(c)*dt
-!$OMP END MASTER
-        
-         
-         
+
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
+!$OMP END MASTER
+
+
 
       ! Repeat error check at the gridcell level
       call c2g( bounds = bounds, &
@@ -684,58 +614,28 @@ contains
          end if
       end do
 
+!$OMP MASTER
       if (err_found) then
          g = err_index
-!$OMP MASTER
          write(iulog,*) 'gridcell nbalance error  =', grc_errnb(g), g
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'latdeg, londeg           =', grc%latdeg(g), grc%londeg(g)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'begnb                    =', grc_begnb(g)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'endnb                    =', grc_endnb(g)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'delta store              =', grc_endnb(g) - grc_begnb(g)
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'input mass               =', grc_ninputs(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'output mass              =', grc_noutputs(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'net flux                 =', (grc_ninputs(g) - grc_noutputs(g)) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) '--- Inputs ---'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'grc_ninputs_partial      =', grc_ninputs_partial(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'dwt_seedn_to_leaf_grc    =', dwt_seedn_to_leaf_grc(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'dwt_seedn_to_deadstem_grc =', dwt_seedn_to_deadstem_grc(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) '--- Outputs ---'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'grc_noutputs_partial     =', grc_noutputs_partial(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'dwt_conv_nflux_grc       =', dwt_conv_nflux_grc(g) * dt
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'product_loss_grc         =', product_loss_grc(g) * dt
-!$OMP END MASTER
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
+!$OMP END MASTER
 
     end associate
 

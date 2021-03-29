@@ -41,15 +41,13 @@ CONTAINS
     character(len=*), intent(in), optional :: additional_msg ! string to be printed, but not passed to shr_sys_abort
     !-----------------------------------------------------------------------
 
+!$OMP MASTER
     if (present (additional_msg)) then
-!$OMP MASTER
        write(iulog,*)'ENDRUN: ', trim(additional_msg)
-!$OMP END MASTER
     else
-!$OMP MASTER
        write(iulog,*)'ENDRUN:'
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
     call shr_sys_abort(msg)
 
@@ -80,21 +78,19 @@ CONTAINS
     character(len=*), intent(in), optional :: additional_msg ! string to be printed, but not passed to shr_sys_abort
     !
     ! Local Variables:
-    integer :: igrc, ilun, icol 
+    integer :: igrc, ilun, icol
     !-----------------------------------------------------------------------
 
     write(6,*)'calling getglobalwrite with decomp_index= ',decomp_index,' and clmlevel= ',trim(clmlevel)
     call GetGlobalWrite(decomp_index, clmlevel)
 
+!$OMP MASTER
     if (present (additional_msg)) then
-!$OMP MASTER
        write(iulog,*)'ENDRUN: ', additional_msg
-!$OMP END MASTER
     else
-!$OMP MASTER
        write(iulog,*)'ENDRUN:'
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
     call shr_sys_abort(msg)
 

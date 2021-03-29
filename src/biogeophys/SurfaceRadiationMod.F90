@@ -477,7 +477,7 @@ contains
      ! !USES:
      use clm_varpar       , only : numrad, nlevsno
      use clm_varcon       , only : spval
-     use landunit_varcon  , only : istsoil, istcrop 
+     use landunit_varcon  , only : istsoil, istcrop
      use clm_varctl       , only : use_subgrid_fluxes, use_snicar_frc, iulog, use_SSRE
      use clm_time_manager , only : get_step_size_real, is_near_local_noon
      use SnowSnicarMod    , only : DO_SNO_OC
@@ -807,8 +807,8 @@ contains
              endif
 
              ! If shallow snow depth, all solar radiation absorbed in top or top two snow layers
-             ! to prevent unrealistic timestep soil warming 
-             if (.not. use_subgrid_fluxes .or. lun%itype(l) == istdlak) then 
+             ! to prevent unrealistic timestep soil warming
+             if (.not. use_subgrid_fluxes .or. lun%itype(l) == istdlak) then
                 if (snow_depth(c) < 0.10_r8) then
                    if (snl(c) == 0) then
                       sabg_lyr(p,-nlevsno+1:0) = 0._r8
@@ -827,54 +827,26 @@ contains
           endif
 
           ! This situation should not happen:
+!$OMP MASTER
           if (abs(sum(sabg_lyr(p,:))-sabg_snow(p)) > 0.00001_r8) then
-!$OMP MASTER
              write(iulog,*)"SNICAR ERROR: Absorbed ground radiation not equal to summed snow layer radiation"
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"Diff        = ",sum(sabg_lyr(p,:))-sabg_snow(p)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"sabg_snow(p)= ",sabg_snow(p)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"sabg_sum(p) = ",sum(sabg_lyr(p,:))
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"snl(c)      = ",snl(c)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"flx_absdv1  = ",trd(p,1)*(1.-albgrd(c,1))
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"flx_absdv2  = ",sum(flx_absdv(c,:))*trd(p,1)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"flx_absiv1  = ",tri(p,1)*(1.-albgri(c,1))
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"flx_absiv2  = ",sum(flx_absiv(c,:))*tri(p,1)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"flx_absdn1  = ",trd(p,2)*(1.-albgrd(c,2))
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"flx_absdn2  = ",sum(flx_absdn(c,:))*trd(p,2)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"flx_absin1  = ",tri(p,2)*(1.-albgri(c,2))
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"flx_absin2  = ",sum(flx_absin(c,:))*tri(p,2)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"albgrd_nir  = ",albgrd(c,2)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*)"coszen      = ",coszen(c)
-!$OMP END MASTER
              call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
           endif
+!$OMP END MASTER
 
           ! Diagnostic: shortwave penetrating ground (e.g. top layer)
           if (lun%itype(l) == istsoil .or. lun%itype(l) == istcrop) then

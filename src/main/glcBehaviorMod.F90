@@ -778,8 +778,6 @@ contains
           else
 !$OMP MASTER
              write(iulog,*) subname, ': ERROR getting elevation class for topo = ', atm_topo
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*) glc_errcode_to_string(err_code)
 !$OMP END MASTER
              call endrun(msg=subname//': ERROR getting elevation class')

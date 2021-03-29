@@ -52,7 +52,7 @@ module FrictionVelocityMod
      real(r8), pointer, public :: z0mv_patch       (:)   ! patch roughness length over vegetation, momentum [m]
      real(r8), pointer, public :: z0hv_patch       (:)   ! patch roughness length over vegetation, sensible heat [m]
      real(r8), pointer, public :: z0qv_patch       (:)   ! patch roughness length over vegetation, latent heat [m]
-     real(r8), pointer, public :: z0mg_col         (:)   ! col roughness length over ground, momentum  [m] 
+     real(r8), pointer, public :: z0mg_col         (:)   ! col roughness length over ground, momentum  [m]
      real(r8), pointer, public :: z0hg_col         (:)   ! col roughness length over ground, sensible heat [m]
      real(r8), pointer, public :: z0qg_col         (:)   ! col roughness length over ground, latent heat [m]
      ! variables to add history output from CanopyFluxesMod
@@ -125,7 +125,7 @@ contains
     !
     ! !ARGUMENTS:
     class(frictionvel_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
@@ -180,7 +180,7 @@ contains
     !
     ! !ARGUMENTS:
     class(frictionvel_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begc, endc
@@ -330,7 +330,7 @@ contains
     !
     ! !ARGUMENTS:
     class(frictionvel_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: p, c, l                         ! indices
@@ -339,8 +339,8 @@ contains
     ! Added 5/4/04, PET: initialize forc_hgt_u (gridcell-level),
     ! since this is not initialized before first call to CNVegStructUpdate,
     ! and it is required to set the upper bound for canopy top height.
-    ! Changed 3/21/08, KO: still needed but don't have sufficient information 
-    ! to set this properly (e.g., patch-level displacement height and roughness 
+    ! Changed 3/21/08, KO: still needed but don't have sufficient information
+    ! to set this properly (e.g., patch-level displacement height and roughness
     ! length). So leave at 30m.
 
     if (use_cn) then
@@ -355,7 +355,7 @@ contains
           this%z0mg_col(c) = 0.0004_r8
        end if
     end do
-   
+
   end subroutine InitCold
 
   !------------------------------------------------------------------------------
@@ -378,7 +378,7 @@ contains
 
   !------------------------------------------------------------------------
   subroutine Restart(this, bounds, ncid, flag)
-    ! 
+    !
     ! !DESCRIPTION:
     ! Read/Write module information to/from restart file.
     !
@@ -389,7 +389,7 @@ contains
     !
     ! !ARGUMENTS:
     class(frictionvel_type) :: this
-    type(bounds_type) , intent(in)    :: bounds 
+    type(bounds_type) , intent(in)    :: bounds
     type(file_desc_t) , intent(inout) :: ncid   ! netcdf id
     character(len=*)  , intent(in)    :: flag   ! 'read' or 'write'
     !
@@ -465,20 +465,14 @@ contains
 
     call shr_mpi_bcast (zetamaxstable, mpicom)
 
+!$OMP MASTER
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,nml=friction_velocity)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
     this%zetamaxstable = zetamaxstable
 
@@ -494,7 +488,7 @@ contains
     !
     ! !ARGUMENTS:
     class(frictionvel_type)        , intent(inout) :: this
-    type(bounds_type)              , intent(in)    :: bounds    
+    type(bounds_type)              , intent(in)    :: bounds
     integer                        , intent(in)    :: num_nolakec       ! number of column non-lake points in column filter
     integer                        , intent(in)    :: filter_nolakec(:) ! column filter for non-lake points
     integer                        , intent(in)    :: num_nolakep       ! number of column non-lake points in patch filter
@@ -557,7 +551,7 @@ contains
        z0qv(p)   = z0mv(p)
     end do
 
-    ! Make forcing height a patch-level quantity that is the atmospheric forcing 
+    ! Make forcing height a patch-level quantity that is the atmospheric forcing
     ! height plus each patch's z0m+displa
     do fp = 1, num_nolakep
        p = filter_nolakep(fp)
@@ -725,16 +719,16 @@ contains
     SHR_ASSERT_ALL_FL((ubound(temp22m) == (/ubn/)), sourcefile, __LINE__)
     SHR_ASSERT_ALL_FL((ubound(fm)      == (/ubn/)), sourcefile, __LINE__)
 
-    associate(                                                   & 
-         pfti             => lun%patchi                          , & ! Input:  [integer  (:) ] beginning pfti index for landunit         
-         pftf             => lun%patchf                          , & ! Input:  [integer  (:) ] final pft index for landunit              
-         
+    associate(                                                   &
+         pfti             => lun%patchi                          , & ! Input:  [integer  (:) ] beginning pfti index for landunit
+         pftf             => lun%patchf                          , & ! Input:  [integer  (:) ] final pft index for landunit
+
          forc_hgt_u_patch => this%forc_hgt_u_patch , & ! Input:  [real(r8) (:) ] observational height of wind at pft level [m]
          forc_hgt_t_patch => this%forc_hgt_t_patch , & ! Input:  [real(r8) (:) ] observational height of temperature at pft level [m]
          forc_hgt_q_patch => this%forc_hgt_q_patch , & ! Input:  [real(r8) (:) ] observational height of specific humidity at pft level [m]
          vds              => this%vds_patch        , & ! Output: [real(r8) (:) ] dry deposition velocity term (m/s) (for SO4 NH4NO3)
-         u10              => this%u10_patch        , & ! Output: [real(r8) (:) ] 10-m wind (m/s) (for dust model)        
-         u10_clm          => this%u10_clm_patch    , & ! Output: [real(r8) (:) ] 10-m wind (m/s)                         
+         u10              => this%u10_patch        , & ! Output: [real(r8) (:) ] 10-m wind (m/s) (for dust model)
+         u10_clm          => this%u10_clm_patch    , & ! Output: [real(r8) (:) ] 10-m wind (m/s)
          va               => this%va_patch         , & ! Output: [real(r8) (:) ] atmospheric wind speed plus convective velocity (m/s)
          fv               => this%fv_patch           & ! Output: [real(r8) (:) ] friction velocity (m/s) (for dust model)
          )
@@ -744,9 +738,9 @@ contains
       do f = 1, fn
          n = filtern(f)
          if (present(landunit_index)) then
-            g = lun%gridcell(n) 
+            g = lun%gridcell(n)
          else
-            g = patch%gridcell(n)  
+            g = patch%gridcell(n)
          end if
 
          ! Wind profile
@@ -788,9 +782,9 @@ contains
          end if
 
          ! Calculate a 10-m wind (10m + z0m + d)
-         ! For now, this will not be the same as the 10-m wind calculated for the dust 
+         ! For now, this will not be the same as the 10-m wind calculated for the dust
          ! model because the CLM stability functions are used here, not the LSM stability
-         ! functions used in the dust model. We will eventually change the dust model to be 
+         ! functions used in the dust model. We will eventually change the dust model to be
          ! consistent with the following formulation.
          ! Note that the 10-m wind calculated this way could actually be larger than the
          ! atmospheric forcing wind because 1) this includes the convective velocity, 2)
@@ -1000,7 +994,7 @@ contains
          end if
          if (present(landunit_index)) then
             tmp4 = log( max( 1.0_r8, forc_hgt_u_patch(pfti(n)) / 10._r8) )
-         else 
+         else
             tmp4 = log( max( 1.0_r8, forc_hgt_u_patch(n) / 10._r8) )
          end if
          if (present(landunit_index)) then

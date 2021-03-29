@@ -3,13 +3,13 @@ module ColumnType
   !-----------------------------------------------------------------------
   ! !DESCRIPTION:
   ! Column data type allocation and initialization
-  ! -------------------------------------------------------- 
+  ! --------------------------------------------------------
   ! column types can have values of
-  ! -------------------------------------------------------- 
+  ! --------------------------------------------------------
   !   1  => (istsoil)          soil (vegetated or bare soil)
   !   2  => (istcrop)          crop (only for crop configuration)
   !   3  => (UNUSED)           (formerly non-multiple elevation class land ice; currently unused)
-  !   4  => (istice_mec)       land ice (multiple elevation classes)   
+  !   4  => (istice_mec)       land ice (multiple elevation classes)
   !   5  => (istdlak)          deep lake
   !   6  => (istwet)           wetland
   !   71 => (icol_roof)        urban roof
@@ -56,13 +56,13 @@ module ColumnType
 
      ! vertical levels
      integer , pointer :: snl                  (:)   ! number of snow layers
-     real(r8), pointer :: dz                   (:,:) ! layer thickness (m)  (-nlevsno+1:nlevgrnd) 
-     real(r8), pointer :: z                    (:,:) ! layer depth (m) (-nlevsno+1:nlevgrnd) 
-     real(r8), pointer :: zi                   (:,:) ! interface level below a "z" level (m) (-nlevsno+0:nlevgrnd) 
+     real(r8), pointer :: dz                   (:,:) ! layer thickness (m)  (-nlevsno+1:nlevgrnd)
+     real(r8), pointer :: z                    (:,:) ! layer depth (m) (-nlevsno+1:nlevgrnd)
+     real(r8), pointer :: zi                   (:,:) ! interface level below a "z" level (m) (-nlevsno+0:nlevgrnd)
      real(r8), pointer :: zii                  (:)   ! convective boundary height [m]
      real(r8), pointer :: dz_lake              (:,:) ! lake layer thickness (m)  (1:nlevlak)
      real(r8), pointer :: z_lake               (:,:) ! layer depth for lake (m)
-     real(r8), pointer :: lakedepth            (:)   ! variable lake depth (m)                             
+     real(r8), pointer :: lakedepth            (:)   ! variable lake depth (m)
      integer , pointer :: nbedrock             (:)   ! variable depth to bedrock index
 
      ! other column characteristics
@@ -93,7 +93,7 @@ module ColumnType
   !------------------------------------------------------------------------
 
 contains
-  
+
   !------------------------------------------------------------------------
   subroutine Init(this, begc, endc)
     !
@@ -121,11 +121,11 @@ contains
     allocate(this%z           (begc:endc,-nlevsno+1:nlevmaxurbgrnd)) ; this%z           (:,:) = nan
     allocate(this%zi          (begc:endc,-nlevsno+0:nlevmaxurbgrnd)) ; this%zi          (:,:) = nan
     allocate(this%zii         (begc:endc))                     ; this%zii         (:)   = nan
-    allocate(this%lakedepth   (begc:endc))                     ; this%lakedepth   (:)   = spval  
+    allocate(this%lakedepth   (begc:endc))                     ; this%lakedepth   (:)   = spval
     allocate(this%dz_lake     (begc:endc,nlevlak))             ; this%dz_lake     (:,:) = nan
     allocate(this%z_lake      (begc:endc,nlevlak))             ; this%z_lake      (:,:) = nan
 
-    allocate(this%nbedrock   (begc:endc))                      ; this%nbedrock   (:)   = ispval  
+    allocate(this%nbedrock   (begc:endc))                      ; this%nbedrock   (:)   = ispval
     allocate(this%levgrnd_class(begc:endc,nlevmaxurbgrnd))     ; this%levgrnd_class(:,:) = ispval
     allocate(this%micro_sigma (begc:endc))                     ; this%micro_sigma (:)   = nan
     allocate(this%topo_slope  (begc:endc))                     ; this%topo_slope  (:)   = nan
@@ -202,8 +202,6 @@ contains
     else
 !$OMP MASTER
        write(iulog,*) subname//' ERROR: attempt to update itype when type_is_dynamic is false'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'c, col%itype(c), itype = ', c, col%itype(c), itype
 !$OMP END MASTER
        ! Need to use shr_sys_abort rather than endrun, because using endrun would cause

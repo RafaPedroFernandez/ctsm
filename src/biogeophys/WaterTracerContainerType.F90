@@ -86,7 +86,7 @@ contains
     integer, intent(in)          :: begi           ! beginning index of data array
     real(r8), target, intent(in) :: data(begi:)
     character(len=*), intent(in) :: description
-    integer         , intent(in) :: subgrid_level  ! one of the levels defined in decompMod  
+    integer         , intent(in) :: subgrid_level  ! one of the levels defined in decompMod
     !
     ! !LOCAL VARIABLES:
 
@@ -139,11 +139,7 @@ contains
     if (allocated(this%tracers)) then
 !$OMP MASTER
        write(iulog,*) subname//' ERROR: this%tracers is already allocated.'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'This is likely a sign that you are trying to add a variable'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'after complete_setup has already been called.'
 !$OMP END MASTER
        call endrun(msg='Attempt to call '//subname//' after complete_setup was called', &
@@ -203,8 +199,6 @@ contains
     if (.not. allocated(this%tracers)) then
 !$OMP MASTER
        write(iulog,*) subname//' ERROR: this%tracers is not yet allocated.'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'This is likely a sign that complete_setup was not called.'
 !$OMP END MASTER
        call endrun(msg='Attempt to call '//subname//' without calling complete_setup', &

@@ -20,7 +20,7 @@ module subgridMod
   use FatesInterfaceTypesMod, only : fates_maxElementsPerSite
 
   implicit none
-  private   
+  private
   save
 
   ! !PUBLIC MEMBER FUNCTIONS:
@@ -39,7 +39,7 @@ module subgridMod
   public :: subgrid_get_info_crop
   public :: crop_patch_exists ! returns true if the given crop patch should be created in memory
   public :: lake_landunit_exists ! returns true if the lake landunit should be created in memory
-  
+
   ! !PRIVATE MEMBER FUNCTIONS:
   private :: subgrid_get_info_urban
 
@@ -60,9 +60,9 @@ contains
     integer , intent(in)  :: gi       ! grid cell index
     type(glc_behavior_type), intent(in) :: glc_behavior
     integer , intent(out) :: nlunits  ! number of landunits
-    integer , intent(out) :: ncols    ! number of columns 
-    integer , intent(out) :: npatches ! number of patchs 
-    integer , intent(out) :: ncohorts ! number of cohorts 
+    integer , intent(out) :: ncols    ! number of columns
+    integer , intent(out) :: npatches ! number of patchs
+    integer , intent(out) :: ncohorts ! number of cohorts
     !
     ! !LOCAL VARIABLES:
     ! Counts from a single landunit:
@@ -105,7 +105,7 @@ contains
 
     call subgrid_get_info_crop(gi, npatches_temp, ncols_temp, nlunits_temp)
     call accumulate_counters()
-   
+
     call subgrid_get_info_cohort(gi,ncohorts)
 
   contains
@@ -161,8 +161,6 @@ contains
        ! cell. If we find that isn't true, abort.
 !$OMP MASTER
        write(iulog,*) 'Expect at least one natural veg patch in every grid cell'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'Found 0 for gi = ', gi
 !$OMP END MASTER
        call endrun(subname//' ERROR: Expect at least one natural veg patch in every grid cell')
@@ -249,9 +247,9 @@ contains
     ! vegetated column.  That case should be fine, as the cohort
     ! restart vector will just be a little sparse.
     ! -------------------------------------------------------------------------
-    
+
     ncohorts = fates_maxElementsPerSite
-    
+
  end subroutine subgrid_get_info_cohort
 
 
@@ -399,7 +397,7 @@ contains
 
     ! We do allow the lake landunit to expand via dynamic landunits, so we
     !  need to allocate space for where it is known that the lake unit will grow.
-    
+
     if (lake_landunit_exists(gi) ) then
        npatches = 1
        ncols = 1
@@ -443,7 +441,7 @@ contains
     end if
 
   end subroutine subgrid_get_info_wetland
-  
+
   !-----------------------------------------------------------------------
   subroutine subgrid_get_info_glacier_mec(gi, atm_topo, glc_behavior, npatches, ncols, nlunits)
     !
@@ -568,7 +566,7 @@ contains
     ! !DESCRIPTION:
     ! Returns true if a land unit for lakes should be created in memory
     ! which is defined for gridcells which will grow lake, given by haslake
-    ! 
+    !
     ! !USES:
     use dynSubgridControlMod , only : get_do_transient_lakes
     use clm_instur           , only : haslake
@@ -583,16 +581,16 @@ contains
     !-----------------------------------------------------------------------
 
     if (get_do_transient_lakes()) then
-       ! To support dynamic landunits, we initialise a lake land unit in each grid cell in which there are lakes. 
+       ! To support dynamic landunits, we initialise a lake land unit in each grid cell in which there are lakes.
        ! This is defined by the haslake variable
-       
+
        if (haslake(gi)) then
             exists = .true.
        else
             exists = .false.
        end if
-        
-    else 
+
+    else
         ! For a run without transient lakes, only allocate memory for lakes actually present in run)
         if (wt_lunit(gi, istdlak) > 0.0_r8) then
             exists = .true.

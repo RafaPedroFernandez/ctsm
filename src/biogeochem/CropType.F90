@@ -156,26 +156,22 @@ contains
     this%baset_mapping           = baset_mapping
     this%baset_latvary_intercept = baset_latvary_intercept
     this%baset_latvary_slope     = baset_latvary_slope
+!$OMP MASTER
     if (      trim(this%baset_mapping) == baset_map_constant ) then
-!$OMP MASTER
        if ( masterproc ) write(iulog,*) 'baset mapping for ALL crops are constant'
-!$OMP END MASTER
     else if ( trim(this%baset_mapping) == baset_map_latvary ) then
-!$OMP MASTER
        if ( masterproc ) write(iulog,*) 'baset mapping for crops vary with latitude'
-!$OMP END MASTER
     else
        call endrun(msg="Bad value for baset_mapping in "//nmlname//"namelist"//errmsg(sourcefile, __LINE__))
     end if
 
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=crop)
        write(iulog,*) ' '
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
     !-----------------------------------------------------------------------
 

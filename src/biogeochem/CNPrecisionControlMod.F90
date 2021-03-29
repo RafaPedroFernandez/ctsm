@@ -2,10 +2,10 @@ module CNPrecisionControlMod
 
 #include "shr_assert.h"
 
-  !----------------------------------------------------------------------- 
+  !-----------------------------------------------------------------------
   ! !DESCRIPTION:
-  ! controls on very low values in critical state variables 
-  ! 
+  ! controls on very low values in critical state variables
+  !
   ! !USES:
   use shr_kind_mod           , only : r8 => shr_kind_r8
   use CNVegCarbonStateType   , only : cnveg_carbonstate_type
@@ -31,7 +31,7 @@ module CNPrecisionControlMod
   logical, private :: prec_control_for_froot = .true.   ! If true do precision control for frootc/frootn
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
-  !----------------------------------------------------------------------- 
+  !-----------------------------------------------------------------------
 
 contains
 
@@ -84,20 +84,14 @@ contains
     call shr_mpi_bcast (nnegcrit, mpicom)
     call shr_mpi_bcast (cnegcrit, mpicom)
 
+!$OMP MASTER
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,nml=cnprecision_inparm)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
     ! Have precision control for froot be determined by use_nguardrail setting
     prec_control_for_froot = .not. use_nguardrail
@@ -109,7 +103,7 @@ contains
        cnveg_carbonstate_inst, c13_cnveg_carbonstate_inst, c14_cnveg_carbonstate_inst, &
        cnveg_nitrogenstate_inst)
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Force leaf and deadstem c and n to 0 if they get too small.
     !
     ! !USES:
@@ -138,59 +132,59 @@ contains
     real(r8):: pc14(bounds%begp:bounds%endp)     ! truncation terms for patch-level corrections
     !-----------------------------------------------------------------------
 
-    ! cnveg_carbonstate_inst%cpool_patch                     Output:  [real(r8) (:)     ]  (gC/m2) temporary photosynthate C pool            
-    ! cnveg_carbonstate_inst%deadcrootc_patch                Output:  [real(r8) (:)     ]  (gC/m2) dead coarse root C                        
-    ! cnveg_carbonstate_inst%deadcrootc_storage_patch        Output:  [real(r8) (:)     ]  (gC/m2) dead coarse root C storage                
-    ! cnveg_carbonstate_inst%deadcrootc_xfer_patch           Output:  [real(r8) (:)     ]  (gC/m2) dead coarse root C transfer               
-    ! cnveg_carbonstate_inst%deadstemc_patch                 Output:  [real(r8) (:)     ]  (gC/m2) dead stem C                               
-    ! cnveg_carbonstate_inst%deadstemc_storage_patch         Output:  [real(r8) (:)     ]  (gC/m2) dead stem C storage                       
-    ! cnveg_carbonstate_inst%deadstemc_xfer_patch            Output:  [real(r8) (:)     ]  (gC/m2) dead stem C transfer                      
-    ! cnveg_carbonstate_inst%frootc_patch                    Output:  [real(r8) (:)     ]  (gC/m2) fine root C                               
-    ! cnveg_carbonstate_inst%frootc_storage_patch            Output:  [real(r8) (:)     ]  (gC/m2) fine root C storage                       
-    ! cnveg_carbonstate_inst%frootc_xfer_patch               Output:  [real(r8) (:)     ]  (gC/m2) fine root C transfer                      
-    ! cnveg_carbonstate_inst%gresp_storage_patch             Output:  [real(r8) (:)     ]  (gC/m2) growth respiration storage                
-    ! cnveg_carbonstate_inst%gresp_xfer_patch                Output:  [real(r8) (:)     ]  (gC/m2) growth respiration transfer               
-    ! cnveg_carbonstate_inst%leafc_patch                     Output:  [real(r8) (:)     ]  (gC/m2) leaf C                                    
-    ! cnveg_carbonstate_inst%leafc_storage_patch             Output:  [real(r8) (:)     ]  (gC/m2) leaf C storage                            
-    ! cnveg_carbonstate_inst%leafc_xfer_patch                Output:  [real(r8) (:)     ]  (gC/m2) leaf C transfer                           
-    ! cnveg_carbonstate_inst%livecrootc_patch                Output:  [real(r8) (:)     ]  (gC/m2) live coarse root C                        
-    ! cnveg_carbonstate_inst%livecrootc_storage_patch        Output:  [real(r8) (:)     ]  (gC/m2) live coarse root C storage                
-    ! cnveg_carbonstate_inst%livecrootc_xfer_patch           Output:  [real(r8) (:)     ]  (gC/m2) live coarse root C transfer               
-    ! cnveg_carbonstate_inst%livestemc_patch                 Output:  [real(r8) (:)     ]  (gC/m2) live stem C                               
-    ! cnveg_carbonstate_inst%livestemc_storage_patch         Output:  [real(r8) (:)     ]  (gC/m2) live stem C storage                       
-    ! cnveg_carbonstate_inst%livestemc_xfer_patch            Output:  [real(r8) (:)     ]  (gC/m2) live stem C transfer                      
-    ! cnveg_carbonstate_inst%ctrunc_patch                    Output:  [real(r8) (:)     ]  (gC/m2) patch-level sink for C truncation           
-    ! cnveg_carbonstate_inst%xsmrpool_patch                  Output:  [real(r8) (:)     ]  (gC/m2) execss maint resp C pool                  
-    ! cnveg_carbonstate_inst%grainc_patch                    Output:  [real(r8) (:)     ]  (gC/m2) grain C                                   
-    ! cnveg_carbonstate_inst%grainc_storage_patch            Output:  [real(r8) (:)     ]  (gC/m2) grain C storage                           
-    ! cnveg_carbonstate_inst%grainc_xfer_patch               Output:  [real(r8) (:)     ]  (gC/m2) grain C transfer                          
-    
-    ! cnveg_nitrogenstate_inst%deadcrootn_patch              Output:  [real(r8) (:)     ]  (gN/m2) dead coarse root N                        
-    ! cnveg_nitrogenstate_inst%deadcrootn_storage_patch      Output:  [real(r8) (:)     ]  (gN/m2) dead coarse root N storage                
-    ! cnveg_nitrogenstate_inst%deadcrootn_xfer_patch         Output:  [real(r8) (:)     ]  (gN/m2) dead coarse root N transfer               
-    ! cnveg_nitrogenstate_inst%deadstemn_patch               Output:  [real(r8) (:)     ]  (gN/m2) dead stem N                               
-    ! cnveg_nitrogenstate_inst%deadstemn_storage_patch       Output:  [real(r8) (:)     ]  (gN/m2) dead stem N storage                       
-    ! cnveg_nitrogenstate_inst%deadstemn_xfer_patch          Output:  [real(r8) (:)     ]  (gN/m2) dead stem N transfer                      
-    ! cnveg_nitrogenstate_inst%frootn_patch                  Output:  [real(r8) (:)     ]  (gN/m2) fine root N                               
-    ! cnveg_nitrogenstate_inst%frootn_storage_patch          Output:  [real(r8) (:)     ]  (gN/m2) fine root N storage                       
-    ! cnveg_nitrogenstate_inst%frootn_xfer_patch             Output:  [real(r8) (:)     ]  (gN/m2) fine root N transfer                      
-    ! cnveg_nitrogenstate_inst%leafn_patch                   Output:  [real(r8) (:)     ]  (gN/m2) leaf N                                    
-    ! cnveg_nitrogenstate_inst%leafn_storage_patch           Output:  [real(r8) (:)     ]  (gN/m2) leaf N storage                            
-    ! cnveg_nitrogenstate_inst%leafn_xfer_patch              Output:  [real(r8) (:)     ]  (gN/m2) leaf N transfer                           
-    ! cnveg_nitrogenstate_inst%livecrootn_patch              Output:  [real(r8) (:)     ]  (gN/m2) live coarse root N                        
-    ! cnveg_nitrogenstate_inst%livecrootn_storage_patch      Output:  [real(r8) (:)     ]  (gN/m2) live coarse root N storage                
-    ! cnveg_nitrogenstate_inst%livecrootn_xfer_patch         Output:  [real(r8) (:)     ]  (gN/m2) live coarse root N transfer               
-    ! cnveg_nitrogenstate_inst%grainn_patch                  Output:  [real(r8) (:)     ]  (gC/m2) grain N                                   
-    ! cnveg_nitrogenstate_inst%grainn_storage_patch          Output:  [real(r8) (:)     ]  (gC/m2) grain N storage                           
-    ! cnveg_nitrogenstate_inst%grainn_xfer_patch             Output:  [real(r8) (:)     ]  (gC/m2) grain N transfer                          
-    ! cnveg_nitrogenstate_inst%livestemn_patch               Output:  [real(r8) (:)     ]  (gN/m2) live stem N                               
-    ! cnveg_nitrogenstate_inst%livestemn_storage_patch       Output:  [real(r8) (:)     ]  (gN/m2) live stem N storage                       
-    ! cnveg_nitrogenstate_inst%livestemn_xfer_patch          Output:  [real(r8) (:)     ]  (gN/m2) live stem N transfer                      
-    ! cnveg_nitrogenstate_inst%npool_patch                   Output:  [real(r8) (:)     ]  (gN/m2) temporary plant N pool                    
-    ! cnveg_nitrogenstate_inst%ntrunc_patch                  Output:  [real(r8) (:)     ]  (gN/m2) patch-level sink for N truncation           
-    ! cnveg_nitrogenstate_inst%retransn_patch                Output:  [real(r8) (:)     ]  (gN/m2) plant pool of retranslocated N            
+    ! cnveg_carbonstate_inst%cpool_patch                     Output:  [real(r8) (:)     ]  (gC/m2) temporary photosynthate C pool
+    ! cnveg_carbonstate_inst%deadcrootc_patch                Output:  [real(r8) (:)     ]  (gC/m2) dead coarse root C
+    ! cnveg_carbonstate_inst%deadcrootc_storage_patch        Output:  [real(r8) (:)     ]  (gC/m2) dead coarse root C storage
+    ! cnveg_carbonstate_inst%deadcrootc_xfer_patch           Output:  [real(r8) (:)     ]  (gC/m2) dead coarse root C transfer
+    ! cnveg_carbonstate_inst%deadstemc_patch                 Output:  [real(r8) (:)     ]  (gC/m2) dead stem C
+    ! cnveg_carbonstate_inst%deadstemc_storage_patch         Output:  [real(r8) (:)     ]  (gC/m2) dead stem C storage
+    ! cnveg_carbonstate_inst%deadstemc_xfer_patch            Output:  [real(r8) (:)     ]  (gC/m2) dead stem C transfer
+    ! cnveg_carbonstate_inst%frootc_patch                    Output:  [real(r8) (:)     ]  (gC/m2) fine root C
+    ! cnveg_carbonstate_inst%frootc_storage_patch            Output:  [real(r8) (:)     ]  (gC/m2) fine root C storage
+    ! cnveg_carbonstate_inst%frootc_xfer_patch               Output:  [real(r8) (:)     ]  (gC/m2) fine root C transfer
+    ! cnveg_carbonstate_inst%gresp_storage_patch             Output:  [real(r8) (:)     ]  (gC/m2) growth respiration storage
+    ! cnveg_carbonstate_inst%gresp_xfer_patch                Output:  [real(r8) (:)     ]  (gC/m2) growth respiration transfer
+    ! cnveg_carbonstate_inst%leafc_patch                     Output:  [real(r8) (:)     ]  (gC/m2) leaf C
+    ! cnveg_carbonstate_inst%leafc_storage_patch             Output:  [real(r8) (:)     ]  (gC/m2) leaf C storage
+    ! cnveg_carbonstate_inst%leafc_xfer_patch                Output:  [real(r8) (:)     ]  (gC/m2) leaf C transfer
+    ! cnveg_carbonstate_inst%livecrootc_patch                Output:  [real(r8) (:)     ]  (gC/m2) live coarse root C
+    ! cnveg_carbonstate_inst%livecrootc_storage_patch        Output:  [real(r8) (:)     ]  (gC/m2) live coarse root C storage
+    ! cnveg_carbonstate_inst%livecrootc_xfer_patch           Output:  [real(r8) (:)     ]  (gC/m2) live coarse root C transfer
+    ! cnveg_carbonstate_inst%livestemc_patch                 Output:  [real(r8) (:)     ]  (gC/m2) live stem C
+    ! cnveg_carbonstate_inst%livestemc_storage_patch         Output:  [real(r8) (:)     ]  (gC/m2) live stem C storage
+    ! cnveg_carbonstate_inst%livestemc_xfer_patch            Output:  [real(r8) (:)     ]  (gC/m2) live stem C transfer
+    ! cnveg_carbonstate_inst%ctrunc_patch                    Output:  [real(r8) (:)     ]  (gC/m2) patch-level sink for C truncation
+    ! cnveg_carbonstate_inst%xsmrpool_patch                  Output:  [real(r8) (:)     ]  (gC/m2) execss maint resp C pool
+    ! cnveg_carbonstate_inst%grainc_patch                    Output:  [real(r8) (:)     ]  (gC/m2) grain C
+    ! cnveg_carbonstate_inst%grainc_storage_patch            Output:  [real(r8) (:)     ]  (gC/m2) grain C storage
+    ! cnveg_carbonstate_inst%grainc_xfer_patch               Output:  [real(r8) (:)     ]  (gC/m2) grain C transfer
 
-    
+    ! cnveg_nitrogenstate_inst%deadcrootn_patch              Output:  [real(r8) (:)     ]  (gN/m2) dead coarse root N
+    ! cnveg_nitrogenstate_inst%deadcrootn_storage_patch      Output:  [real(r8) (:)     ]  (gN/m2) dead coarse root N storage
+    ! cnveg_nitrogenstate_inst%deadcrootn_xfer_patch         Output:  [real(r8) (:)     ]  (gN/m2) dead coarse root N transfer
+    ! cnveg_nitrogenstate_inst%deadstemn_patch               Output:  [real(r8) (:)     ]  (gN/m2) dead stem N
+    ! cnveg_nitrogenstate_inst%deadstemn_storage_patch       Output:  [real(r8) (:)     ]  (gN/m2) dead stem N storage
+    ! cnveg_nitrogenstate_inst%deadstemn_xfer_patch          Output:  [real(r8) (:)     ]  (gN/m2) dead stem N transfer
+    ! cnveg_nitrogenstate_inst%frootn_patch                  Output:  [real(r8) (:)     ]  (gN/m2) fine root N
+    ! cnveg_nitrogenstate_inst%frootn_storage_patch          Output:  [real(r8) (:)     ]  (gN/m2) fine root N storage
+    ! cnveg_nitrogenstate_inst%frootn_xfer_patch             Output:  [real(r8) (:)     ]  (gN/m2) fine root N transfer
+    ! cnveg_nitrogenstate_inst%leafn_patch                   Output:  [real(r8) (:)     ]  (gN/m2) leaf N
+    ! cnveg_nitrogenstate_inst%leafn_storage_patch           Output:  [real(r8) (:)     ]  (gN/m2) leaf N storage
+    ! cnveg_nitrogenstate_inst%leafn_xfer_patch              Output:  [real(r8) (:)     ]  (gN/m2) leaf N transfer
+    ! cnveg_nitrogenstate_inst%livecrootn_patch              Output:  [real(r8) (:)     ]  (gN/m2) live coarse root N
+    ! cnveg_nitrogenstate_inst%livecrootn_storage_patch      Output:  [real(r8) (:)     ]  (gN/m2) live coarse root N storage
+    ! cnveg_nitrogenstate_inst%livecrootn_xfer_patch         Output:  [real(r8) (:)     ]  (gN/m2) live coarse root N transfer
+    ! cnveg_nitrogenstate_inst%grainn_patch                  Output:  [real(r8) (:)     ]  (gC/m2) grain N
+    ! cnveg_nitrogenstate_inst%grainn_storage_patch          Output:  [real(r8) (:)     ]  (gC/m2) grain N storage
+    ! cnveg_nitrogenstate_inst%grainn_xfer_patch             Output:  [real(r8) (:)     ]  (gC/m2) grain N transfer
+    ! cnveg_nitrogenstate_inst%livestemn_patch               Output:  [real(r8) (:)     ]  (gN/m2) live stem N
+    ! cnveg_nitrogenstate_inst%livestemn_storage_patch       Output:  [real(r8) (:)     ]  (gN/m2) live stem N storage
+    ! cnveg_nitrogenstate_inst%livestemn_xfer_patch          Output:  [real(r8) (:)     ]  (gN/m2) live stem N transfer
+    ! cnveg_nitrogenstate_inst%npool_patch                   Output:  [real(r8) (:)     ]  (gN/m2) temporary plant N pool
+    ! cnveg_nitrogenstate_inst%ntrunc_patch                  Output:  [real(r8) (:)     ]  (gN/m2) patch-level sink for N truncation
+    ! cnveg_nitrogenstate_inst%retransn_patch                Output:  [real(r8) (:)     ]  (gN/m2) plant pool of retranslocated N
+
+
     associate(                                           &
          cs     => cnveg_carbonstate_inst              , &
          ns     => cnveg_nitrogenstate_inst            , &
@@ -649,7 +643,7 @@ contains
                                  num_truncatep, filter_truncatep, croponly, allowneg )
     !
     ! !DESCRIPTION:
-    ! Truncate paired Carbon and Nitrogen states. If a paired carbon and nitrogen state iare too small truncate 
+    ! Truncate paired Carbon and Nitrogen states. If a paired carbon and nitrogen state iare too small truncate
     ! the pair of them to zero.
     !
     ! !USES:
@@ -700,8 +694,6 @@ contains
           if ( .not. lallowneg .and. ((carbon_patch(p) < cnegcrit) .or. (nitrogen_patch(p) < nnegcrit)) ) then
 !$OMP MASTER
              write(iulog,*) 'ERROR: Carbon or Nitrogen patch negative = ', carbon_patch(p), nitrogen_patch(p)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*) 'ERROR: limits = ', cnegcrit, nnegcrit
 !$OMP END MASTER
              call endrun(msg='ERROR: carbon or nitrogen state critically negative '//errMsg(sourcefile, lineno))
@@ -773,8 +765,6 @@ contains
           if ( .not. lallowneg .and. (carbon_patch(p) < cnegcrit) ) then
 !$OMP MASTER
              write(iulog,*) 'ERROR: Carbon patch negative = ', carbon_patch(p)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,*) 'ERROR: limit = ', cnegcrit
 !$OMP END MASTER
              call endrun(msg='ERROR: carbon state critically negative '//errMsg(sourcefile, lineno))

@@ -1,9 +1,9 @@
 module SoilBiogeochemPrecisionControlMod
 
-  !----------------------------------------------------------------------- 
+  !-----------------------------------------------------------------------
   ! !DESCRIPTION:
-  ! controls on very low values in critical state variables 
-  ! 
+  ! controls on very low values in critical state variables
+  !
   ! !USES:
   use shr_kind_mod                    , only : r8 => shr_kind_r8
   use clm_varpar                      , only : ndecomp_pools
@@ -21,7 +21,7 @@ module SoilBiogeochemPrecisionControlMod
   ! !PUBLIC DATA:
   real(r8), public :: ccrit                   ! critical carbon state value for truncation (gC/m2)
   real(r8), public :: ncrit                   ! critical nitrogen state value for truncation (gN/m2)
-  !----------------------------------------------------------------------- 
+  !-----------------------------------------------------------------------
 
 contains
 
@@ -30,7 +30,7 @@ contains
        c14_soilbiogeochem_carbonstate_inst, soilbiogeochem_nitrogenstate_inst)
 
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Initialization of soil biogeochemistry precision control
     !
     ! !USES:
@@ -65,7 +65,7 @@ contains
        c14_soilbiogeochem_carbonstate_inst, soilbiogeochem_nitrogenstate_inst)
 
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! On the radiation time step, force leaf and deadstem c and n to 0 if
     ! they get too small.
     !
@@ -90,17 +90,17 @@ contains
     real(r8):: cc14  ! truncation terms for column-level corrections
     !-----------------------------------------------------------------------
 
-    ! soilbiogeochem_carbonstate_inst%ctrunc_vr_col          Output:  [real(r8) (:,:)   ]  (gC/m3) column-level sink for C truncation      
+    ! soilbiogeochem_carbonstate_inst%ctrunc_vr_col          Output:  [real(r8) (:,:)   ]  (gC/m3) column-level sink for C truncation
     ! soilbiogeochem_carbonstate_inst%decomp_cpools_vr_col   Output:  [real(r8) (:,:,:) ]  (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
 
-    ! soilbiogeochem_nitrogenstate_inst%ntrunc_vr_col        Output:  [real(r8) (:,:)   ]  (gN/m3) column-level sink for N truncation      
+    ! soilbiogeochem_nitrogenstate_inst%ntrunc_vr_col        Output:  [real(r8) (:,:)   ]  (gN/m3) column-level sink for N truncation
     ! soilbiogeochem_nitrogenstate_inst%decomp_npools_vr_col Output:  [real(r8) (:,:,:) ]  (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    ! soilbiogeochem_nitrogenstate_inst%smin_nh4_vr_col      Output:  [real(r8) (:,:)   ]  (gN/m3) soil mineral NH4                        
-    ! soilbiogeochem_nitrogenstate_inst%smin_no3_vr_col      Output:  [real(r8) (:,:)   ]  (gN/m3) soil mineral NO3                        
+    ! soilbiogeochem_nitrogenstate_inst%smin_nh4_vr_col      Output:  [real(r8) (:,:)   ]  (gN/m3) soil mineral NH4
+    ! soilbiogeochem_nitrogenstate_inst%smin_no3_vr_col      Output:  [real(r8) (:,:)   ]  (gN/m3) soil mineral NO3
 
     associate(&
          cs    => soilbiogeochem_carbonstate_inst     , &
-         ns    => soilbiogeochem_nitrogenstate_inst   , & 
+         ns    => soilbiogeochem_nitrogenstate_inst   , &
          c13cs => c13_soilbiogeochem_carbonstate_inst , &
          c14cs => c14_soilbiogeochem_carbonstate_inst   &
          )
@@ -166,7 +166,7 @@ contains
      if(.not.use_fun)then
       if (use_nitrif_denitrif) then
          ! remove small negative perturbations for stability purposes, if any should arise.
-        
+
          do fc = 1,num_soilc
             c = filter_soilc(fc)
             do j = 1,nlevdecomp
@@ -174,8 +174,6 @@ contains
                   if ( ns%smin_no3_vr_col(c,j)  < 0._r8 ) then
 !$OMP MASTER
                      !write(iulog, *) '-10^-12 < smin_no3 < 0. resetting to zero.'
-!$OMP END MASTER
-!$OMP MASTER
                      !write(iulog, *) 'smin_no3_vr_col(c,j), c, j: ', ns%smin_no3_vr_col(c,j), c, j
 !$OMP END MASTER
                      ns%smin_no3_vr_col(c,j) = 0._r8
@@ -185,8 +183,6 @@ contains
                   if ( ns%smin_nh4_vr_col(c,j)  < 0._r8 ) then
 !$OMP MASTER
                      !write(iulog, *) '-10^-12 < smin_nh4 < 0. resetting to zero.'
-!$OMP END MASTER
-!$OMP MASTER
                      !write(iulog, *) 'smin_nh4_vr_col(c,j), c, j: ', ns%smin_nh4_vr_col(c,j), c, j
 !$OMP END MASTER
                      ns%smin_nh4_vr_col(c,j) = 0._r8

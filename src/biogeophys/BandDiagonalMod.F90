@@ -33,7 +33,7 @@ contains
     !
     ! !ARGUMENTS:
     implicit none
-    type(bounds_type), intent(in) :: bounds                    
+    type(bounds_type), intent(in) :: bounds
     integer , intent(in)    :: lbj, ubj                        ! lbinning and ubing level indices
     integer , intent(in)    :: jtop( bounds%begc: )            ! top level for each column [col]
     integer , intent(in)    :: jbot( bounds%begc: )            ! bottom level for each column [col]
@@ -159,8 +159,8 @@ contains
 
 
 !Set up input matrix AB
-!An m-by-n band matrix with kl subdiagonals and ku superdiagonals 
-!may be stored compactly in a two-dimensional array with 
+!An m-by-n band matrix with kl subdiagonals and ku superdiagonals
+!may be stored compactly in a two-dimensional array with
 !kl+ku+1 rows and n columns
 !AB(KL+KU+1+i-j,j) = A(i,j)
 
@@ -197,36 +197,22 @@ contains
        call dgbsv( n, kl, ku, 1, ab, m, ipiv, result, n, info )
        u(ci,jtop(ci):jbot(ci))=result(:)
 
-       if(info /= 0) then 
 !$OMP MASTER
+       if(info /= 0) then
           write(iulog,*)'index: ', ci
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog,*)'n,kl,ku,m ',n,kl,ku,m
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog,*)'dgbsv info: ',ci,info
-!$OMP END MASTER
-          
-!$OMP MASTER
+
           write(iulog,*) ''
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog,*) 'ab matrix'
-!$OMP END MASTER
           do j=1,n
-!$OMP MASTER
              !             write(iulog,'(i2,7f18.7)') j,temp(:,j)
-!$OMP END MASTER
-!$OMP MASTER
              write(iulog,'(i2,5f18.7)') j,temp(3:7,j)
-!$OMP END MASTER
           enddo
-!$OMP MASTER
           write(iulog,*) ''
-!$OMP END MASTER
           call endrun( 'BandDiagonal ERROR: dgbsv returned error code' )
        endif
+!$OMP END MASTER
        deallocate(temp)
 
        deallocate(ab)

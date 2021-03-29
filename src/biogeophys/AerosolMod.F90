@@ -13,7 +13,7 @@ module AerosolMod
   use WaterFluxBulkType    , only : waterfluxbulk_type
   use WaterStateBulkType   , only : waterstatebulk_type
   use WaterDiagnosticBulkType   , only : waterdiagnosticbulk_type
-  use ColumnType       , only : col               
+  use ColumnType       , only : col
   use abortutils       , only : endrun
   !
   ! !PUBLIC TYPES:
@@ -83,17 +83,17 @@ module AerosolMod
    contains
 
      ! Public procedures
-     procedure, public  :: Init         
+     procedure, public  :: Init
      procedure, public  :: Restart
      procedure, public  :: ResetFilter
      procedure, public  :: Reset
 
      ! Private procedures
-     procedure, private :: InitAllocate 
-     procedure, private :: InitHistory  
-     procedure, private :: InitCold     
+     procedure, private :: InitAllocate
+     procedure, private :: InitHistory
+     procedure, private :: InitCold
      procedure, private :: InitReadNML
-       
+
   end type aerosol_type
 
   character(len=*), parameter, private :: sourcefile = &
@@ -106,7 +106,7 @@ contains
   subroutine Init(this, bounds, NLFilename)
 
     class(aerosol_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     character(len=*),  intent(in) :: NLFilename ! Input namelist filename
 
     call this%InitAllocate(bounds)
@@ -121,7 +121,7 @@ contains
     !
     ! !ARGUMENTS:
     class(aerosol_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begc, endc
@@ -190,13 +190,13 @@ contains
     ! !USES:
     use shr_infnan_mod, only: nan => shr_infnan_nan, assignment(=)
     use clm_varcon    , only: spval
-    use clm_varpar    , only: nlevsno 
+    use clm_varpar    , only: nlevsno
     use histFileMod   , only: hist_addfld1d, hist_addfld2d
     use histFileMod   , only: no_snow_normal, no_snow_zero
     !
     ! !ARGUMENTS:
     class(aerosol_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begc, endc
@@ -215,7 +215,7 @@ contains
          avgflag='A', long_name='total BC deposition (dry+wet) from atmosphere', &
          ptr_col=this%flx_bc_dep_col, set_urb=spval)
 
-    this%flx_oc_dep_col(begc:endc) = spval    
+    this%flx_oc_dep_col(begc:endc) = spval
     call hist_addfld1d (fname='OCDEP', units='kg/m^2/s', &
          avgflag='A', long_name='total OC deposition (dry+wet) from atmosphere', &
          ptr_col=this%flx_oc_dep_col, set_urb=spval)
@@ -259,7 +259,7 @@ contains
     !
     ! !ARGUMENTS:
     class(aerosol_type) :: this
-    type(bounds_type) , intent(in) :: bounds                                   
+    type(bounds_type) , intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer  :: c       ! index
@@ -337,34 +337,28 @@ contains
 
     call shr_mpi_bcast (fresh_snw_rds_max       , mpicom)
 
+!$OMP MASTER
    if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,nml=aerosol)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
   end subroutine InitReadNML
 
   !------------------------------------------------------------------------
   subroutine Restart(this, bounds, ncid, flag, &
        h2osoi_ice_col, h2osoi_liq_col)
-    ! 
+    !
     ! !DESCRIPTION:
     ! Read/Write module information to/from restart file.
     !
     ! !USES:
     use clm_varpar , only : nlevsno, nlevsoi
     use clm_varcon , only : spval
-    use clm_varctl , only : iulog  
+    use clm_varctl , only : iulog
     use clm_varpar , only : nlevsno
     use spmdMod    , only : masterproc
     use ncdio_pio  , only : file_desc_t, ncd_double
@@ -372,7 +366,7 @@ contains
     !
     ! !ARGUMENTS:
     class(aerosol_type) :: this
-    type(bounds_type)   , intent(in)    :: bounds                                   
+    type(bounds_type)   , intent(in)    :: bounds
     type(file_desc_t)   , intent(inout) :: ncid                                         ! netcdf id
     character(len=*)    , intent(in)    :: flag                                         ! 'read' or 'write'
     real(r8)            , intent(in)    :: h2osoi_ice_col( bounds%begc: , -nlevsno+1: ) ! ice content (col,lyr) [kg/m2]
@@ -430,7 +424,7 @@ contains
        ! initial run, not restart: initialize mss_dst1 to zero
        this%mss_dst1_col(bounds%begc:bounds%endc,-nlevsno+1:0) = 0._r8
     end if
-    
+
     call restartvar(ncid=ncid, flag=flag, varname='mss_dst2', xtype=ncd_double,  &
          dim1name='column', dim2name='levsno', switchdim=.true., lowerb2=-nlevsno+1, upperb2=0, &
          long_name='snow layer dust species 2 mass', units='kg m-2', &
@@ -458,7 +452,7 @@ contains
        this%mss_dst4_col(bounds%begc:bounds%endc,-nlevsno+1:0) = 0._r8
     end if
 
-    ! initialize other variables that are derived from those stored in the restart buffer (SNICAR variables) 
+    ! initialize other variables that are derived from those stored in the restart buffer (SNICAR variables)
     if (flag == 'read' ) then
        do j = -nlevsno+1,0
           do c = bounds%begc, bounds%endc
@@ -556,7 +550,7 @@ contains
     ! Calculate column-integrated aerosol masses, and
     ! mass concentrations for radiative calculations and output
     ! (based on new snow level state, after SnowFilter is rebuilt.
-    ! NEEDS TO BE AFTER SnowFiler is rebuilt in Hydrology2, otherwise there 
+    ! NEEDS TO BE AFTER SnowFiler is rebuilt in Hydrology2, otherwise there
     ! can be zero snow layers but an active column in filter)
     !
     ! !ARGUMENTS:
@@ -565,7 +559,7 @@ contains
     integer               , intent(in)    :: filter_on(:)   ! column filter for filter-ON points
     integer               , intent(in)    :: num_off        ! number of column non filter-OFF points
     integer               , intent(in)    :: filter_off(:)  ! column filter for filter-OFF points
-    type(waterfluxbulk_type)  , intent(in)    :: waterfluxbulk_inst 
+    type(waterfluxbulk_type)  , intent(in)    :: waterfluxbulk_inst
     type(waterstatebulk_type) , intent(inout) :: waterstatebulk_inst
     type(waterdiagnosticbulk_type) , intent(inout) :: waterdiagnosticbulk_inst
     type(aerosol_type)    , intent(inout) :: aerosol_inst
@@ -577,14 +571,14 @@ contains
     real(r8) :: snowcap_scl_fct ! temporary factor used to correct for snow capping
     !-----------------------------------------------------------------------
 
-    associate(                                                & 
-         snl           => col%snl                           , & ! Input:  [integer  (:)   ]  number of snow layers                    
+    associate(                                                &
+         snl           => col%snl                           , & ! Input:  [integer  (:)   ]  number of snow layers
 
-         h2osoi_ice    => waterstatebulk_inst%h2osoi_ice_col    , & ! Input:  [real(r8) (:,:) ]  ice lens (kg/m2)                      
-         h2osoi_liq    => waterstatebulk_inst%h2osoi_liq_col    , & ! Input:  [real(r8) (:,:) ]  liquid water (kg/m2)                  
+         h2osoi_ice    => waterstatebulk_inst%h2osoi_ice_col    , & ! Input:  [real(r8) (:,:) ]  ice lens (kg/m2)
+         h2osoi_liq    => waterstatebulk_inst%h2osoi_liq_col    , & ! Input:  [real(r8) (:,:) ]  liquid water (kg/m2)
 
          h2osno_top    => waterdiagnosticbulk_inst%h2osno_top_col    , & ! Output: [real(r8) (:)   |  top-layer mass of snow  [kg]
-         snw_rds       => waterdiagnosticbulk_inst%snw_rds_col       , & ! Output: [real(r8) (:,:) ]  effective snow grain radius (col,lyr) [microns, m^-6] 
+         snw_rds       => waterdiagnosticbulk_inst%snw_rds_col       , & ! Output: [real(r8) (:,:) ]  effective snow grain radius (col,lyr) [microns, m^-6]
 
          mss_bcpho     => aerosol_inst%mss_bcpho_col        , & ! Output: [real(r8) (:,:) ]  mass of hydrophobic BC in snow (col,lyr) [kg]
          mss_bcphi     => aerosol_inst%mss_bcphi_col        , & ! Output: [real(r8) (:,:) ]  mass of hydrophillic BC in snow (col,lyr) [kg]
@@ -688,7 +682,7 @@ contains
          c = filter_off(fc)
 
          mss_bc_top(c)      = 0._r8
-         mss_bc_col(c)      = 0._r8    
+         mss_bc_col(c)      = 0._r8
          mss_bcpho(c,:)     = 0._r8
          mss_bcphi(c,:)     = 0._r8
          mss_bctot(c,:)     = 0._r8
@@ -696,7 +690,7 @@ contains
          mss_cnc_bcpho(c,:) = 0._r8
 
          mss_oc_top(c)      = 0._r8
-         mss_oc_col(c)      = 0._r8    
+         mss_oc_col(c)      = 0._r8
          mss_ocpho(c,:)     = 0._r8
          mss_ocphi(c,:)     = 0._r8
          mss_octot(c,:)     = 0._r8
@@ -741,8 +735,8 @@ contains
     integer  :: c,g,j,fc
     !-----------------------------------------------------------------------
 
-    associate(                                                   & 
-         snl              => col%snl                           , & ! Input:  [integer  (:)   ] number of snow layers                     
+    associate(                                                   &
+         snl              => col%snl                           , & ! Input:  [integer  (:)   ] number of snow layers
 
          forc_aer         => atm2lnd_inst%forc_aer_grc         , & ! Input:  [real(r8) (:,:) ] aerosol deposition from atmosphere model (grd,aer) [kg m-1 s-1]
 
@@ -755,14 +749,14 @@ contains
          mss_dst3         => aerosol_inst%mss_dst3_col         , & ! Output: [real(r8) (:,:) ] mass of dust species 3 in snow (col,lyr) [kg]
          mss_dst4         => aerosol_inst%mss_dst4_col         , & ! Output: [real(r8) (:,:) ] mass of dust species 4 in snow (col,lyr) [kg]
 
-         flx_bc_dep       => aerosol_inst%flx_bc_dep_col       , & ! Output: [real(r8) (:)   ] total BC deposition (col) [kg m-2 s-1]  
-         flx_bc_dep_wet   => aerosol_inst%flx_bc_dep_wet_col   , & ! Output: [real(r8) (:)   ] wet BC deposition (col) [kg m-2 s-1]    
-         flx_bc_dep_dry   => aerosol_inst%flx_bc_dep_dry_col   , & ! Output: [real(r8) (:)   ] dry BC deposition (col) [kg m-2 s-1]    
+         flx_bc_dep       => aerosol_inst%flx_bc_dep_col       , & ! Output: [real(r8) (:)   ] total BC deposition (col) [kg m-2 s-1]
+         flx_bc_dep_wet   => aerosol_inst%flx_bc_dep_wet_col   , & ! Output: [real(r8) (:)   ] wet BC deposition (col) [kg m-2 s-1]
+         flx_bc_dep_dry   => aerosol_inst%flx_bc_dep_dry_col   , & ! Output: [real(r8) (:)   ] dry BC deposition (col) [kg m-2 s-1]
          flx_bc_dep_phi   => aerosol_inst%flx_bc_dep_phi_col   , & ! Output: [real(r8) (:)   ] hydrophillic BC deposition (col) [kg m-1 s-1]
          flx_bc_dep_pho   => aerosol_inst%flx_bc_dep_pho_col   , & ! Output: [real(r8) (:)   ] hydrophobic BC deposition (col) [kg m-1 s-1]
-         flx_oc_dep       => aerosol_inst%flx_oc_dep_col       , & ! Output: [real(r8) (:)   ] total OC deposition (col) [kg m-2 s-1]  
-         flx_oc_dep_wet   => aerosol_inst%flx_oc_dep_wet_col   , & ! Output: [real(r8) (:)   ] wet OC deposition (col) [kg m-2 s-1]    
-         flx_oc_dep_dry   => aerosol_inst%flx_oc_dep_dry_col   , & ! Output: [real(r8) (:)   ] dry OC deposition (col) [kg m-2 s-1]    
+         flx_oc_dep       => aerosol_inst%flx_oc_dep_col       , & ! Output: [real(r8) (:)   ] total OC deposition (col) [kg m-2 s-1]
+         flx_oc_dep_wet   => aerosol_inst%flx_oc_dep_wet_col   , & ! Output: [real(r8) (:)   ] wet OC deposition (col) [kg m-2 s-1]
+         flx_oc_dep_dry   => aerosol_inst%flx_oc_dep_dry_col   , & ! Output: [real(r8) (:)   ] dry OC deposition (col) [kg m-2 s-1]
          flx_oc_dep_phi   => aerosol_inst%flx_oc_dep_phi_col   , & ! Output: [real(r8) (:)   ] hydrophillic OC deposition (col) [kg m-1 s-1]
          flx_oc_dep_pho   => aerosol_inst%flx_oc_dep_pho_col   , & ! Output: [real(r8) (:)   ] hydrophobic OC deposition (col) [kg m-1 s-1]
          flx_dst_dep      => aerosol_inst%flx_dst_dep_col      , & ! Output: [real(r8) (:)   ] total dust deposition (col) [kg m-2 s-1]
@@ -777,7 +771,7 @@ contains
          )
 
       !  set aerosol deposition fluxes from forcing array
-      !  The forcing array is either set from an external file 
+      !  The forcing array is either set from an external file
       !  or from fluxes received from the atmosphere model
 
       do c = bounds%begc,bounds%endc

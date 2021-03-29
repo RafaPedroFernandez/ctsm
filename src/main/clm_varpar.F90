@@ -29,13 +29,13 @@ module clm_varpar
   integer, public, parameter :: toplev_equalspace =  6
   integer, public    :: nlevsoi               ! number of hydrologically active soil layers
   integer, public    :: nlevsoifl             ! number of soil layers on input file
-  integer, public    :: nlevgrnd              ! number of ground layers 
+  integer, public    :: nlevgrnd              ! number of ground layers
                                               ! (includes lower layers that are hydrologically inactive)
   integer, public    :: nlevurb               ! number of urban layers
   integer, public    :: nlevmaxurbgrnd        ! maximum of the number of ground and urban layers
   integer, public    :: nlevlak               ! number of lake layers
   integer, public    :: nlevdecomp            ! number of biogeochemically active soil layers
-  integer, public    :: nlevdecomp_full       ! number of biogeochemical layers 
+  integer, public    :: nlevdecomp_full       ! number of biogeochemical layers
                                               ! (includes lower layers that are biogeochemically inactive)
   integer, public    :: nlevsno     =  -1     ! maximum number of snow layers
   integer, public, parameter :: ngases      =   3     ! CH4, O2, & CO2
@@ -100,7 +100,7 @@ contains
   subroutine clm_varpar_init(actual_maxsoil_patches, actual_numcft)
     !
     ! !DESCRIPTION:
-    ! Initialize module variables 
+    ! Initialize module variables
     !
     ! !ARGUMENTS:
     implicit none
@@ -148,8 +148,6 @@ contains
 
 !$OMP MASTER
     if ( masterproc ) write(iulog, *) 'soil_layerstruct_predefined varpar ', soil_layerstruct_predefined
-!$OMP END MASTER
-!$OMP MASTER
     if ( masterproc ) write(iulog, *) 'soil_layerstruct_userdefined varpar ', soil_layerstruct_userdefined
 !$OMP END MASTER
 
@@ -234,23 +232,11 @@ contains
     if ( masterproc )then
 !$OMP MASTER
        write(iulog, *) 'CLM varpar subsurface discretization levels '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, i3)') '    nlevsoi = ', nlevsoi
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, i3)') '    nlevgrnd = ', nlevgrnd
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, i3)') '    nlevdecomp = ', nlevdecomp
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, i3)') '    nlevdecomp_full = ', nlevdecomp_full
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, i3)') '    nlevlak = ', nlevlak
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, *)
 !$OMP END MASTER
     end if

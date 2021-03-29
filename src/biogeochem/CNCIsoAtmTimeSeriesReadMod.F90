@@ -83,7 +83,7 @@ contains
     ! loop over lat bands to pass all three to photosynthesis
     do l = 1,nsectors_c14
        ! interpolate between nearest two points in atm c14 timeseries
-       if (ind_below .eq. 0 ) then 
+       if (ind_below .eq. 0 ) then
           delc14o2_atm(l) = atm_delta_c14(l,1)
        elseif (ind_below .eq. ntim_atm_ts ) then
           delc14o2_atm(l) = atm_delta_c14(l,ntim_atm_ts)
@@ -93,18 +93,18 @@ contains
           twt_1 = 1._r8 - twt_2
           delc14o2_atm(l) = atm_delta_c14(l,ind_below) * twt_1 +  atm_delta_c14(l,ind_below+1) * twt_2
        endif
-    
+
        ! change delta units to ratio
        rc14_atm(l) = (delc14o2_atm(l) * 1.e-3_r8 + 1._r8) * c14ratio
     end do
-    
+
   end subroutine C14BombSpike
 
   !-----------------------------------------------------------------------
   subroutine C14_init_BombSpike()
     !
     ! !DESCRIPTION:
-    ! read netcdf file containing a timeseries of atmospheric delta C14 values; save in module-level array 
+    ! read netcdf file containing a timeseries of atmospheric delta C14 values; save in module-level array
     !
     ! !USES:
     use ncdio_pio   , only : ncd_pio_openfile, ncd_pio_closefile, file_desc_t, ncd_inqdlen, ncd_io
@@ -124,14 +124,12 @@ contains
 
     call getfil(atm_c14_filename, locfn, 0)
 
+!$OMP MASTER
     if ( masterproc ) then
-!$OMP MASTER
        write(iulog, *) 'C14_init_BombSpike: preparing to open file:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, *) trim(locfn)
-!$OMP END MASTER
     endif
+!$OMP END MASTER
 
     call ncd_pio_openfile (ncid, trim(locfn), 0)
 
@@ -209,7 +207,7 @@ contains
 
     ! interpolate between nearest two points in atm c13 timeseries
     ! cdknotes. for now and for simplicity, just use the northern hemisphere values (sector 1)
-    if (ind_below .eq. 0 ) then 
+    if (ind_below .eq. 0 ) then
        delc13o2_atm = atm_delta_c13(1)
     elseif (ind_below .eq. ntim_atm_ts ) then
        delc13o2_atm = atm_delta_c13(ntim_atm_ts)
@@ -230,7 +228,7 @@ contains
   subroutine C13_init_TimeSeries()
     !
     ! !DESCRIPTION:
-    ! read netcdf file containing a timeseries of atmospheric delta C13 values; save in module-level array 
+    ! read netcdf file containing a timeseries of atmospheric delta C13 values; save in module-level array
     !
     ! !USES:
     use ncdio_pio   , only : ncd_pio_openfile, ncd_pio_closefile, file_desc_t, ncd_inqdlen, ncd_io
@@ -249,14 +247,12 @@ contains
 
     call getfil(atm_c13_filename, locfn, 0)
 
+!$OMP MASTER
     if ( masterproc ) then
-!$OMP MASTER
        write(iulog, *) 'C13_init_TimeSeries: preparing to open file:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, *) trim(locfn)
-!$OMP END MASTER
     endif
+!$OMP END MASTER
 
     call ncd_pio_openfile (ncid, trim(locfn), 0)
 

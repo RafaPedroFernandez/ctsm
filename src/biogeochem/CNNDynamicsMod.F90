@@ -14,16 +14,16 @@ module CNNDynamicsMod
   use atm2lndType                     , only : atm2lnd_type
   use CNVegStateType                  , only : cnveg_state_type
   use CNVegCarbonFluxType             , only : cnveg_carbonflux_type
-  use CNVegNitrogenStateType	      , only : cnveg_nitrogenstate_type
-  use CNVegNitrogenFluxType	      , only : cnveg_nitrogenflux_type
+  use CNVegNitrogenStateType          , only : cnveg_nitrogenstate_type
+  use CNVegNitrogenFluxType           , only : cnveg_nitrogenflux_type
   use SoilBiogeochemStateType         , only : soilbiogeochem_state_type
   use SoilBiogeochemNitrogenStateType , only : soilbiogeochem_nitrogenstate_type
   use SoilBiogeochemNitrogenFluxType  , only : soilbiogeochem_nitrogenflux_type
   use WaterDiagnosticBulkType                  , only : waterdiagnosticbulk_type
   use WaterFluxBulkType                   , only : waterfluxbulk_type
   use CropType                        , only : crop_type
-  use ColumnType                      , only : col                
-  use PatchType                       , only : patch                
+  use ColumnType                      , only : col
+  use PatchType                       , only : patch
   use perf_mod                        , only : t_startf, t_stopf
   !
   implicit none
@@ -104,20 +104,14 @@ contains
     call shr_mpi_bcast (freelivfix_intercept, mpicom)
     call shr_mpi_bcast (freelivfix_slope_wET, mpicom)
 
+!$OMP MASTER
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,nml=mineral_nitrogen_dynamics)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
     end if
+!$OMP END MASTER
     params_inst%freelivfix_intercept = freelivfix_intercept
     params_inst%freelivfix_slope_wET = freelivfix_slope_wET
 
@@ -137,19 +131,19 @@ contains
     ! !USES:
     use CNSharedParamsMod    , only: use_fun
     ! !ARGUMENTS:
-    type(bounds_type)        , intent(in)    :: bounds  
+    type(bounds_type)        , intent(in)    :: bounds
     type(atm2lnd_type)       , intent(in)    :: atm2lnd_inst
     type(soilbiogeochem_nitrogenflux_type) , intent(inout) :: soilbiogeochem_nitrogenflux_inst
     !
     ! !LOCAL VARIABLES:
     integer :: g,c                    ! indices
     !-----------------------------------------------------------------------
-    
-    associate(                                                                & 
+
+    associate(                                                                &
          forc_ndep     =>  atm2lnd_inst%forc_ndep_grc ,                       & ! Input:  [real(r8) (:)]  nitrogen deposition rate (gN/m2/s)
          ndep_to_sminn =>  soilbiogeochem_nitrogenflux_inst%ndep_to_sminn_col & ! Output: [real(r8) (:)]  atmospheric N deposition to soil mineral N (gN/m2/s)
          )
-      
+
       ! Loop through columns
       do c = bounds%begc, bounds%endc
          g = col%gridcell(c)
@@ -169,31 +163,31 @@ contains
     use clm_time_manager , only : get_days_per_year
     use shr_sys_mod      , only : shr_sys_flush
     use clm_varcon       , only : secspday, spval
- 
-    integer                                , intent(in)    :: num_soilc       ! number of soil columns in filter                                                                                                                     
-    integer                                , intent(in)    :: filter_soilc(:) ! filter for soil columns                                                                                                                                  
-   
-    type(soilbiogeochem_nitrogenflux_type) , intent(inout) :: soilbiogeochem_nitrogenflux_inst 
-    type(waterfluxbulk_type)                   , intent(inout) :: waterfluxbulk_inst 
+
+    integer                                , intent(in)    :: num_soilc       ! number of soil columns in filter
+    integer                                , intent(in)    :: filter_soilc(:) ! filter for soil columns
+
+    type(soilbiogeochem_nitrogenflux_type) , intent(inout) :: soilbiogeochem_nitrogenflux_inst
+    type(waterfluxbulk_type)                   , intent(inout) :: waterfluxbulk_inst
     !
-    ! !LOCAL VARIABLES:                                                                                                                                                                                                           
-    integer  :: c,fc            !indices     
-    real(r8) :: dayspyr         !days per year 
-    real(r8) :: secs_per_year   !seconds per year   
+    ! !LOCAL VARIABLES:
+    integer  :: c,fc            !indices
+    real(r8) :: dayspyr         !days per year
+    real(r8) :: secs_per_year   !seconds per year
 
        associate(                                                                        &
                   AnnET            => waterfluxbulk_inst%AnnET,                              & ! Input:  [real(:)  ] : Annual average ET flux mmH20/s
                   freelivfix_slope => params_inst%freelivfix_slope_wET,                  & ! Input:  [real     ] : slope of fixation with ET
                   freelivfix_inter => params_inst%freelivfix_intercept,                  & ! Input:  [real     ] : intercept of fixation with ET
                   ffix_to_sminn    => soilbiogeochem_nitrogenflux_inst%ffix_to_sminn_col & ! Output: [real(:)  ] : free living N fixation to soil mineral N (gN/m2/s)
-                ) 
-       
+                )
+
        dayspyr = get_days_per_year()
        secs_per_year = dayspyr*24_r8*3600_r8
 
        do fc = 1,num_soilc
            c = filter_soilc(fc)
-          ffix_to_sminn(c) = (freelivfix_slope*(max(0._r8,AnnET(c))*secs_per_year) + freelivfix_inter )/secs_per_year !(units g N m-2 s-1)  
+          ffix_to_sminn(c) = (freelivfix_slope*(max(0._r8,AnnET(c))*secs_per_year) + freelivfix_inter )/secs_per_year !(units g N m-2 s-1)
 
        end do
 
@@ -219,7 +213,7 @@ contains
     integer                                , intent(in)    :: num_soilc       ! number of soil columns in filter
     integer                                , intent(in)    :: filter_soilc(:) ! filter for soil columns
     type(cnveg_carbonflux_type)            , intent(inout) :: cnveg_carbonflux_inst
-    type(soilbiogeochem_nitrogenflux_type) , intent(inout) :: soilbiogeochem_nitrogenflux_inst 
+    type(soilbiogeochem_nitrogenflux_type) , intent(inout) :: soilbiogeochem_nitrogenflux_inst
     !
     ! !LOCAL VARIABLES:
     integer  :: c,fc                  ! indices
@@ -227,9 +221,9 @@ contains
     real(r8) :: dayspyr               ! days per year
     !-----------------------------------------------------------------------
 
-    associate(                                                                & 
-         cannsum_npp    => cnveg_carbonflux_inst%annsum_npp_col ,             & ! Input:  [real(r8) (:)]  nitrogen deposition rate (gN/m2/s)                
-         col_lag_npp    => cnveg_carbonflux_inst%lag_npp_col    ,             & ! Input: [real(r8) (:)]  (gC/m2/s) lagged net primary production           
+    associate(                                                                &
+         cannsum_npp    => cnveg_carbonflux_inst%annsum_npp_col ,             & ! Input:  [real(r8) (:)]  nitrogen deposition rate (gN/m2/s)
+         col_lag_npp    => cnveg_carbonflux_inst%lag_npp_col    ,             & ! Input: [real(r8) (:)]  (gC/m2/s) lagged net primary production
 
          nfix_to_sminn  => soilbiogeochem_nitrogenflux_inst%nfix_to_sminn_col & ! Output: [real(r8) (:)]  symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s)
          )
@@ -240,11 +234,11 @@ contains
          ! use exponential relaxation with time constant nfix_timeconst for NPP - NFIX relation
          ! Loop through columns
          do fc = 1,num_soilc
-            c = filter_soilc(fc)         
+            c = filter_soilc(fc)
 
             if (col_lag_npp(c) /= spval) then
                ! need to put npp in units of gC/m^2/year here first
-               t = (1.8_r8 * (1._r8 - exp(-0.003_r8 * col_lag_npp(c)*(secspday * dayspyr))))/(secspday * dayspyr)  
+               t = (1.8_r8 * (1._r8 - exp(-0.003_r8 * col_lag_npp(c)*(secspday * dayspyr))))/(secspday * dayspyr)
                nfix_to_sminn(c) = max(0._r8,t)
             else
                nfix_to_sminn(c) = 0._r8
@@ -266,7 +260,7 @@ contains
     end associate
 
   end subroutine CNNFixation
- 
+
   !-----------------------------------------------------------------------
   subroutine CNNFert(bounds, num_soilc, filter_soilc, &
        cnveg_nitrogenflux_inst, soilbiogeochem_nitrogenflux_inst)
@@ -278,21 +272,21 @@ contains
     ! !USES:
     !
     ! !ARGUMENTS:
-    type(bounds_type)                      , intent(in)    :: bounds  
+    type(bounds_type)                      , intent(in)    :: bounds
     integer                                , intent(in)    :: num_soilc       ! number of soil columns in filter
     integer                                , intent(in)    :: filter_soilc(:) ! filter for soil columns
     type(cnveg_nitrogenflux_type)          , intent(in)    :: cnveg_nitrogenflux_inst
-    type(soilbiogeochem_nitrogenflux_type) , intent(inout) :: soilbiogeochem_nitrogenflux_inst 
+    type(soilbiogeochem_nitrogenflux_type) , intent(inout) :: soilbiogeochem_nitrogenflux_inst
     !
     ! !LOCAL VARIABLES:
     integer :: c,fc                 ! indices
     !-----------------------------------------------------------------------
 
-    associate(                                                                  &   
-         fert          =>    cnveg_nitrogenflux_inst%fert_patch ,               & ! Input:  [real(r8) (:)]  nitrogen fertilizer rate (gN/m2/s)                
-         fert_to_sminn =>    soilbiogeochem_nitrogenflux_inst%fert_to_sminn_col & ! Output: [real(r8) (:)]                                                    
+    associate(                                                                  &
+         fert          =>    cnveg_nitrogenflux_inst%fert_patch ,               & ! Input:  [real(r8) (:)]  nitrogen fertilizer rate (gN/m2/s)
+         fert_to_sminn =>    soilbiogeochem_nitrogenflux_inst%fert_to_sminn_col & ! Output: [real(r8) (:)]
          )
-      
+
       call p2c(bounds, num_soilc, filter_soilc, &
            fert(bounds%begp:bounds%endp), &
            fert_to_sminn(bounds%begc:bounds%endc))
@@ -317,7 +311,7 @@ contains
     use pftconMod, only : ntrp_soybean, nirrig_trp_soybean
     !
     ! !ARGUMENTS:
-    type(bounds_type)                       , intent(in)    :: bounds  
+    type(bounds_type)                       , intent(in)    :: bounds
     integer                                 , intent(in)    :: num_soilc       ! number of soil columns in filter
     integer                                 , intent(in)    :: filter_soilc(:) ! filter for soil columns
     integer                                 , intent(in)    :: num_soilp       ! number of soil patches in filter
@@ -328,7 +322,7 @@ contains
     type(cnveg_nitrogenflux_type)           , intent(inout) :: cnveg_nitrogenflux_inst
     type(soilbiogeochem_state_type)         , intent(in)    :: soilbiogeochem_state_inst
     type(soilbiogeochem_nitrogenstate_type) , intent(in)    :: soilbiogeochem_nitrogenstate_inst
-    type(soilbiogeochem_nitrogenflux_type)  , intent(inout) :: soilbiogeochem_nitrogenflux_inst 
+    type(soilbiogeochem_nitrogenflux_type)  , intent(inout) :: soilbiogeochem_nitrogenflux_inst
     !
     ! !LOCAL VARIABLES:
     integer :: fp,p,c
@@ -340,21 +334,21 @@ contains
     real(r8):: GDDfracthreshold3, GDDfracthreshold4
     !-----------------------------------------------------------------------
 
-    associate(                                                                      & 
-         wf               =>  waterdiagnosticbulk_inst%wf_col                      ,         & ! Input:  [real(r8) (:) ]  soil water as frac. of whc for top 0.5 m          
+    associate(                                                                      &
+         wf               =>  waterdiagnosticbulk_inst%wf_col                      ,         & ! Input:  [real(r8) (:) ]  soil water as frac. of whc for top 0.5 m
 
-         hui              =>  crop_inst%gddplant_patch                    ,         & ! Input:  [real(r8) (:) ]  gdd since planting (gddplant)                    
-         croplive         =>  crop_inst%croplive_patch                    ,         & ! Input:  [logical  (:) ]  true if planted and not harvested                  
+         hui              =>  crop_inst%gddplant_patch                    ,         & ! Input:  [real(r8) (:) ]  gdd since planting (gddplant)
+         croplive         =>  crop_inst%croplive_patch                    ,         & ! Input:  [logical  (:) ]  true if planted and not harvested
 
-         gddmaturity      =>  cnveg_state_inst%gddmaturity_patch          ,         & ! Input:  [real(r8) (:) ]  gdd needed to harvest                             
+         gddmaturity      =>  cnveg_state_inst%gddmaturity_patch          ,         & ! Input:  [real(r8) (:) ]  gdd needed to harvest
 
-         plant_ndemand    =>  cnveg_nitrogenflux_inst%plant_ndemand_patch ,         & ! Input:  [real(r8) (:) ]  N flux required to support initial GPP (gN/m2/s)  
-         soyfixn          =>  cnveg_nitrogenflux_inst%soyfixn_patch       ,         & ! Output: [real(r8) (:) ]  nitrogen fixed to each soybean crop               
+         plant_ndemand    =>  cnveg_nitrogenflux_inst%plant_ndemand_patch ,         & ! Input:  [real(r8) (:) ]  N flux required to support initial GPP (gN/m2/s)
+         soyfixn          =>  cnveg_nitrogenflux_inst%soyfixn_patch       ,         & ! Output: [real(r8) (:) ]  nitrogen fixed to each soybean crop
 
-         fpg              =>  soilbiogeochem_state_inst%fpg_col           ,         & ! Input:  [real(r8) (:) ]  fraction of potential gpp (no units)              
+         fpg              =>  soilbiogeochem_state_inst%fpg_col           ,         & ! Input:  [real(r8) (:) ]  fraction of potential gpp (no units)
 
-         sminn            =>  soilbiogeochem_nitrogenstate_inst%sminn_col ,         & ! Input:  [real(r8) (:) ]  (kgN/m2) soil mineral N                           
-         soyfixn_to_sminn =>  soilbiogeochem_nitrogenflux_inst%soyfixn_to_sminn_col & ! Output: [real(r8) (:) ]                                                    
+         sminn            =>  soilbiogeochem_nitrogenstate_inst%sminn_col ,         & ! Input:  [real(r8) (:) ]  (kgN/m2) soil mineral N
+         soyfixn_to_sminn =>  soilbiogeochem_nitrogenflux_inst%soyfixn_to_sminn_col & ! Output: [real(r8) (:) ]
          )
 
       sminnthreshold1 = 30._r8
@@ -403,7 +397,7 @@ contains
                ! slevis: to replace GDDfrac, assume...
                ! Beth's crit_offset_gdd_def is similar to my gddmaturity
                ! Beth's ac_gdd (base 5C) similar to my hui=gddplant (base 10
-               ! for soy) 
+               ! for soy)
                ! Ranges below are not firm. Are they lit. based or tuning based?
 
                GDDfrac = hui(p) / gddmaturity(p)
@@ -422,7 +416,7 @@ contains
 
                ! calculate the nitrogen fixed by the soybean
 
-               fxr = min(1._r8, fxw, fxn) * fxg 
+               fxr = min(1._r8, fxw, fxn) * fxg
                fxr = max(0._r8, fxr)
                soyfixn(p) =  fxr * soy_ndemand
                soyfixn(p) = min(soyfixn(p), soy_ndemand)

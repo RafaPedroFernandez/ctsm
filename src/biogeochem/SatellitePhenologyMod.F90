@@ -148,31 +148,20 @@ contains
     call shr_mpi_bcast(stream_fldFileName_lai, mpicom)
     call shr_mpi_bcast(lai_tintalgo, mpicom)
 
+!$OMP MASTER
     if (masterproc) then
 
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'lai_stream settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  stream_year_first_lai  = ',stream_year_first_lai
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  stream_year_last_lai   = ',stream_year_last_lai
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  model_year_align_lai   = ',model_year_align_lai
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  stream_fldFileName_lai = ',trim(stream_fldFileName_lai)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  lai_tintalgo           = ',trim(lai_tintalgo)
-!$OMP END MASTER
 
     endif
+!$OMP END MASTER
+
 
     call clm_domain_mct (bounds, dom_clm)
 
@@ -492,14 +481,12 @@ contains
     timwt(2) = 1._r8-timwt(1)
 
     if (InterpMonths1 /= months(1)) then
+!$OMP MASTER
        if (masterproc) then
-!$OMP MASTER
           write(iulog,*) 'Attempting to read monthly vegetation data .....'
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog,*) 'nstep = ',get_nstep(),' month = ',kmo,' day = ',kda
-!$OMP END MASTER
        end if
+!$OMP END MASTER
        call t_startf('readMonthlyVeg')
        call readMonthlyVegetation (bounds, fsurdat, months, canopystate_inst)
        InterpMonths1 = months(1)
@@ -562,21 +549,15 @@ contains
     call ncd_pio_openfile (ncid, trim(locfn), 0)
     call ncd_inqfdims (ncid, isgrid2d, ni, nj, ns)
 
+!$OMP MASTER
     if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
-!$OMP MASTER
        write(iulog,*)trim(subname), 'ldomain and input file do not match dims '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
-!$OMP END MASTER
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
+!$OMP END MASTER
     call check_dim_size(ncid, 'lsmpft', maxsoil_patches)
 
     do k=1,12   !! loop over months and read vegetated data
@@ -716,18 +697,14 @@ contains
 
     call ncd_pio_closefile(ncid)
 
+!$OMP MASTER
     if (masterproc) then
        k = 2
-!$OMP MASTER
        write(iulog,*) 'Successfully read monthly vegetation data for'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'month ', months(k)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
     deallocate(mlai, msai, mhgtt, mhgtb)
 

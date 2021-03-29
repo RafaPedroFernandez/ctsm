@@ -6,8 +6,8 @@ module organicFileMod
 ! !MODULE: organicFileMod
 !
 ! !DESCRIPTION:
-! Contains methods for reading in organic matter data file which has 
-! organic matter density for each grid point and soil level 
+! Contains methods for reading in organic matter data file which has
+! organic matter density for each grid point and soil level
 !
 ! !USES
   use abortutils   , only : endrun
@@ -30,7 +30,7 @@ module organicFileMod
 !
 !EOP
 !
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 
 contains
 
@@ -42,7 +42,7 @@ contains
 ! !INTERFACE:
   subroutine organicrd(organic)
 !
-! !DESCRIPTION: 
+! !DESCRIPTION:
 ! Read the organic matter dataset.
 !
 ! !USES:
@@ -68,7 +68,7 @@ contains
 !EOP
     character(len=256) :: locfn                 ! local file name
     type(file_desc_t)  :: ncid                  ! netcdf id
-    integer            :: ni,nj,ns              ! dimension sizes  
+    integer            :: ni,nj,ns              ! dimension sizes
     logical            :: isgrid2d              ! true => file is 2d
     logical            :: readvar               ! true => variable is on dataset
     character(len=32)  :: subname = 'organicrd' ! subroutine name
@@ -77,16 +77,14 @@ contains
     ! Initialize data to zero - no organic matter dataset
 
     organic(:,:)   = 0._r8
-       
+
     ! Read data if file was specified in namelist
-       
+
     if (fsurdat /= ' ') then
        if (masterproc) then
 !$OMP MASTER
           write(iulog,*) 'Attempting to read organic matter data .....'
-!$OMP END MASTER
-!$OMP MASTER
-	  write(iulog,*) subname,trim(fsurdat)
+          write(iulog,*) subname,trim(fsurdat)
 !$OMP END MASTER
        end if
 
@@ -97,19 +95,13 @@ contains
        if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
 !$OMP MASTER
           write(iulog,*)trim(subname), 'ldomain and input file do not match dims '
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
 !$OMP END MASTER
           call endrun()
        end if
-       
+
        call ncd_io(ncid=ncid, varname='ORGANIC', flag='read', data=organic, &
             dim1name=grlnd, readvar=readvar)
        if (.not. readvar) call endrun('organicrd: errror reading ORGANIC')
@@ -117,8 +109,6 @@ contains
        if ( masterproc )then
 !$OMP MASTER
           write(iulog,*) 'Successfully read organic matter data'
-!$OMP END MASTER
-!$OMP MASTER
           write(iulog,*)
 !$OMP END MASTER
        end if

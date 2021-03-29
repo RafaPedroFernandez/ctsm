@@ -112,7 +112,7 @@ module  PhotosynthesisMod
      procedure, private :: allocParams
   end type photo_params_type
   !
-  type(photo_params_type), public, protected :: params_inst  ! params_inst is populated in readParamsMod 
+  type(photo_params_type), public, protected :: params_inst  ! params_inst is populated in readParamsMod
 
   type, public :: photosyns_type
 
@@ -198,8 +198,8 @@ module  PhotosynthesisMod
 
 
      ! LUNA specific variables
-     real(r8), pointer, public  :: vcmx25_z_patch    (:,:) ! patch  leaf Vc,max25 (umol CO2/m**2/s) for canopy layer 
-     real(r8), pointer, public  :: jmx25_z_patch     (:,:) ! patch  leaf Jmax25 (umol electron/m**2/s) for canopy layer 
+     real(r8), pointer, public  :: vcmx25_z_patch    (:,:) ! patch  leaf Vc,max25 (umol CO2/m**2/s) for canopy layer
+     real(r8), pointer, public  :: jmx25_z_patch     (:,:) ! patch  leaf Jmax25 (umol electron/m**2/s) for canopy layer
      real(r8), pointer, public  :: vcmx25_z_last_valid_patch  (:,:) ! patch  leaf Vc,max25 at the end of the growing season for the previous year
      real(r8), pointer, public  :: jmx25_z_last_valid_patch   (:,:) ! patch  leaf Jmax25 at the end of the growing season for the previous year
      real(r8), pointer, public  :: pnlc_z_patch      (:,:) ! patch proportion of leaf nitrogen allocated for light capture for canopy layer
@@ -313,7 +313,7 @@ contains
     allocate(this%fpsn_wc_patch     (begp:endp))           ; this%fpsn_wc_patch     (:)   = nan
     allocate(this%fpsn_wj_patch     (begp:endp))           ; this%fpsn_wj_patch     (:)   = nan
     allocate(this%fpsn_wp_patch     (begp:endp))           ; this%fpsn_wp_patch     (:)   = nan
-    
+
     allocate(this%lnca_patch        (begp:endp))           ; this%lnca_patch        (:)   = nan
 
     allocate(this%lmrsun_z_patch    (begp:endp,1:nlevcan)) ; this%lmrsun_z_patch    (:,:) = nan
@@ -345,7 +345,7 @@ contains
       ! when luna is turned on, they can not be placed into associate
       ! statements.
       allocate(this%vcmx25_z_patch  (begp:endp,1:nlevcan)) ; this%vcmx25_z_patch    (:,:) = 30._r8
-      allocate(this%jmx25_z_patch   (begp:endp,1:nlevcan)) ; this%jmx25_z_patch     (:,:) = 60._r8 
+      allocate(this%jmx25_z_patch   (begp:endp,1:nlevcan)) ; this%jmx25_z_patch     (:,:) = 60._r8
       allocate(this%vcmx25_z_last_valid_patch     (begp:endp,1:nlevcan)) ; this%vcmx25_z_last_valid_patch       (:,:) = 30._r8
       allocate(this%jmx25_z_last_valid_patch      (begp:endp,1:nlevcan)) ; this%jmx25_z_last_valid_patch        (:,:) = 60._r8
       allocate(this%pnlc_z_patch    (begp:endp,1:nlevcan)) ; this%pnlc_z_patch      (:,:) = 0.01_r8
@@ -500,7 +500,7 @@ contains
 
     this%gs_mol_sun_patch(begp:endp,:) = spval
     this%gs_mol_sha_patch(begp:endp,:) = spval
-    if (nlevcan>1) then 
+    if (nlevcan>1) then
        call hist_addfld2d (fname='GSSUN', units='umol H20/m2/s', type2d='nlevcan', &
           avgflag='A', long_name='sunlit leaf stomatal conductance', &
           ptr_patch=this%gs_mol_sun_patch, set_lake=spval, set_urb=spval)
@@ -542,12 +542,12 @@ contains
           ptr_patch=ptr_1d)
 
     endif
-    if(use_luna)then  
+    if(use_luna)then
        if(nlevcan>1)then
          call hist_addfld2d (fname='Vcmx25Z', units='umol/m2/s', type2d='nlevcan', &
             avgflag='A', long_name='canopy profile of vcmax25 predicted by LUNA model', &
             ptr_patch=this%vcmx25_z_patch)
- 
+
          call hist_addfld2d (fname='Jmx25Z', units='umol electrons/m2/s', type2d='nlevcan', &
             avgflag='A', long_name='maximum rate of electron transport at 25 Celcius for canopy layers', &
             ptr_patch=this%jmx25_z_patch)
@@ -585,11 +585,11 @@ contains
             ptr_patch=this%lutpu25top_patch, set_lake=spval, set_urb=spval)
 
        endif
-       this%fpsn24_patch = spval 
+       this%fpsn24_patch = spval
        call hist_addfld1d (fname='FPSN24', units='umol CO2/m^2 ground/day',&
            avgflag='A', long_name='24 hour accumulative patch photosynthesis starting from mid-night', &
            ptr_patch=this%fpsn24_patch, default='inactive')
-   
+
     endif
 
   end subroutine InitHistory
@@ -826,20 +826,14 @@ contains
     call shr_mpi_bcast (this%stomatalcond_mtd, mpicom)
     call shr_mpi_bcast (this%modifyphoto_and_lmr_forcrop, mpicom)
 
+!$OMP MASTER
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname//' settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,nml=photosyns_inparm)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
   end subroutine ReadNML
 
@@ -879,7 +873,7 @@ contains
          dim1name='pft', dim2name='levcan', switchdim=.true., &
          long_name='sunlit leaf stomatal conductance', units='umol H20/m2/s', &
          interpinic_flag='interp', readvar=readvar, data=this%gs_mol_sun_patch)
-    
+
     call restartvar(ncid=ncid, flag=flag, varname='GSSHA', xtype=ncd_double,  &
          dim1name='pft', dim2name='levcan', switchdim=.true., &
          long_name='shaded leaf stomatal conductance', units='umol H20/m2/s', &
@@ -896,7 +890,7 @@ contains
          long_name='shaded leaf stomatal conductance averaged over 1 hour before to 1 hour after local noon', &
          units='umol H20/m2/s', &
          interpinic_flag='interp', readvar=readvar, data=this%gs_mol_sha_ln_patch)
-    
+
     call restartvar(ncid=ncid, flag=flag, varname='lnca', xtype=ncd_double,  &
        dim1name='pft', long_name='leaf N concentration', units='gN leaf/m^2', &
        interpinic_flag='interp', readvar=readvar, data=this%lnca_patch)
@@ -928,26 +922,26 @@ contains
          interpinic_flag='interp', readvar=readvar, data=this%enzs_z_patch )
       call restartvar(ncid=ncid, flag=flag, varname='gpp24', xtype=ncd_double,  &
             dim1name='pft', long_name='accumulative gross primary production', units='umol CO2/m**2 ground/day', &
-            interpinic_flag='interp', readvar=readvar, data=this%fpsn24_patch)    
+            interpinic_flag='interp', readvar=readvar, data=this%fpsn24_patch)
    endif
    call restartvar(ncid=ncid, flag=flag, varname='vcmx25t', xtype=ncd_double,  &
          dim1name='pft', long_name='canopy profile of vcmax25', &
          units='umol/m2/s', &
-         interpinic_flag='interp', readvar=readvar, data=this%luvcmax25top_patch)    
+         interpinic_flag='interp', readvar=readvar, data=this%luvcmax25top_patch)
 
    call restartvar(ncid=ncid, flag=flag, varname='jmx25t', xtype=ncd_double,  &
          dim1name='pft', long_name='canopy profile of jmax', &
          units='umol/m2/s', &
-         interpinic_flag='interp', readvar=readvar, data=this%lujmax25top_patch)    
+         interpinic_flag='interp', readvar=readvar, data=this%lujmax25top_patch)
 
    call restartvar(ncid=ncid, flag=flag, varname='tpu25t', xtype=ncd_double,  &
          dim1name='pft', long_name='canopy profile of tpu', &
          units='umol/m2/s', &
-         interpinic_flag='interp', readvar=readvar, data=this%lutpu25top_patch)    
+         interpinic_flag='interp', readvar=readvar, data=this%lutpu25top_patch)
 
    call restartvar(ncid=ncid, flag=flag, varname='VPD_CAN', xtype=ncd_double,  &
          dim1name='pft', long_name='canopy vapor pressure deficit', &
-         units='kPa', &                                             
+         units='kPa', &
          interpinic_flag='interp', readvar=readvar, data=this%vpd_can_patch)
 
 
@@ -1064,7 +1058,7 @@ contains
     use GridcellType      , only : grc
     use clm_time_manager  , only : get_step_size_real, is_near_local_noon
     use clm_varctl     , only : cnallocate_carbon_only
-    use clm_varctl     , only : lnc_opt, reduce_dayl_factor, vcmax_opt    
+    use clm_varctl     , only : lnc_opt, reduce_dayl_factor, vcmax_opt
     use pftconMod      , only : nbrdlf_dcd_tmp_shrub, npcropmin
 
     !
@@ -1181,9 +1175,9 @@ contains
     real(r8) , pointer :: alphapsnsun (:)
     real(r8) , pointer :: alphapsnsha (:)
 
-    real(r8) :: sum_nscaler              
-    real(r8) :: total_lai                
-    integer  :: nptreemax                
+    real(r8) :: sum_nscaler
+    real(r8) :: total_lai
+    integer  :: nptreemax
 
     real(r8) :: dtime                           ! land model time step (sec)
     integer  :: g                               ! index
@@ -1208,16 +1202,16 @@ contains
 
     associate(                                                 &
          c3psn      => pftcon%c3psn                          , & ! Input:  photosynthetic pathway: 0. = c4, 1. = c3
-	 crop       => pftcon%crop                           , & ! Input:  crop or not (0 =not crop and 1 = crop)
+         crop       => pftcon%crop                           , & ! Input:  crop or not (0 =not crop and 1 = crop)
          leafcn     => pftcon%leafcn                         , & ! Input:  leaf C:N (gC/gN)
          flnr       => pftcon%flnr                           , & ! Input:  fraction of leaf N in the Rubisco enzyme (gN Rubisco / gN leaf)
          fnitr      => pftcon%fnitr                          , & ! Input:  foliage nitrogen limitation factor (-)
          slatop     => pftcon%slatop                         , & ! Input:  specific leaf area at top of canopy, projected area basis [m^2/gC]
-         dsladlai   => pftcon%dsladlai                       , & ! Input:  change in sla per unit lai  
-         i_vcad     => pftcon%i_vcad                         , & ! Input:  [real(r8) (:)   ]  
-         s_vcad     => pftcon%s_vcad                         , & ! Input:  [real(r8) (:)   ]  
-         i_flnr     => pftcon%i_flnr                         , & ! Input:  [real(r8) (:)   ]  
-         s_flnr     => pftcon%s_flnr                         , & ! Input:  [real(r8) (:)   ]  
+         dsladlai   => pftcon%dsladlai                       , & ! Input:  change in sla per unit lai
+         i_vcad     => pftcon%i_vcad                         , & ! Input:  [real(r8) (:)   ]
+         s_vcad     => pftcon%s_vcad                         , & ! Input:  [real(r8) (:)   ]
+         i_flnr     => pftcon%i_flnr                         , & ! Input:  [real(r8) (:)   ]
+         s_flnr     => pftcon%s_flnr                         , & ! Input:  [real(r8) (:)   ]
          mbbopt     => pftcon%mbbopt                         , & ! Input:  [real(r8) (:)   ]  Ball-Berry slope of conduct/photosyn (umol H2O/umol CO2)
          ivt        => patch%itype                           , & ! Input:  [integer  (:)   ]  patch vegetation type
          forc_pbot  => atm2lnd_inst%forc_pbot_downscaled_col , & ! Input:  [real(r8) (:)   ]  atmospheric pressure (Pa)
@@ -1228,7 +1222,7 @@ contains
 
          nrad       => surfalb_inst%nrad_patch               , & ! Input:  [integer  (:)   ]  pft number of canopy layers, above snow for radiative transfer
          tlai_z     => surfalb_inst%tlai_z_patch             , & ! Input:  [real(r8) (:,:) ]  pft total leaf area index for canopy layer
-         tlai       => canopystate_inst%tlai_patch           , & ! Input:  [real(r8)(:)    ]  one-sided leaf area index, no burying by snow  
+         tlai       => canopystate_inst%tlai_patch           , & ! Input:  [real(r8)(:)    ]  one-sided leaf area index, no burying by snow
          c3flag     => photosyns_inst%c3flag_patch           , & ! Output: [logical  (:)   ]  true if C3 and false if C4
          ac         => photosyns_inst%ac_patch               , & ! Output: [real(r8) (:,:) ]  Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
          aj         => photosyns_inst%aj_patch               , & ! Output: [real(r8) (:,:) ]  RuBP-limited gross photosynthesis (umol CO2/m**2/s)
@@ -1370,68 +1364,68 @@ contains
       do f = 1, fn
          p = filterp(f)
 
-         if (lnc_opt .eqv. .false.) then     
+         if (lnc_opt .eqv. .false.) then
             ! Leaf nitrogen concentration at the top of the canopy (g N leaf / m**2 leaf)
-            
+
            if ( (slatop(patch%itype(p)) *leafcn(patch%itype(p))) .le. 0.0_r8)then
               call endrun( "ERROR: slatop or leafcn is zero" )
            end if
            lnc(p) = 1._r8 / (slatop(patch%itype(p)) * leafcn(patch%itype(p)))
-         end if   
+         end if
 
          ! Using the actual nitrogen allocated to the leaf after
          ! uptake rather than fixing leaf nitrogen based on SLA and CN
          ! ratio
-         if (lnc_opt .eqv. .true.) then                                                     
+         if (lnc_opt .eqv. .true.) then
             ! nlevcan and nrad(p) look like the same variable ?? check this later
-            sum_nscaler = 0.0_r8                                                    
-            laican = 0.0_r8                                                         
-            total_lai = 0.0_r8                                                      
+            sum_nscaler = 0.0_r8
+            laican = 0.0_r8
+            total_lai = 0.0_r8
 
-            do iv = 1, nrad(p)                                                      
+            do iv = 1, nrad(p)
 
-               if (iv == 1) then                                                    
-                  laican = 0.5_r8 * tlai_z(p,iv)                                    
-                  total_lai = tlai_z(p,iv)                                          
-               else                                                                 
-                  laican = laican + 0.5_r8 * (tlai_z(p,iv-1)+tlai_z(p,iv))          
-                  total_lai = total_lai + tlai_z(p,iv)                              
-               end if                                                               
+               if (iv == 1) then
+                  laican = 0.5_r8 * tlai_z(p,iv)
+                  total_lai = tlai_z(p,iv)
+               else
+                  laican = laican + 0.5_r8 * (tlai_z(p,iv-1)+tlai_z(p,iv))
+                  total_lai = total_lai + tlai_z(p,iv)
+               end if
 
                ! Scale for leaf nitrogen profile. If multi-layer code, use explicit
                ! profile. If sun/shade big leaf code, use canopy integrated factor.
-               if (nlevcan == 1) then                                               
-                  nscaler = 1.0_r8                                                  
-               else if (nlevcan > 1) then                                           
-                  nscaler = exp(-kn(p) * laican)                                    
-               end if                                                               
+               if (nlevcan == 1) then
+                  nscaler = 1.0_r8
+               else if (nlevcan > 1) then
+                  nscaler = exp(-kn(p) * laican)
+               end if
 
-               sum_nscaler = sum_nscaler + nscaler                                  
+               sum_nscaler = sum_nscaler + nscaler
 
-            end do                                                                  
+            end do
 
             if (tlai(p) > 0.0_r8 .AND. sum_nscaler > 0.0_r8) then
                ! dividing by LAI to convert total leaf nitrogen
                ! from m2 ground to m2 leaf; dividing by sum_nscaler to
                ! convert total leaf N to leaf N at canopy top
                lnc(p) = leafn(p) / (tlai(p) * sum_nscaler)
-            else                                                                    
-               lnc(p) = 0.0_r8                                                      
-            end if                                                                  
+            else
+               lnc(p) = 0.0_r8
+            end if
 
-         end if                                                                     
+         end if
 
 
-         ! reduce_dayl_factor .eqv. .false.  
-         if (reduce_dayl_factor .eqv. .true.) then                                          
+         ! reduce_dayl_factor .eqv. .false.
+         if (reduce_dayl_factor .eqv. .true.) then
             if (dayl_factor(p) > 0.25_r8) then
-               ! dayl_factor(p) = 1.0_r8  
-            end if                                                                  
-         end if                                                                     
+               ! dayl_factor(p) = 1.0_r8
+            end if
+         end if
 
 
          ! Default
-         if (vcmax_opt == 0) then                                                   
+         if (vcmax_opt == 0) then
             ! vcmax25 at canopy top, as in CN but using lnc at top of the canopy
             vcmax25top = lnc(p) * flnr(patch%itype(p)) * params_inst%fnr * params_inst%act25 * dayl_factor(p)
             if (.not. use_cn) then
@@ -1439,21 +1433,21 @@ contains
             else
                if ( CNAllocate_Carbon_only() ) vcmax25top = vcmax25top * fnitr(patch%itype(p))
             end if
-         else if (vcmax_opt == 3) then                                                                   
-            vcmax25top = ( i_vcad(patch%itype(p)) + s_vcad(patch%itype(p)) * lnc(p) ) * dayl_factor(p)  
-         else if (vcmax_opt == 4) then                                                                   
-            nptreemax = 9  ! is this number correct? check later 
-            if (patch%itype(p) >= nptreemax) then   ! if not tree 
-               ! for shrubs and herbs 
+         else if (vcmax_opt == 3) then
+            vcmax25top = ( i_vcad(patch%itype(p)) + s_vcad(patch%itype(p)) * lnc(p) ) * dayl_factor(p)
+         else if (vcmax_opt == 4) then
+            nptreemax = 9  ! is this number correct? check later
+            if (patch%itype(p) >= nptreemax) then   ! if not tree
+               ! for shrubs and herbs
                vcmax25top = lnc(p) * ( i_flnr(patch%itype(p)) + s_flnr(patch%itype(p)) * lnc(p) ) * params_inst%fnr * params_inst%act25 * &
                     dayl_factor(p)
             else
-               ! if tree 
+               ! if tree
                vcmax25top = lnc(p) * ( i_flnr(patch%itype(p)) * exp(s_flnr(patch%itype(p)) * lnc(p)) ) * params_inst%fnr * params_inst%act25 * &
                     dayl_factor(p)
-               ! for trees 
-            end if     
-         end if        
+               ! for trees
+            end if
+         end if
 
 
          ! Parameters derived from vcmax25top. Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
@@ -1495,10 +1489,10 @@ contains
 
                lmr25top = 2.525e-6_r8 * (1.5_r8 ** ((25._r8 - 20._r8)/10._r8))
                lmr25top = lmr25top * lnc(p) / 12.e-06_r8
-            
+
             else if ( leafresp_method == leafresp_mtd_atkin2015 ) then
                !using new form for respiration base rate from Atkin
-               !communication. 
+               !communication.
                if ( lnc(p) > 0.0_r8 ) then
                   lmr25top = params_inst%lmr_intercept_atkin(ivt(p)) + (lnc(p) * 0.2061_r8) - (0.0402_r8 * (t10(p)-tfrz))
                else
@@ -1548,7 +1542,7 @@ contains
                   lmr25 = leaf_mr_vcm * photosyns_inst%vcmx25_z_patch(p,iv)
                 endif
             endif
-          
+
             if (c3flag(p)) then
                lmr_z(p,iv) = lmr25 * ft(t_veg(p), params_inst%lmrha) * fth(t_veg(p), params_inst%lmrhd, &
                     params_inst%lmrse, lmrc)
@@ -1573,18 +1567,18 @@ contains
                if(use_luna.and.c3flag(p).and.crop(patch%itype(p))== 0)then
                   vcmax25 = photosyns_inst%vcmx25_z_patch(p,iv)
                   jmax25 = photosyns_inst%jmx25_z_patch(p,iv)
-                  tpu25 = params_inst%tpu25ratio * vcmax25 
+                  tpu25 = params_inst%tpu25ratio * vcmax25
                   !Implement scaling of Vcmax25 from sunlit average to shaded canopy average value. RF & GBB. 1 July 2016
                   if(phase == 'sha'.and.surfalb_inst%vcmaxcintsun_patch(p).gt.0._r8.and.nlevcan==1) then
                      vcmax25 = vcmax25 * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p)
-                     jmax25  = jmax25  * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p) 
-                     tpu25   = tpu25   * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p) 
+                     jmax25  = jmax25  * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p)
+                     tpu25   = tpu25   * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p)
                   end if
-                         
+
                else
                   vcmax25 = vcmax25top * nscaler
                   jmax25 = jmax25top * nscaler
-                  tpu25 = tpu25top * nscaler                  
+                  tpu25 = tpu25top * nscaler
                endif
                kp25 = kp25top * nscaler
 
@@ -1616,12 +1610,12 @@ contains
 
             vcmax_z(p,iv) = vcmax_z(p,iv) * btran(p)
             lmr_z(p,iv) = lmr_z(p,iv) * btran(p)
-            
-           ! Change to add in light inhibition of respiration. 0.67 from Lloyd et al. 2010, & Metcalfe et al. 2012 
+
+           ! Change to add in light inhibition of respiration. 0.67 from Lloyd et al. 2010, & Metcalfe et al. 2012
            ! Also pers. comm from Peter Reich (Nov 2015). Might potentially be updated pending findings of Atkin et al. (in prep)
-           ! review of light inhibition database. 
-           if ( light_inhibit .and. par_z(p,1) > 0._r8) then ! are the lights on? 
-              lmr_z(p,iv) = lmr_z(p,iv) * 0.67_r8 ! inhibit respiration accordingly. 
+           ! review of light inhibition database.
+           if ( light_inhibit .and. par_z(p,1) > 0._r8) then ! are the lights on?
+              lmr_z(p,iv) = lmr_z(p,iv) * 0.67_r8 ! inhibit respiration accordingly.
            end if
 
          end do       ! canopy layer loop
@@ -1928,7 +1922,7 @@ contains
                ! determine latitute sector for radiocarbon bomb spike inputs
                if ( grc%latdeg(g) .ge. 30._r8 ) then
                   sector_c14 = 1
-               else if ( grc%latdeg(g) .ge. -30._r8 ) then            
+               else if ( grc%latdeg(g) .ge. -30._r8 ) then
                   sector_c14 = 2
                else
                   sector_c14 = 3
@@ -1953,7 +1947,7 @@ contains
     ! !DESCRIPTION:
     ! C13 fractionation during photosynthesis is calculated here after the nitrogen
     ! limitation is taken into account in the CNAllocation module.
-    ! 
+    !
     ! As of CLM5, nutrient downregulation occurs prior to photosynthesis via leafcn, so we may
     ! ignore the downregulation term in this and assume that the Ci/Ca used in the photosynthesis
     ! calculation is consistent with that in the isotope calculation
@@ -2484,7 +2478,7 @@ contains
     ! Leaf photosynthesis and stomatal conductance calculation as described by
     ! Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593 and extended to
     ! a multi-layer canopy
-    ! Here, sunlit and shaded photosynthesis and stomatal conductance are solved 
+    ! Here, sunlit and shaded photosynthesis and stomatal conductance are solved
     ! simultaneously per Pierre Gentine/Daniel Kennedy plant hydraulic stress
     ! method
     !
@@ -2493,7 +2487,7 @@ contains
     use GridcellType      , only : grc
     use clm_time_manager  , only : get_step_size_real, is_near_local_noon
     use clm_varctl        , only : cnallocate_carbon_only
-    use clm_varctl        , only : lnc_opt, reduce_dayl_factor, vcmax_opt    
+    use clm_varctl        , only : lnc_opt, reduce_dayl_factor, vcmax_opt
     use clm_varpar        , only : nlevsoi
     use pftconMod         , only : nbrdlf_dcd_tmp_shrub, npcropmin
     use ColumnType        , only : col
@@ -2516,8 +2510,8 @@ contains
     real(r8)               , intent(out)   :: bsun( bounds%begp: )           ! sunlit canopy transpiration wetness factor (0 to 1)
     real(r8)               , intent(out)   :: bsha( bounds%begp: )           ! shaded canopy transpiration wetness factor (0 to 1)
     real(r8)               , intent(out)   :: btran( bounds%begp: )          ! transpiration wetness factor (0 to 1) [pft]
-    real(r8)               , intent(in)    :: froot_carbon( bounds%begp: )    ! fine root carbon (gC/m2) [pft]   
-    real(r8)               , intent(in)    :: croot_carbon( bounds%begp: )    ! live coarse root carbon (gC/m2) [pft]   
+    real(r8)               , intent(in)    :: froot_carbon( bounds%begp: )    ! fine root carbon (gC/m2) [pft]
+    real(r8)               , intent(in)    :: croot_carbon( bounds%begp: )    ! live coarse root carbon (gC/m2) [pft]
 
     type(atm2lnd_type)     , intent(in)    :: atm2lnd_inst
     type(temperature_type) , intent(in)    :: temperature_inst
@@ -2592,7 +2586,7 @@ contains
     real(r8) :: r1,r2             ! roots of quadratic equation
     real(r8) :: ceair             ! vapor pressure of air, constrained (Pa)
     integer  :: iter1             ! number of iterations used, for record only
-    integer  :: iter2             ! number of iterations used, for record only 
+    integer  :: iter2             ! number of iterations used, for record only
     real(r8) :: nscaler           ! leaf nitrogen scaling coefficient
     real(r8) :: nscaler_sun       ! sunlit leaf nitrogen scaling coefficient
     real(r8) :: nscaler_sha       ! shaded leaf nitrogen scaling coefficient
@@ -2631,7 +2625,7 @@ contains
     real(r8) , pointer :: alphapsn_sun    (:)   ! 13C fractionation factor for PSN, sunlit ()
     real(r8) , pointer :: psn_sun         (:)   ! foliage photosynthesis, sunlit (umol co2 /m**2/ s) [always +]
     real(r8) , pointer :: psn_wc_sun      (:)   ! Rubisco-limited foliage photosynthesis, sunlit (umol co2 /m**2/ s) [always +]
-    real(r8) , pointer :: psn_wj_sun      (:)   ! RuBP-limited foliage photosynthesis, sunlit (umol co2 /m**2/ s) [always +] 
+    real(r8) , pointer :: psn_wj_sun      (:)   ! RuBP-limited foliage photosynthesis, sunlit (umol co2 /m**2/ s) [always +]
     real(r8) , pointer :: psn_wp_sun      (:)   ! product-limited foliage photosynthesis, sunlit (umol co2 /m**2/ s) [always +]
     real(r8) , pointer :: psn_z_sun       (:,:) ! canopy layer: foliage photosynthesis, sunlit (umol co2 /m**2/ s) [always +]
     real(r8) , pointer :: lmr_sun         (:)   ! leaf maintenance respiration rate, sunlit (umol CO2/m**2/s)
@@ -2647,7 +2641,7 @@ contains
     real(r8) , pointer :: alphapsn_sha    (:)   ! 13C fractionation factor for PSN, shaded ()
     real(r8) , pointer :: psn_sha         (:)   ! foliage photosynthesis, shaded (umol co2 /m**2/ s) [always +]
     real(r8) , pointer :: psn_wc_sha      (:)   ! Rubisco-limited foliage photosynthesis, shaded (umol co2 /m**2/ s) [always +]
-    real(r8) , pointer :: psn_wj_sha      (:)   ! RuBP-limited foliage photosynthesis, shaded (umol co2 /m**2/ s) [always +] 
+    real(r8) , pointer :: psn_wj_sha      (:)   ! RuBP-limited foliage photosynthesis, shaded (umol co2 /m**2/ s) [always +]
     real(r8) , pointer :: psn_wp_sha      (:)   ! product-limited foliage photosynthesis, shaded (umol co2 /m**2/ s) [always +]
     real(r8) , pointer :: psn_z_sha       (:,:) ! canopy layer: foliage photosynthesis, shaded (umol co2 /m**2/ s) [always +]
     real(r8) , pointer :: lmr_sha         (:)   ! leaf maintenance respiration rate, shaded (umol CO2/m**2/s)
@@ -2658,8 +2652,8 @@ contains
     real(r8) , pointer :: o3coefv_sha     (:)   ! o3 coefficient used in photo calculation, shaded
     real(r8) , pointer :: o3coefg_sha     (:)   ! o3 coefficient used in rs calculation, shaded
     real(r8) :: sum_nscaler
-    real(r8) :: total_lai                
-    integer  :: nptreemax                
+    real(r8) :: total_lai
+    integer  :: nptreemax
     real(r8) :: dtime                           ! land model time step (sec)
     integer  :: j,g                     ! index
     real(r8) :: rs_resis                ! combined soil-root resistance [s]
@@ -2705,18 +2699,18 @@ contains
 
     associate(                                                 &
          k_soil_root  => soilstate_inst%k_soil_root_patch    , & ! Input:  [real(r8) (:,:) ]  soil-root interface conductance (mm/s)
-         hk_l         =>    soilstate_inst%hk_l_col          , & ! Input:  [real(r8) (:,:) ]  hydraulic conductivity (mm/s) 
+         hk_l         =>    soilstate_inst%hk_l_col          , & ! Input:  [real(r8) (:,:) ]  hydraulic conductivity (mm/s)
          hksat        => soilstate_inst%hksat_col            , & ! Input:  [real(r8) (:,:) ]  hydraulic conductivity at saturation (mm H2O /s)
          smp          => soilstate_inst%smp_l_col            , & ! Input:  [real(r8) (:,:) ]  soil matrix potential [mm]
 
-         froot_leaf   => pftcon%froot_leaf                   , & ! fine root to leaf ratio 
+         froot_leaf   => pftcon%froot_leaf                   , & ! fine root to leaf ratio
          root_conductance_patch => soilstate_inst%root_conductance_patch , & ! Output:   [real(r8) (:,:)] root conductance
          soil_conductance_patch => soilstate_inst%soil_conductance_patch , & ! Output:   [real(r8) (:,:)] soil conductance
          rootfr       => soilstate_inst%rootfr_patch         , & ! Input:   [real(r8) (:,:)]
          dz           => col%dz                              , & ! Input:  [real(r8) (:,:) ]  layer thickness (m)
          z            => col%z                               , & ! Input:  [real(r8) (:,:) ]  layer depth (m)
-         root_radius  => pftcon%root_radius                  , & ! Input: 0.29e-03_r8 !(m) 
-         root_density => pftcon%root_density                 , & ! Input: 0.31e06_r8 !(g biomass / m3 root) 
+         root_radius  => pftcon%root_radius                  , & ! Input: 0.29e-03_r8 !(m)
+         root_density => pftcon%root_density                 , & ! Input: 0.31e06_r8 !(g biomass / m3 root)
          tsai         => canopystate_inst%tsai_patch         , & ! Input:  [real(r8) (:)   ]  patch canopy one-sided stem area index, no burying by snow
          c3psn      => pftcon%c3psn                          , & ! Input:  photosynthetic pathway: 0. = c4, 1. = c3
          crop       => pftcon%crop                           , & ! Input:  crop or not (0 =not crop and 1 = crop)
@@ -2725,11 +2719,11 @@ contains
          fnitr      => pftcon%fnitr                          , & ! Input:  foliage nitrogen limitation factor (-)
          slatop     => pftcon%slatop                         , & ! Input:  specific leaf area at top of canopy, projected area basis [m^2/gC]
          dsladlai   => pftcon%dsladlai                       , & ! Input:  change in sla per unit lai
-         i_vcad     => pftcon%i_vcad                         , & ! Input:  [real(r8) (:)   ]  
-         s_vcad     => pftcon%s_vcad                         , & ! Input:  [real(r8) (:)   ]  
-         i_flnr     => pftcon%i_flnr                         , & ! Input:  [real(r8) (:)   ]  
-         s_flnr     => pftcon%s_flnr                         , & ! Input:  [real(r8) (:)   ]  
-         mbbopt     => pftcon%mbbopt                         , & 
+         i_vcad     => pftcon%i_vcad                         , & ! Input:  [real(r8) (:)   ]
+         s_vcad     => pftcon%s_vcad                         , & ! Input:  [real(r8) (:)   ]
+         i_flnr     => pftcon%i_flnr                         , & ! Input:  [real(r8) (:)   ]
+         s_flnr     => pftcon%s_flnr                         , & ! Input:  [real(r8) (:)   ]
+         mbbopt     => pftcon%mbbopt                         , &
          medlynintercept=> pftcon%medlynintercept            , & ! Input:  [real(r8) (:)   ]  Intercept for Medlyn stomatal conductance model method
          medlynslope=> pftcon%medlynslope                    , & ! Input:  [real(r8) (:)   ]  Slope for Medlyn stomatal conductance model method
          forc_pbot  => atm2lnd_inst%forc_pbot_downscaled_col , & ! Input:  [real(r8) (:)   ]  atmospheric pressure (Pa)
@@ -2740,7 +2734,7 @@ contains
          tgcm       => temperature_inst%thm_patch            , & ! Input:  [real(r8) (:)   ]  air temperature at agcm reference height (kelvin)
          nrad       => surfalb_inst%nrad_patch               , & ! Input:  [integer  (:)   ]  pft number of canopy layers, above snow for radiative transfer
          tlai_z     => surfalb_inst%tlai_z_patch             , & ! Input:  [real(r8) (:,:) ]  pft total leaf area index for canopy layer
-         tlai       => canopystate_inst%tlai_patch           , & ! Input:  [real(r8)(:)    ]  one-sided leaf area index, no burying by snow  
+         tlai       => canopystate_inst%tlai_patch           , & ! Input:  [real(r8)(:)    ]  one-sided leaf area index, no burying by snow
          c3flag     => photosyns_inst%c3flag_patch           , & ! Output: [logical  (:)   ]  true if C3 and false if C4
          ac         => photosyns_inst%ac_phs_patch           , & ! Output: [real(r8) (:,:,:) ]  Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
          aj         => photosyns_inst%aj_phs_patch           , & ! Output: [real(r8) (:,:,:) ]  RuBP-limited gross photosynthesis (umol CO2/m**2/s)
@@ -2829,11 +2823,11 @@ contains
 
       lmrc    = fth25 (params_inst%lmrhd, params_inst%lmrse)
 
-! calculate root-soil interface conductance 
+! calculate root-soil interface conductance
       do f = 1, fn
          p = filterp(f)
          c = patch%column(p)
-         
+
          do j = 1,nlevsoi
 
 ! calculate conversion from conductivity to conductance
@@ -2852,14 +2846,14 @@ contains
             croot_average_length = croot_lateral_length
 
 ! calculate r_soil using Gardner/spa equation (Bonan, GMD, 2014)
-            r_soil = sqrt(1./(rpi*root_length_density)) 
+            r_soil = sqrt(1./(rpi*root_length_density))
 
             ! length scale approach
             soil_conductance = min(hksat(c,j),hk_l(c,j))/(1.e3*r_soil)
-            
+
 ! use vegetation plc function to adjust root conductance
                fs(j)=  plc(smp(c,j),p,c,root,veg)
-            
+
 ! krmax is root conductance per area per length
             root_conductance = (fs(j)*rai(j)*params_inst%krmax(ivt(p)))/(croot_average_length + z(c,j))
 
@@ -2879,7 +2873,7 @@ contains
             else
                k_soil_root(p,j) =  0.
             endif
-            
+
          end do
       enddo
 
@@ -2906,10 +2900,10 @@ contains
             qe(p) = 0.05_r8
             bbbopt(p) = 40000._r8
          end if
- 
+
          if ( stomatalcond_mtd == stomatalcond_mtd_bb1987 )then
             ! Soil water stress applied to Ball-Berry parameters later in ci_func_PHS
-            bbb(p) = bbbopt(p) 
+            bbb(p) = bbbopt(p)
             mbb(p) = mbbopt(patch%itype(p))
          end if
          ! kc, ko, cp, from: Bernacchi et al (2001) Plant, Cell and Environment 24:253-259
@@ -2940,64 +2934,64 @@ contains
       do f = 1, fn
          p = filterp(f)
 
-         if (lnc_opt .eqv. .false.) then     
+         if (lnc_opt .eqv. .false.) then
             ! Leaf nitrogen concentration at the top of the canopy (g N leaf / m**2 leaf)
             lnc(p) = 1._r8 / (slatop(patch%itype(p)) * leafcn(patch%itype(p)))
-         end if   
+         end if
 
          ! Using the actual nitrogen allocated to the leaf after
          ! uptake rather than fixing leaf nitrogen based on SLA and CN
          ! ratio
-         if (lnc_opt .eqv. .true.) then                                                     
+         if (lnc_opt .eqv. .true.) then
             ! nlevcan and nrad(p) look like the same variable ?? check this later
-            sum_nscaler = 0.0_r8                                                    
-            laican = 0.0_r8                                                         
-            total_lai = 0.0_r8                                                      
+            sum_nscaler = 0.0_r8
+            laican = 0.0_r8
+            total_lai = 0.0_r8
 
-            do iv = 1, nrad(p)                                                      
+            do iv = 1, nrad(p)
 
-               if (iv == 1) then                                                    
-                  laican = 0.5_r8 * tlai_z(p,iv)                                    
-                  total_lai = tlai_z(p,iv)                                          
-               else                                                                 
-                  laican = laican + 0.5_r8 * (tlai_z(p,iv-1)+tlai_z(p,iv))          
-                  total_lai = total_lai + tlai_z(p,iv)                              
-               end if                                                               
+               if (iv == 1) then
+                  laican = 0.5_r8 * tlai_z(p,iv)
+                  total_lai = tlai_z(p,iv)
+               else
+                  laican = laican + 0.5_r8 * (tlai_z(p,iv-1)+tlai_z(p,iv))
+                  total_lai = total_lai + tlai_z(p,iv)
+               end if
 
                ! Scale for leaf nitrogen profile. If multi-layer code, use explicit
                ! profile. If sun/shade big leaf code, use canopy integrated factor.
-               if (nlevcan == 1) then                                               
-                  nscaler = 1.0_r8                                                  
-               else if (nlevcan > 1) then                                           
-                  nscaler = exp(-kn(p) * laican)                                    
-               end if                                                               
+               if (nlevcan == 1) then
+                  nscaler = 1.0_r8
+               else if (nlevcan > 1) then
+                  nscaler = exp(-kn(p) * laican)
+               end if
 
-               sum_nscaler = sum_nscaler + nscaler                                  
+               sum_nscaler = sum_nscaler + nscaler
 
-            end do                                                                  
+            end do
 
             if (tlai(p) > 0.0_r8 .AND. sum_nscaler > 0.0_r8) then
                ! dividing by LAI to convert total leaf nitrogen
                ! from m2 ground to m2 leaf; dividing by sum_nscaler to
                ! convert total leaf N to leaf N at canopy top
                lnc(p) = leafn(p) / (tlai(p) * sum_nscaler)
-            else                                                                    
-               lnc(p) = 0.0_r8                                                      
-            end if                                                                  
+            else
+               lnc(p) = 0.0_r8
+            end if
 
-         end if                                                                     
+         end if
          lnc(p) = min(lnc(p),10._r8)
 
-         ! reduce_dayl_factor .eqv. .false.  
-         if (reduce_dayl_factor .eqv. .true.) then                                          
+         ! reduce_dayl_factor .eqv. .false.
+         if (reduce_dayl_factor .eqv. .true.) then
             if (dayl_factor(p) > 0.25_r8) then
-               ! dayl_factor(p) = 1.0_r8  
-            end if                                                                  
-         end if                                                                     
+               ! dayl_factor(p) = 1.0_r8
+            end if
+         end if
 
 
          ! Default
-         if (vcmax_opt == 0) then                                                   
+         if (vcmax_opt == 0) then
             ! vcmax25 at canopy top, as in CN but using lnc at top of the canopy
             vcmax25top = lnc(p) * flnr(patch%itype(p)) * params_inst%fnr * params_inst%act25 * dayl_factor(p)
             if (.not. use_cn) then
@@ -3066,7 +3060,7 @@ contains
 
             else if ( leafresp_method == leafresp_mtd_atkin2015 ) then
                !using new form for respiration base rate from Atkin
-               !communication. 
+               !communication.
                if ( lnc(p) > 0.0_r8 ) then
                   lmr25top = params_inst%lmr_intercept_atkin(ivt(p)) + (lnc(p) * 0.2061_r8) - (0.0402_r8 * (t10(p)-tfrz))
                else
@@ -3120,7 +3114,7 @@ contains
                   lmr25_sha = leaf_mr_vcm * photosyns_inst%vcmx25_z_patch(p,iv)
                 endif
             endif
-          
+
             if (c3flag(p)) then
                lmr_z_sun(p,iv) = lmr25_sun * ft(t_veg(p), params_inst%lmrha) * fth(t_veg(p), params_inst%lmrhd, &
                     params_inst%lmrse, lmrc)
@@ -3161,20 +3155,20 @@ contains
                   vcmax25_sha = photosyns_inst%vcmx25_z_patch(p,iv)
                   jmax25_sun = photosyns_inst%jmx25_z_patch(p,iv)
                   jmax25_sha = photosyns_inst%jmx25_z_patch(p,iv)
-                  tpu25_sun = params_inst%tpu25ratio * vcmax25_sun        
-                  tpu25_sha = params_inst%tpu25ratio * vcmax25_sha        
+                  tpu25_sun = params_inst%tpu25ratio * vcmax25_sun
+                  tpu25_sha = params_inst%tpu25ratio * vcmax25_sha
                   if(surfalb_inst%vcmaxcintsun_patch(p).gt.0._r8.and.nlevcan==1) then
                     vcmax25_sha = vcmax25_sun * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p)
-                    jmax25_sha  = jmax25_sun  * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p) 
-                    tpu25_sha   = tpu25_sun   * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p) 
+                    jmax25_sha  = jmax25_sun  * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p)
+                    tpu25_sha   = tpu25_sun   * surfalb_inst%vcmaxcintsha_patch(p)/surfalb_inst%vcmaxcintsun_patch(p)
                   end if
                else
                   vcmax25_sun = vcmax25top * nscaler_sun
                   jmax25_sun = jmax25top * nscaler_sun
-                  tpu25_sun = tpu25top * nscaler_sun        
+                  tpu25_sun = tpu25top * nscaler_sun
                   vcmax25_sha = vcmax25top * nscaler_sha
                   jmax25_sha = jmax25top * nscaler_sha
-                  tpu25_sha = tpu25top * nscaler_sha        
+                  tpu25_sha = tpu25top * nscaler_sha
                endif
                kp25_sun = kp25top * nscaler_sun
                kp25_sha = kp25top * nscaler_sha
@@ -3549,12 +3543,12 @@ contains
             lmr_sha(p) = 0._r8
             rs_sha(p) = 0._r8
          end if
-         
+
          if ( laican_sha+laican_sun > 0._r8 ) then
             btran(p) = bsun(p) * (laican_sun / (laican_sun + laican_sha)) + &
-                       bsha(p) * (laican_sha / (laican_sun + laican_sha))         
+                       bsha(p) * (laican_sha / (laican_sun + laican_sha))
          else
-            ! In this case, bsun and bsha should have the same value and btran 
+            ! In this case, bsun and bsha should have the same value and btran
             ! can be set to either bsun or bsha.
             btran(p) = bsun(p)
          end if
@@ -3574,7 +3568,7 @@ contains
     !
     !! DESCRIPTION:
     !use a hybrid solver to find the root of the ci_func equation for sunlit and shaded leaves
-    ! f(x) = x- h(x)                                                                                                                                               
+    ! f(x) = x- h(x)
     !we want to find x, s.t. f(x) = 0.
     !outside loop iterates for bsun/bsha, which are functions of stomatal conductance
     !the hybrid approach combines the strength of the newton secant approach (find the solution domain)
@@ -3624,7 +3618,7 @@ contains
     real(r8) :: gs0sun   ! unstressed sunlit stomatal conductance
     real(r8) :: gs0sha   ! unstressed shaded stomatal conductance
     logical  :: havegs   ! signals direction of calculation gs->qflx or qflx->gs
-    real(r8) :: soilflux ! total soil column transpiration [mm/s] 
+    real(r8) :: soilflux ! total soil column transpiration [mm/s]
     real(r8) :: x1sun    ! second guess for cisun
     real(r8) :: f0sun    ! error of cifunc(x0sun)
     real(r8) :: f1sun    ! error of cifunc(x1sun)
@@ -3650,14 +3644,14 @@ contains
     real(r8), parameter :: eps1= 1.e-4_r8    ! absolute accuracy threshold for fsun/fsha
     integer , parameter :: itmax = 3         ! maximum number of iterations zqz (increase later)
     !------------------------------------------------------------------------------
-    
+
     associate(                                                    &
          qflx_tran_veg => waterfluxbulk_inst%qflx_tran_veg_patch    , & ! Input:  [real(r8) (:)   ]  vegetation transpiration (mm H2O/s) (+ = to atm)
          vegwp         => canopystate_inst%vegwp_patch           ,& ! Input/Output: [real(r8) (:,:) ]  vegetation water matric potential (mm)
          vegwp_ln      => canopystate_inst%vegwp_ln_patch         & ! Output: [real(r8) (:,:) ]  vegetation water matric potential (mm) at local noon
     )
 
-    
+
     x1sun = x0sun
     x1sha = x0sha
     bflag = .false.
@@ -3668,7 +3662,7 @@ contains
     bsun  = 1._r8
     bsha  = 1._r8
     iter1 = 0
-    
+
     do                       !outer loop updates bsun/bsha and makes two ci_func calls for interpolation
        x=vegwp(p,:)
        iter1=iter1+1
@@ -3679,26 +3673,26 @@ contains
        x1sha=0.99_r8*x1sha
        tolsun = abs(x1sun) * eps
        tolsha = abs(x1sha) * eps
-       
+
        ! this ci_func_PHS call updates bsun/bsha (except on first iter)
        call ci_func_PHS(x,x0sun, x0sha, f0sun, f0sha, p, iv, c, bsun, bsha, bflag, gb_mol, gs0sun, gs0sha,&
             gs_mol_sun, gs_mol_sha, jesun, jesha, cair, oair, lmr_z_sun, lmr_z_sha, par_z_sun, par_z_sha, rh_can, &
             qsatl, qaf, atm2lnd_inst, photosyns_inst, canopystate_inst, waterdiagnosticbulk_inst, soilstate_inst, &
             temperature_inst, waterfluxbulk_inst)
-       
+
        ! update bsun/bsha convergence vars
        dbsun=b0sun-bsun
        dbsha=b0sha-bsha
        b0sun=bsun
        b0sha=bsha
        bflag=.false.
-       
+
        ! this ci_func_PHS call creates second point for ci interpolation
        call ci_func_PHS(x,x1sun, x1sha, f1sun, f1sha, p, iv, c, bsun, bsha, bflag, gb_mol, gs0sun, gs0sha,&
             gs_mol_sun, gs_mol_sha, jesun, jesha, cair, oair, lmr_z_sun, lmr_z_sha, par_z_sun, par_z_sha, rh_can, &
             qsatl, qaf, atm2lnd_inst, photosyns_inst, canopystate_inst, waterdiagnosticbulk_inst, soilstate_inst, &
             temperature_inst, waterfluxbulk_inst)
-       
+
        do                !inner loop finds ci
           if ( (abs(f0sun) < eps1) .and. (abs(f0sha) < eps1) ) then
              x1sun=x0sun
@@ -3709,7 +3703,7 @@ contains
              exit
           endif
           iter2=iter2+1
-          
+
           if ( (f1sun - f0sun) == 0._r8) then
              !makes next x1sun the midpt between current x1 & x0
              dxsun = 0.5_r8*(x1sun+x0sun)-x1sun
@@ -3725,7 +3719,7 @@ contains
           x1sun=x1sun+dxsun
           x0sha=x1sha
           x1sha=x1sha+dxsha
-          
+
           call ci_func_PHS(x,x1sun, x1sha, f1sun, f1sha, p, iv, c, bsun, bsha, bflag, gb_mol, gs0sun, gs0sha,&
                gs_mol_sun, gs_mol_sha, jesun, jesha, cair, oair, lmr_z_sun, lmr_z_sha, par_z_sun, par_z_sha, rh_can, &
                qsatl, qaf, atm2lnd_inst, photosyns_inst, canopystate_inst, waterdiagnosticbulk_inst, soilstate_inst, &
@@ -3749,13 +3743,13 @@ contains
                 minxsha=x1sha
              endif
           endif
-          
+
           if ( (abs(f1sun) < eps1) .and. (abs(f1sha) < eps1) ) then
              exit
           endif
-          
+
           if ( (f1sun*f0sun < 0._r8) .and. (f1sha*f0sha < 0._r8) ) then
-             
+
              call brent_PHS(xsun, x0sun, x1sun, f0sun, f1sun, xsha, x0sha, x1sha, f0sha, f1sha, &
                   tolsun, p, iv, c, gb_mol, jesun, jesha, cair, oair, lmr_z_sun, lmr_z_sha, par_z_sun, par_z_sha,&
                   rh_can, gs_mol_sun, gs_mol_sha, bsun, bsha, qsatl, qaf, atm2lnd_inst, photosyns_inst, &
@@ -3764,7 +3758,7 @@ contains
              x0sha=xsha
              exit
           endif
-          
+
           if (iter2 > itmax) then
              x1sun=minxsun
              x1sha=minxsha
@@ -3774,9 +3768,9 @@ contains
                   temperature_inst, waterfluxbulk_inst)
              exit
           endif
-          
+
        enddo
-       
+
        !update unstressed stomatal conductance
        if (bsun>0.01_r8) then
           gs0sun=gs_mol_sun/bsun
@@ -3784,21 +3778,21 @@ contains
        if (bsha>0.01_r8) then
           gs0sha=gs_mol_sha/bsha
        endif
-       
+
        bflag=.true.
-       
+
        if ( (abs(dbsun) < toldb) .and. (abs(dbsha) < toldb) ) then
           exit
        endif
-       
+
        if (iter1 > itmax) then
           exit
        endif
-    
+
     enddo
     x0sun=x1sun
     x0sha=x1sha
-    
+
     !set vegwp for the final gs_mol solution
     call getvegwp(p, c, x, gb_mol, gs_mol_sun, gs_mol_sha, qsatl, qaf, soilflux, &
          atm2lnd_inst, canopystate_inst, waterdiagnosticbulk_inst, soilstate_inst, temperature_inst)
@@ -3813,12 +3807,12 @@ contains
 
     if (soilflux<0._r8) soilflux = 0._r8
     qflx_tran_veg(p) = soilflux
-    
+
     end associate
-    
+
   end subroutine hybrid_PHS
   !--------------------------------------------------------------------------------
-  
+
   !------------------------------------------------------------------------------
   subroutine brent_PHS(xsun, x1sun, x2sun, f1sun, f2sun, xsha, x1sha, x2sha, f1sha, f2sha, &
        tol, ip, iv, ic, gb_mol, jesun, jesha, cair, oair, lmr_z_sun, lmr_z_sha, par_z_sun, par_z_sha,&
@@ -3876,12 +3870,12 @@ contains
     real(r8)                :: x(nvegwcs)           !dummy variable passed to cifunc
     logical , parameter     :: bflag = .false.      !indicates the cifunc should not call calcstress
     !------------------------------------------------------------------------------
-    
+
     a(:)=(/x1sun,x1sha/)
     b(:)=(/x2sun,x2sha/)
     fa(:)=(/f1sun,f1sha/)
     fb(:)=(/f2sun,f2sha/)
-    
+
     do phase=1, nphs
        if ( (fa(phase) > 0._r8 .and. fb(phase) > 0._r8) .or. (fa(phase) < 0._r8 .and. fb(phase) < 0._r8) ) then
 !$OMP MASTER
@@ -3890,14 +3884,14 @@ contains
           call endrun(msg=errmsg(sourcefile, __LINE__))
        endif
     enddo
-    
+
     c=b
     fc=fb
     iter = 0
     do
        if( iter == itmax ) exit
        iter=iter+1
-       
+
        do phase=1, nphs
           if( (fb(phase) > 0._r8 .and. fc(phase) > 0._r8) .or. (fb(phase) < 0._r8 .and. fc(phase) < 0._r8)) then
              c(phase)=a(phase)   !Rename a, b, c and adjust bounding interval d.
@@ -3916,7 +3910,7 @@ contains
        enddo
        tol1=2._r8*eps*abs(b)+0.5_r8*tol  !Convergence check.
        xm=0.5_r8*(c-b)
-       
+
        if( abs(xm(sun)) <= tol1(sun) .or. fb(sun) == 0._r8 ) then
           if( abs(xm(sha)) <= tol1(sha) .or. fb(sha) == 0._r8 ) then
              xsun=b(sun)
@@ -3924,7 +3918,7 @@ contains
              return
           endif
        endif
-       
+
        do phase=1, nphs
           if( abs(e(phase)) >= tol1(phase) .and. abs(fa(phase)) > abs(fb(phase)) ) then
              s(phase)=fb(phase)/fa(phase) !Attempt inverse quadratic interpolation.
@@ -3958,14 +3952,14 @@ contains
              b(phase)=b(phase)+sign(tol1(phase),xm(phase))
           endif
        enddo
-       
+
        gs0sun = gs_mol_sun
        gs0sha = gs_mol_sha
        call ci_func_PHS(x,b(sun), b(sha), fb(sun), fb(sha), ip, iv, ic, bsun, bsha, bflag, gb_mol, gs0sun, gs0sha, &
             gs_mol_sun, gs_mol_sha, jesun, jesha, cair, oair, lmr_z_sun, lmr_z_sha, par_z_sun, par_z_sha, rh_can, &
             qsatl, qaf, atm2lnd_inst, photosyns_inst, canopystate_inst, waterdiagnosticbulk_inst, soilstate_inst, &
             temperature_inst, waterfluxbulk_inst)
-       
+
        if( (fb(sun) == 0._r8) .and. (fb(sha) == 0._r8) ) exit
     enddo
 !$OMP MASTER
@@ -3973,12 +3967,12 @@ contains
 !$OMP END MASTER
     xsun=b(sun)
     xsha=b(sha)
-    
+
     return
-    
+
   end subroutine brent_PHS
   !--------------------------------------------------------------------------------
-  
+
   !------------------------------------------------------------------------------
   subroutine ci_func_PHS(x,cisun, cisha, fvalsun, fvalsha, p, iv, c, bsun, bsha, bflag, gb_mol, gs0sun, gs0sha,&
        gs_mol_sun, gs_mol_sha, jesun, jesha, cair, oair, lmr_z_sun, lmr_z_sha, par_z_sun, par_z_sha, rh_can, &
@@ -3998,7 +3992,7 @@ contains
     implicit none
     !
     ! !ARGUMENTS:
-    real(r8)               , intent(inout) :: x(nvegwcs)         ! working copy of vegwp(p,:) 
+    real(r8)               , intent(inout) :: x(nvegwcs)         ! working copy of vegwp(p,:)
     real(r8)               , intent(in)    :: cisun,cisha        ! intracellular leaf CO2 (Pa)
     real(r8)               , intent(out)   :: fvalsun,fvalsha    ! return function of the value f(ci)
     integer                , intent(in)    :: p,c,iv             ! pft, column, and radiation indexes
@@ -4032,7 +4026,7 @@ contains
     real(r8) :: term                 ! intermediate in Medlyn stomatal model
     !
     !------------------------------------------------------------------------------
-    
+
     associate(                                                 &
          forc_pbot  => atm2lnd_inst%forc_pbot_downscaled_col , & ! Input:  [real(r8) (:)   ]    atmospheric pressure (Pa)
          c3flag     => photosyns_inst%c3flag_patch           , & ! Input:  [logical  (:)   ]    true if C3 and false if C4
@@ -4056,76 +4050,76 @@ contains
          an_sun     => photosyns_inst%an_sun_patch           , & ! Output: [real(r8) (:,:) ]  net sunlit leaf photosynthesis (umol CO2/m**2/s)
          an_sha     => photosyns_inst%an_sha_patch             & ! Output: [real(r8) (:,:) ]  net shaded leaf photosynthesis (umol CO2/m**2/s)
          )
-    
+
     !------------------------------------------------------------------------------
-    
+
     if (bflag) then   !zqz what if bsun==0 ... doesn't break... but follow up
 
        call calcstress(p,c,x,bsun,bsha,gb_mol,gs0sun,gs0sha,qsatl,qaf, &
             atm2lnd_inst,canopystate_inst,waterdiagnosticbulk_inst,soilstate_inst, &
             temperature_inst, waterfluxbulk_inst)
     endif
-    
+
     if (c3flag(p)) then
        ! C3: Rubisco-limited photosynthesis
        ac(p,sun,iv) = bsun * vcmax_z(p,sun,iv) * max(cisun-cp(p), 0._r8) / (cisun+kc(p)*(1._r8+oair/ko(p)))
        ac(p,sha,iv) = bsha * vcmax_z(p,sha,iv) * max(cisha-cp(p), 0._r8) / (cisha+kc(p)*(1._r8+oair/ko(p)))
-       
+
        ! C3: RuBP-limited photosynthesis
        aj(p,sun,iv) = jesun * max(cisun-cp(p), 0._r8) / (4._r8*cisun+8._r8*cp(p))
        aj(p,sha,iv) = jesha * max(cisha-cp(p), 0._r8) / (4._r8*cisha+8._r8*cp(p))
-       
+
        ! C3: Product-limited photosynthesis
        ap(p,sun,iv) = 3._r8 * tpu_z(p,sun,iv)
        ap(p,sha,iv) = 3._r8 * tpu_z(p,sha,iv)
-       
+
     else
        ! C4: Rubisco-limited photosynthesis
        ac(p,sun,iv) = bsun * vcmax_z(p,sun,iv)
        ac(p,sha,iv) = bsha * vcmax_z(p,sha,iv)
-       
+
        ! C4: RuBP-limited photosynthesis
        aj(p,sun,iv) = qe(p) * par_z_sun * 4.6_r8
        aj(p,sha,iv) = qe(p) * par_z_sha * 4.6_r8
-       
+
        ! C4: PEP carboxylase-limited (CO2-limited)
        ap(p,sun,iv) = kp_z(p,sun,iv) * max(cisun, 0._r8) / forc_pbot(c)
        ap(p,sha,iv) = kp_z(p,sha,iv) * max(cisha, 0._r8) / forc_pbot(c)
-       
+
     end if
-    
+
     ! Gross photosynthesis. First co-limit ac and aj. Then co-limit ap
-    
+
     ! Sunlit
     aquad = params_inst%theta_cj(ivt(p))
     bquad = -(ac(p,sun,iv) + aj(p,sun,iv))
     cquad = ac(p,sun,iv) * aj(p,sun,iv)
     call quadratic (aquad, bquad, cquad, r1, r2)
     ai = min(r1,r2)
-    
+
     aquad = params_inst%theta_ip
     bquad = -(ai + ap(p,sun,iv))
     cquad = ai * ap(p,sun,iv)
     call quadratic (aquad, bquad, cquad, r1, r2)
     ag(p,sun,iv) = max(0._r8,min(r1,r2))
-    
+
     ! Shaded
     aquad = params_inst%theta_cj(ivt(p))
     bquad = -(ac(p,sha,iv) + aj(p,sha,iv))
     cquad = ac(p,sha,iv) * aj(p,sha,iv)
     call quadratic (aquad, bquad, cquad, r1, r2)
     ai = min(r1,r2)
-    
+
     aquad = params_inst%theta_ip
     bquad = -(ai + ap(p,sha,iv))
     cquad = ai * ap(p,sha,iv)
     call quadratic (aquad, bquad, cquad, r1, r2)
     ag(p,sha,iv) = max(0._r8,min(r1,r2))
-    
+
     ! Net photosynthesis. Exit iteration if an < 0
     an_sun(p,iv) = ag(p,sun,iv) - bsun * lmr_z_sun
     an_sha(p,iv) = ag(p,sha,iv) - bsha * lmr_z_sha
-    
+
     if (an_sun(p,iv) < 0._r8) then
        if ( stomatalcond_mtd == stomatalcond_mtd_medlyn2011 )then
           gs_mol_sun = medlynintercept(patch%itype(p))
@@ -4151,10 +4145,10 @@ contains
     if ((an_sun(p,iv) < 0._r8) .AND. (an_sha(p,iv) < 0._r8)) then
        return
     endif
-    
+
     ! Quadratic gs_mol calculation with an known. Valid for an >= 0.
     ! With an <= 0, then gs_mol = bbb
-    
+
     ! Sunlit
     if (an_sun(p,iv) >= 0._r8) then
        cs_sun = cair - 1.4_r8/gb_mol * an_sun(p,iv) * forc_pbot(c)
@@ -4212,7 +4206,7 @@ contains
           gs_mol_sha = max(r1,r2)
        end if
     end if
-    
+
     ! Derive new estimate for cisun,cisha
     if (an_sun(p,iv) >= 0._r8) then
        if (gs_mol_sun > 0._r8) then
@@ -4231,7 +4225,7 @@ contains
     end associate
   end subroutine ci_func_PHS
   !--------------------------------------------------------------------------------
-  
+
   !------------------------------------------------------------------------------
   subroutine calcstress(p,c,x,bsun,bsha,gb_mol,gs_mol_sun,gs_mol_sha,qsatl,qaf, &
        atm2lnd_inst,canopystate_inst,waterdiagnosticbulk_inst,soilstate_inst, &
@@ -4266,7 +4260,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     real(r8) :: wtl                   ! heat conductance for leaf [m/s]
-    real(r8) :: A(nvegwcs,nvegwcs)    ! matrix relating d(vegwp) and f: d(vegwp)=A*f 
+    real(r8) :: A(nvegwcs,nvegwcs)    ! matrix relating d(vegwp) and f: d(vegwp)=A*f
     real(r8) :: f(nvegwcs)            ! flux divergence (mm/s)
     real(r8) :: dx(nvegwcs)           ! change in vegwp from one iter to the next [mm]
     real(r8) :: efpot                 ! potential latent energy flux [kg/m2/s]
@@ -4284,11 +4278,11 @@ contains
     logical  :: night                 ! signal to store vegwp within this routine, b/c it is night-time and full suite won't be called
     integer, parameter  :: itmax=50   ! exit newton's method if iters>itmax
     real(r8), parameter :: tolf=1.e-6,toldx=1.e-9 !tolerances for a satisfactory solution
-    logical  :: havegs                ! signals direction of calculation gs->qflx or qflx->gs 
-    real(r8) :: soilflux              ! total soil column transpiration [mm/s] 
-    real(r8), parameter :: tol_lai=.001_r8 ! minimum lai where transpiration is calc'd 
+    logical  :: havegs                ! signals direction of calculation gs->qflx or qflx->gs
+    real(r8) :: soilflux              ! total soil column transpiration [mm/s]
+    real(r8), parameter :: tol_lai=.001_r8 ! minimum lai where transpiration is calc'd
     !------------------------------------------------------------------------------
-    
+
     associate(                                                    &
          laisun        => canopystate_inst%laisun_patch         , & ! Input:  [real(r8) (:)   ]  sunlit leaf area
          laisha        => canopystate_inst%laisha_patch         , & ! Input:  [real(r8) (:)   ]  shaded leaf area
@@ -4305,35 +4299,35 @@ contains
          sucsat        => soilstate_inst%sucsat_col               & ! Input:  [real(r8) (:,:) ]  minimum soil suction (mm)
          )
 
-    !temporary flag for night time vegwp(sun)>0  
+    !temporary flag for night time vegwp(sun)>0
     if (x(sun)>0._r8) then
        night=.TRUE.
        x(sun)=x(sha)
     else
        night=.FALSE.
     endif
-    
+
     !copy to avoid rewriting gs_mol_sun
     gs0sun=gs_mol_sun
     gs0sha=gs_mol_sha
-    
+
     !compute transpiration demand
     havegs=.true.
     call getqflx(p,c,gb_mol,gs0sun,gs0sha,qflx_sun,qflx_sha,qsatl,qaf,havegs, &
          atm2lnd_inst, canopystate_inst, waterdiagnosticbulk_inst, temperature_inst)
-    
+
     if ((laisun(p)>tol_lai .or. laisha(p)>tol_lai).and.&
          (qflx_sun>0._r8 .or. qflx_sha>0._r8))then
 
     !newton's method solves for matching fluxes through the spac
     iter=0
     do
-       
+
        iter=iter+1
 
        call spacF(p,c,x,f,qflx_sun,qflx_sha, &
             atm2lnd_inst,canopystate_inst,soilstate_inst,temperature_inst,waterfluxbulk_inst)
-          
+
        if ( sqrt(sum(f*f)) < tolf*(qflx_sun+qflx_sha) ) then  !fluxes balanced -> exit
           flag = .false.
           exit
@@ -4342,12 +4336,12 @@ contains
           flag = .false.
           exit
        end if
-       
+
        call spacA(p,c,x,A,qflx_sun,qflx_sha,flag, &
             atm2lnd_inst,canopystate_inst,soilstate_inst,temperature_inst,waterfluxbulk_inst)
 
        if (flag) then
-          ! cannot invert the matrix, solve for x algebraically assuming no flux                            
+          ! cannot invert the matrix, solve for x algebraically assuming no flux
           exit
        end if
 
@@ -4360,8 +4354,8 @@ contains
           dx(sun)=0._r8
           dx(sha:root)=matmul(A(sha:root,sha:root),f(sha:root))
        endif
-       
-       
+
+
        if ( maxval(abs(dx)) > 50000._r8) then
           dx = 50000._r8 * dx / maxval(abs(dx))  !rescale step to max of 50000
        end if
@@ -4376,7 +4370,7 @@ contains
           x(xyl:root)=x(xyl:root)+dx(xyl:root)
           x(sun)=x(sun)+dx(sha)  ! implementation ugly bit, chose to flip dx(sun) and dx(sha) for laisha==0 case
           x(sha)=x(xyl) ! psi_sha = psi_xyl because laisha==0
-         
+
        endif
 
 
@@ -4384,17 +4378,17 @@ contains
           !step in vegwp small -> exit
           exit
        end if
-       
+
        ! this is a catch to force spac gradient to atmosphere
        if ( x(xyl) > x(root) ) x(xyl) = x(root)
        if ( x(sun) > x(xyl) )  x(sun) = x(xyl)
        if ( x(sha) > x(xyl) )  x(sha) = x(xyl)
-       
+
     end do
 
     else
        ! both qflxsun and qflxsha==0
-	flag=.true.
+        flag=.true.
     end if
 
     if (flag) then
@@ -4403,16 +4397,16 @@ contains
                atm2lnd_inst, canopystate_inst, waterdiagnosticbulk_inst, soilstate_inst, temperature_inst)
        bsun = plc(x(sun),p,c,sun,veg)
        bsha = plc(x(sha),p,c,sha,veg)
-    else     
+    else
     ! compute attenuated flux
     qsun=qflx_sun*plc(x(sun),p,c,sun,veg)
     qsha=qflx_sha*plc(x(sha),p,c,sha,veg)
-    
+
     ! retrieve stressed stomatal conductance
     havegs=.FALSE.
     call getqflx(p,c,gb_mol,gs0sun,gs0sha,qsun,qsha,qsatl,qaf,havegs, &
          atm2lnd_inst, canopystate_inst, waterdiagnosticbulk_inst, temperature_inst)
-    
+
     ! compute water stress
     ! .. generally -> B= gs_stressed / gs_unstressed
     ! .. when gs=0 -> B= plc( x )
@@ -4449,19 +4443,19 @@ contains
     else
        vegwp_pd(p,:) = spval
     end if
-    
-    
+
+
     end associate
-  
+
   end subroutine calcstress
-   
+
    !------------------------------------------------------------------------------
-   
+
   !------------------------------------------------------------------------------
   subroutine spacA(p,c,x,invA,qflx_sun,qflx_sha,flag, &
        atm2lnd_inst,canopystate_inst,soilstate_inst, &
        temperature_inst, waterfluxbulk_inst)
-    
+
     !
     ! DESCRIPTION
     !  Returns invA, the inverse matrix relating delta(vegwp) to f
@@ -4480,9 +4474,9 @@ contains
     ! !ARGUMENTS:
     integer                , intent(in)  :: p               ! pft index
     integer                , intent(in)  :: c               ! column index
-    real(r8)               , intent(in)  :: x(nvegwcs)      ! working copy of veg water potential for patch p [mm H2O] 
+    real(r8)               , intent(in)  :: x(nvegwcs)      ! working copy of veg water potential for patch p [mm H2O]
     real(r8)               , intent(out) :: invA(nvegwcs,nvegwcs)   ! matrix relating d(vegwp) and f: d(vegwp)=invA*f
-    real(r8)               , intent(in)  :: qflx_sun        ! Sunlit leaf transpiration [kg/m2/s] 
+    real(r8)               , intent(in)  :: qflx_sun        ! Sunlit leaf transpiration [kg/m2/s]
     real(r8)               , intent(in)  :: qflx_sha        ! Shaded leaf transpiration [kg/m2/s]
     logical                , intent(out) :: flag            ! tells calling function that the matrix is not invertible
     type(atm2lnd_type)     , intent(in)  :: atm2lnd_inst
@@ -4494,9 +4488,9 @@ contains
     ! !LOCAL VARIABLES:
     real(r8) :: wtl                   ! heat conductance for leaf [m/s]
     real(r8) :: fsto1                 ! sunlit transpiration reduction function [-]
-    real(r8) :: fsto2                 ! shaded transpiration reduction function [-] 
-    real(r8) :: fx                    ! fraction of maximum conductance, xylem-to-leaf [-] 
-    real(r8) :: fr                    ! fraction of maximum conductance, root-to-xylem [-] 
+    real(r8) :: fsto2                 ! shaded transpiration reduction function [-]
+    real(r8) :: fx                    ! fraction of maximum conductance, xylem-to-leaf [-]
+    real(r8) :: fr                    ! fraction of maximum conductance, root-to-xylem [-]
     real(r8) :: dfsto1                ! 1st derivative of fsto1 w.r.t. change in vegwp
     real(r8) :: dfsto2                ! 1st derivative of fsto2 w.r.t. change in vegwp
     real(r8) :: dfx                   ! 1st derivative of fx w.r.t. change in vegwp
@@ -4505,7 +4499,7 @@ contains
     real(r8) :: leading               ! inverse of determiniant
     real(r8) :: determ                ! determinant of matrix
     real(r8) :: grav1                 ! gravitational potential surface to canopy top (mm H2O)
-    real(r8) :: invfactor             ! 
+    real(r8) :: invfactor             !
     real(r8), parameter :: tol_lai=.001_r8 ! minimum lai where transpiration is calc'd
     integer  :: j                     ! index
     !------------------------------------------------------------------------------
@@ -4515,7 +4509,7 @@ contains
        call endrun(msg='Error:: this function is hardcoded for 4x4 matrices with nvegwcs==4'//errMsg(__FILE__, __LINE__))
     end if
 #endif
-    
+
     associate(                                                    &
          k_soil_root  => soilstate_inst%k_soil_root_patch       , & ! Input:  [real(r8) (:,:) ]  soil-root interface conductance (mm/s)
          laisun        => canopystate_inst%laisun_patch         , & ! Input:  [real(r8) (:)   ]  sunlit leaf area
@@ -4524,25 +4518,25 @@ contains
          tsai          => canopystate_inst%tsai_patch           , & ! Input:  [real(r8) (:)   ]  patch canopy one-sided stem area index, no burying by snow
          ivt           => patch%itype                             & ! Input:  [integer  (:)   ]  patch vegetation type
          )
-    
+
     ! initialize all elements to zero
     A = 0._r8
     invA = 0._r8
 
     grav1 = htop(p)*1000._r8
-    
+
     !compute conductance attentuation for each segment
     fsto1=  plc(x(sun),p,c,sun,veg)
     fsto2=  plc(x(sha),p,c,sha,veg)
     fx=     plc(x(xyl),p,c,xyl,veg)
     fr=     plc(x(root),p,c,root,veg)
-    
+
     !compute 1st deriv of conductance attenuation for each segment
     dfsto1=  d1plc(x(sun),p,c,sun,veg)
     dfsto2=  d1plc(x(sha),p,c,sha,veg)
     dfx=     d1plc(x(xyl),p,c,xyl,veg)
     dfr=     d1plc(x(root),p,c,root,veg)
-    
+
     !A - f=A*d(vegwp)
     A(1,1)= - laisun(p) * params_inst%kmax(ivt(p),sun) * fx&
          - qflx_sun * dfsto1
@@ -4580,8 +4574,8 @@ contains
           return
        else
           flag = .false.
-       end if       
-    
+       end if
+
        leading = 1._r8/determ
 
        !algebraic inversion of the matrix
@@ -4618,7 +4612,7 @@ contains
        else
           flag = .false.
        end if
-       
+
        !algebraic inversion of the 3x3 matrix stored in A(2:4,2:4)
        invA(2,2)=A(3,3)*A(4,4)-A(3,4)*A(4,3)
        invA(2,3)=-A(2,3)*A(4,4)
@@ -4630,15 +4624,15 @@ contains
        invA(4,3)=-A(2,2)*A(4,3)
        invA(4,4)=A(2,2)*A(3,3)-A(2,3)*A(3,2)
        invA=1._r8/determ*invA
-       
+
     endif
 
     end associate
-    
+
   end subroutine spacA
-  
+
   !--------------------------------------------------------------------------------
-  
+
   !------------------------------------------------------------------------------
   subroutine spacF(p,c,x,f,qflx_sun,qflx_sha, &
        atm2lnd_inst,canopystate_inst,soilstate_inst, &
@@ -4658,8 +4652,8 @@ contains
     integer                , intent(in)  :: c               ! column index
     real(r8)               , intent(in)  :: x(nvegwcs)      ! working copy of veg water potential for patch p [mm H2O]
     real(r8)               , intent(out) :: f(nvegwcs)      ! water flux divergence [mm/s]
-    real(r8)               , intent(in)  :: qflx_sun        ! Sunlit leaf transpiration [kg/m2/s] 
-    real(r8)               , intent(in)  :: qflx_sha        ! Shaded leaf transpiration [kg/m2/s] 
+    real(r8)               , intent(in)  :: qflx_sun        ! Sunlit leaf transpiration [kg/m2/s]
+    real(r8)               , intent(in)  :: qflx_sha        ! Shaded leaf transpiration [kg/m2/s]
     type(atm2lnd_type)     , intent(in)  :: atm2lnd_inst
     type(canopystate_type) , intent(in)  :: canopystate_inst
     type(soilstate_type)   , intent(in)  :: soilstate_inst
@@ -4670,15 +4664,15 @@ contains
     real(r8) :: wtl                   ! heat conductance for leaf [m/s]
     real(r8) :: fsto1                 ! sunlit transpiration reduction function [-]
     real(r8) :: fsto2                 ! shaded transpiration reduction function [-]
-    real(r8) :: fx                    ! fraction of maximum conductance, xylem-to-leaf [-] 
+    real(r8) :: fx                    ! fraction of maximum conductance, xylem-to-leaf [-]
     real(r8) :: fr                    ! fraction of maximum conductance, root-to-xylem [-]
-    real(r8) :: grav1                 ! gravitational potential surface to canopy top (mm H2O) 
-    real(r8) :: grav2(nlevsoi)        ! soil layer gravitational potential relative to surface (mm H2O) 
+    real(r8) :: grav1                 ! gravitational potential surface to canopy top (mm H2O)
+    real(r8) :: grav2(nlevsoi)        ! soil layer gravitational potential relative to surface (mm H2O)
     real(r8) :: temp                  ! used to copy f(sun) to f(sha) for special case
     real(r8), parameter :: tol_lai=.001_r8  ! needs to be the same as in calcstress and spacA (poor form, refactor)<
     integer  :: j                     ! index
     !------------------------------------------------------------------------------
-    
+
     associate(                                              &
          k_soil_root  => soilstate_inst%k_soil_root_patch       , & ! Input:  [real(r8) (:,:) ]  soil-root interface conductance (mm/s)
          laisun        => canopystate_inst%laisun_patch         , & ! Input:  [real(r8) (:)   ]  sunlit leaf area
@@ -4689,15 +4683,15 @@ contains
          ivt           => patch%itype                           , & ! Input:  [integer  (:)   ]  patch vegetation type
          z             => col%z                                   & ! Input:  [real(r8) (:,:) ]  layer node depth (m)
          )
-    
+
     grav1 = htop(p) * 1000._r8
     grav2(1:nlevsoi) = z(c,1:nlevsoi) * 1000._r8
-    
+
     fsto1=  plc(x(sun),p,c,sun,veg)
     fsto2=  plc(x(sha),p,c,sha,veg)
     fx=     plc(x(xyl),p,c,xyl,veg)
     fr=     plc(x(root),p,c,root,veg)
-    
+
     !compute flux divergence across each plant segment
     f(sun)= qflx_sun * fsto1 - laisun(p) * params_inst%kmax(ivt(p),sun) * fx * (x(xyl)-x(sun))
     f(sha)= qflx_sha * fsto2 - laisha(p) * params_inst%kmax(ivt(p),sha) * fx * (x(xyl)-x(sha))
@@ -4719,7 +4713,7 @@ contains
     end associate
 
   end subroutine spacF
-  
+
   !--------------------------------------------------------------------------------
   subroutine getvegwp(p, c, x, gb_mol, gs_mol_sun, gs_mol_sha, qsatl, qaf, soilflux, &
        atm2lnd_inst, canopystate_inst, waterdiagnosticbulk_inst, soilstate_inst, temperature_inst)
@@ -4750,13 +4744,13 @@ contains
     !
     ! !LOCAL VARIABLES:
     real(r8) :: qflx_sun                 ! Sunlit leaf transpiration [kg/m2/s]
-    real(r8) :: qflx_sha                 ! Shaded leaf transpiration [kg/m2/s] 
-    real(r8) :: fx                       ! fraction of maximum conductance, xylem-to-leaf [-]  
-    real(r8) :: fr                       ! fraction of maximum conductance, root-to-xylem [-]  
+    real(r8) :: qflx_sha                 ! Shaded leaf transpiration [kg/m2/s]
+    real(r8) :: fx                       ! fraction of maximum conductance, xylem-to-leaf [-]
+    real(r8) :: fr                       ! fraction of maximum conductance, root-to-xylem [-]
     real(r8) :: grav1                    ! gravitational potential surface to canopy top (mm H2O)
-    real(r8) :: grav2(nlevsoi)           ! soil layer gravitational potential relative to surface (mm H2O) 
+    real(r8) :: grav2(nlevsoi)           ! soil layer gravitational potential relative to surface (mm H2O)
     integer  :: j                        ! index
-    logical  :: havegs                   ! signals direction of calculation gs->qflx or qflx->gs 
+    logical  :: havegs                   ! signals direction of calculation gs->qflx or qflx->gs
     !----------------------------------------------------------------------
     associate(                                                    &
          k_soil_root  => soilstate_inst%k_soil_root_patch       , & ! Input:  [real(r8) (:,:) ]  soil-root interface conductance (mm/s)
@@ -4773,15 +4767,15 @@ contains
          sucsat        => soilstate_inst%sucsat_col             , & ! Input: [real(r8) (:,:) ]  minimum soil suction (mm)
          z             => col%z                                   & ! Input: [real(r8) (:,:) ]  layer node depth (m)
          )
-    
+
     grav1 = 1000._r8 *htop(p)
     grav2(1:nlevsoi) = 1000._r8 * z(c,1:nlevsoi)
-    
+
     !compute transpiration demand
     havegs=.true.
     call getqflx(p,c,gb_mol,gs_mol_sun,gs_mol_sha,qflx_sun,qflx_sha,qsatl,qaf,havegs, &
          atm2lnd_inst, canopystate_inst, waterdiagnosticbulk_inst, temperature_inst)
-    
+
     !calculate root water potential
     if ( abs(sum(k_soil_root(p,1:nlevsoi))) == 0._r8 ) then
        x(root) = sum(smp(c,1:nlevsoi) - grav2)/nlevsoi
@@ -4789,7 +4783,7 @@ contains
        x(root) = (sum(k_soil_root(p,1:nlevsoi)*(smp(c,1:nlevsoi)-grav2))-qflx_sun-qflx_sha) &
                   /sum(k_soil_root(p,1:nlevsoi))
     endif
-    
+
     !calculate xylem water potential
     fr = plc(x(root),p,c,root,veg)
     if ( (tsai(p) > 0._r8) .and. (fr > 0._r8) ) then
@@ -4797,7 +4791,7 @@ contains
     else
        x(xyl) = x(root) - grav1
     endif
-    
+
     !calculate sun/sha leaf water potential
     fx = plc(x(xyl),p,c,xyl,veg)
     if ( (laisha(p) > 0._r8) .and. (fx > 0._r8) ) then
@@ -4820,7 +4814,7 @@ contains
     end associate
 
   end subroutine getvegwp
-  
+
   !--------------------------------------------------------------------------------
   subroutine getqflx(p,c,gb_mol,gs_mol_sun,gs_mol_sha,qflx_sun,qflx_sha,qsatl,qaf,havegs, &
        atm2lnd_inst, canopystate_inst, waterdiagnosticbulk_inst, temperature_inst)
@@ -4854,7 +4848,7 @@ contains
     real(r8) :: rppdry_sha               ! fraction of potential evaporation through transp - shaded [-]
     real(r8) :: cf                       ! s m**2/umol -> s/m
     !----------------------------------------------------------------------
-    
+
     associate(                                                    &
          laisun        => canopystate_inst%laisun_patch         , & ! Input: [real(r8) (:)   ]  sunlit leaf area
          laisha        => canopystate_inst%laisha_patch         , & ! Input: [real(r8) (:)   ]  shaded leaf area
@@ -4865,8 +4859,8 @@ contains
          forc_pbot     => atm2lnd_inst%forc_pbot_downscaled_col , & ! Input: [real(r8) (:)   ]  atmospheric pressure (Pa)
          tgcm          => temperature_inst%thm_patch              & ! Input: [real(r8) (:)   ]  air temperature at agcm reference height (kelvin)
          )
-    
-    
+
+
     cf       = forc_pbot(c)/(rgas*1.e-3_r8*tgcm(p))*1.e6_r8  ! gb->gbmol conversion factor
     wtl      = (elai(p)+esai(p))*gb_mol
     efpot    = forc_rho(c)*wtl*(qsatl-qaf)
@@ -4889,7 +4883,7 @@ contains
           qflx_sun      = 0._r8
           qflx_sha      = 0._r8
        end if
-       
+
     else
        if (qflx_sun > 0._r8) then
           gs_mol_sun=gb_mol*qflx_sun*cf*elai(p)/(efpot*fdry(p)*laisun(p)-qflx_sun*cf*elai(p))
@@ -4901,7 +4895,7 @@ contains
        else
           gs_mol_sha=0._r8
        endif
-       
+
     endif
 
     end associate
@@ -4917,7 +4911,7 @@ contains
     real(r8) , intent(in)  :: x             ! water potential input
     integer  , intent(in)  :: p             ! index for pft
     integer  , intent(in)  :: c             ! index for column
-    integer  , intent(in)  :: level         ! veg segment lvl (1:nvegwcs) 
+    integer  , intent(in)  :: level         ! veg segment lvl (1:nvegwcs)
     integer  , intent(in)  :: plc_method    !
     real(r8)               :: plc           ! attenuated conductance [0:1] 0=no flow
     !
@@ -4927,7 +4921,7 @@ contains
     associate(                                                    &
          ivt  => patch%itype                             & ! Input: [integer  (:)   ]  patch vegetation type
              )
-    
+
     select case (plc_method)
        !possible to add other methods later
     case (vegetation_weibull)
@@ -4938,10 +4932,10 @@ contains
     end select
 
     end associate
-    
+
   end function plc
   !--------------------------------------------------------------------------------
-  
+
   !--------------------------------------------------------------------------------
   function d1plc(x,p,c,level,plc_method)
     ! !DESCRIPTION
@@ -4973,7 +4967,7 @@ contains
     end select
 
     end associate
-    
-  end function d1plc  
-  
+
+  end function d1plc
+
 end module PhotosynthesisMod

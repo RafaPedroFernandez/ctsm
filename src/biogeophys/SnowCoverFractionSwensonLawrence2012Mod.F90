@@ -369,20 +369,14 @@ contains
 
     this%int_snow_max = int_snow_max
 
+!$OMP MASTER
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname // ' settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, nml=scf_swenson_lawrence_2012_inparm)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
     end if
+!$OMP END MASTER
 
   end subroutine ReadNamelist
 

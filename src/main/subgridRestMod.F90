@@ -16,10 +16,10 @@ module subgridRestMod
   use pio                , only : file_desc_t
   use ncdio_pio          , only : ncd_int, ncd_double
   use GetGlobalValuesMod , only : GetGlobalIndexArray
-  use GridcellType       , only : grc                
-  use LandunitType       , only : lun                
-  use ColumnType         , only : col                
-  use PatchType          , only : patch                
+  use GridcellType       , only : grc
+  use LandunitType       , only : lun
+  use ColumnType         , only : col
+  use PatchType          , only : patch
   use restUtilMod
   !
   ! !PUBLIC TYPES:
@@ -123,7 +123,7 @@ contains
 
     character(len=*), parameter :: subname = 'subgridRest_write_only'
     !-----------------------------------------------------------------------
-    
+
     !------------------------------------------------------------------
     ! Write gridcell info
     !------------------------------------------------------------------
@@ -172,7 +172,7 @@ contains
          dim1name='landunit',                                                      &
          long_name='landunit longitude', units='degrees_east',                     &
          interpinic_flag='skip', readvar=readvar, data=rlarr)
-    
+
     do l=bounds%begl,bounds%endl
        rlarr(l) = grc%latdeg(lun%gridcell(l))
     enddo
@@ -286,7 +286,7 @@ contains
          interpinic_flag='skip', readvar=readvar, data=col%itype)
 
     do c=bounds%begc,bounds%endc
-       if (col%active(c)) then 
+       if (col%active(c)) then
           icarr(c) = 1
        else
           icarr(c) = 0
@@ -304,7 +304,7 @@ contains
 
     allocate(temp2d_r(bounds%begc:bounds%endc, 1:nlevmaxurbgrnd))
     temp2d_r(bounds%begc:bounds%endc, 1:nlevmaxurbgrnd) = col%z(bounds%begc:bounds%endc, 1:nlevmaxurbgrnd)
-    call restartvar(ncid=ncid, flag=flag, varname='COL_Z', xtype=ncd_double,  & 
+    call restartvar(ncid=ncid, flag=flag, varname='COL_Z', xtype=ncd_double,  &
          dim1name='column', dim2name='levmaxurbgrnd', switchdim=.true., &
          long_name='layer depth, excluding snow layers', units='m', &
          interpinic_flag='skip', readvar=readvar, data=temp2d_r)
@@ -455,10 +455,10 @@ contains
     ! !LOCAL VARIABLES:
     logical :: readvar              ! temporary
     real(r8), pointer :: temp2d(:,:) ! temporary for sno column variables
-    
+
     character(len=*), parameter :: subname = 'subgridRest_write_and_read'
     !-----------------------------------------------------------------------
-    
+
     if (flag == 'read') then
        call save_old_weights(bounds)
     end if
@@ -480,12 +480,12 @@ contains
 
     call restartvar(ncid=ncid, flag=flag, varname='pfts1d_wtxy', xtype=ncd_double,  &
          dim1name='pft',                                                            &
-         long_name='pft weight relative to corresponding gridcell', units='',       &  
+         long_name='pft weight relative to corresponding gridcell', units='',       &
          interpinic_flag='area', readvar=readvar, data=patch%wtgcell)
 
     call restartvar(ncid=ncid, flag=flag, varname='pfts1d_wtlnd', xtype=ncd_double, &
          dim1name='pft',                                                            &
-         long_name='pft weight relative to corresponding landunit', units='',       & 
+         long_name='pft weight relative to corresponding landunit', units='',       &
          interpinic_flag='area', readvar=readvar, data=patch%wtlunit)
 
     call restartvar(ncid=ncid, flag=flag, varname='pfts1d_wtcol', xtype=ncd_double, &
@@ -495,7 +495,7 @@ contains
 
     ! Snow column variables
 
-    call restartvar(ncid=ncid, flag=flag, varname='SNLSNO', xtype=ncd_int,  & 
+    call restartvar(ncid=ncid, flag=flag, varname='SNLSNO', xtype=ncd_int,  &
          dim1name='column', &
          long_name='negative number of snow layers', units='unitless', &
          interpinic_flag='interp', readvar=readvar, data=col%snl)
@@ -504,12 +504,12 @@ contains
     if (flag == 'write') then
        temp2d(bounds%begc:bounds%endc,-nlevsno+1:0) = col%dz(bounds%begc:bounds%endc,-nlevsno+1:0)
     end if
-    call restartvar(ncid=ncid, flag=flag, varname='DZSNO', xtype=ncd_double,  & 
+    call restartvar(ncid=ncid, flag=flag, varname='DZSNO', xtype=ncd_double,  &
          dim1name='column', dim2name='levsno', switchdim=.true., lowerb2=-nlevsno+1, upperb2=0, &
          long_name='snow layer thickness', units='m', &
          interpinic_flag='interp', readvar=readvar, data=temp2d)
     if (flag == 'read') then
-       col%dz(bounds%begc:bounds%endc,-nlevsno+1:0) = temp2d(bounds%begc:bounds%endc,-nlevsno+1:0) 
+       col%dz(bounds%begc:bounds%endc,-nlevsno+1:0) = temp2d(bounds%begc:bounds%endc,-nlevsno+1:0)
     end if
     deallocate(temp2d)
 
@@ -517,12 +517,12 @@ contains
     if (flag == 'write') then
        temp2d(bounds%begc:bounds%endc,-nlevsno+1:0) = col%z(bounds%begc:bounds%endc,-nlevsno+1:0)
     end if
-    call restartvar(ncid=ncid, flag=flag, varname='ZSNO', xtype=ncd_double,  & 
+    call restartvar(ncid=ncid, flag=flag, varname='ZSNO', xtype=ncd_double,  &
          dim1name='column', dim2name='levsno', switchdim=.true., lowerb2=-nlevsno+1, upperb2=0, &
          long_name='snow layer depth', units='m', &
          interpinic_flag='interp', readvar=readvar, data=temp2d)
     if (flag == 'read') then
-       col%z(bounds%begc:bounds%endc,-nlevsno+1:0) = temp2d(bounds%begc:bounds%endc,-nlevsno+1:0) 
+       col%z(bounds%begc:bounds%endc,-nlevsno+1:0) = temp2d(bounds%begc:bounds%endc,-nlevsno+1:0)
     end if
     deallocate(temp2d)
 
@@ -530,12 +530,12 @@ contains
     if (flag == 'write') then
        temp2d(bounds%begc:bounds%endc,-nlevsno:-1) = col%zi(bounds%begc:bounds%endc,-nlevsno:-1)
     end if
-    call restartvar(ncid=ncid, flag=flag, varname='ZISNO', xtype=ncd_double,  & 
+    call restartvar(ncid=ncid, flag=flag, varname='ZISNO', xtype=ncd_double,  &
          dim1name='column', dim2name='levsno', switchdim=.true., lowerb2=-nlevsno, upperb2=-1, &
          long_name='snow interface depth at the top of the given layer', units='m', &
          interpinic_flag='interp', readvar=readvar, data=temp2d)
     if (flag == 'read') then
-       col%zi(bounds%begc:bounds%endc,-nlevsno:-1) = temp2d(bounds%begc:bounds%endc,-nlevsno:-1) 
+       col%zi(bounds%begc:bounds%endc,-nlevsno:-1) = temp2d(bounds%begc:bounds%endc,-nlevsno:-1)
     end if
     deallocate(temp2d)
 
@@ -553,10 +553,10 @@ contains
     ! !ARGUMENTS:
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'save_old_weights'
     !-----------------------------------------------------------------------
-    
+
     SHR_ASSERT(bounds%level == BOUNDS_LEVEL_PROC, subname//' ERROR: expect proc-level bounds')
 
     allocate(pft_wtlunit_before_rest_read(bounds%begp:bounds%endp))
@@ -602,10 +602,10 @@ contains
       ! !ARGUMENTS:
       !
       ! !LOCAL VARIABLES:
-      
+
       character(len=*), parameter :: subname = 'do_check_weights'
       !-----------------------------------------------------------------------
-      
+
       if (get_do_transient_pfts()) then
          ! Don't check weights for a transient PATCH case, because it's harder to come up with the
          ! correct weights to check against
@@ -656,10 +656,10 @@ contains
       real(r8) :: diff ! difference in weights
 
       real(r8), parameter :: tol = 5.e-3  ! tolerance for checking weights
-      
+
       character(len=*), parameter :: subname = 'check_weights'
       !-----------------------------------------------------------------------
-      
+
       do p = bounds%begp, bounds%endp
          l = patch%landunit(p)
          if (lun%itype(l) == istsoil) then
@@ -667,59 +667,23 @@ contains
             if (diff > tol .and. patch%wtgcell(p) > 1.0e-16_r8) then
 !$OMP MASTER
                write(iulog,*) 'ERROR: PATCH weights are SIGNIFICANTLY different between :'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) 'the restart (finidat) file : ', patch%wtlunit(p)
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) 'and the surface dataset (fsurdat): ', pft_wtlunit_before_rest_read(p)
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) 'weight gridcell: ', patch%wtgcell(p)
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*)
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) 'Maximum allowed difference: ', tol
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) 'Difference found: ', diff
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) 'This match is a requirement for non-transient runs'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*)
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) 'Possible solutions to this problem:'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) '(1) Make sure you are using the intended finidat and fsurdat files'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) '(2) If you are running a present-day simulation, then make sure that your'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) '    initial conditions file is from the END of a 20th century transient run'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) '(3) If you are confident that you are using the correct finidat and fsurdat files,'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) '    yet are still experiencing this error, then you can bypass this check by setting:'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) '      check_finidat_pct_consistency = .false.'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) '    in user_nl_clm'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) '    In this case, CLM will take the weights from the initial conditions file.'
-!$OMP END MASTER
-!$OMP MASTER
                write(iulog,*) ' '
 !$OMP END MASTER
                call endrun(decomp_index=p, clmlevel=namep, msg=errMsg(sourcefile, __LINE__))
@@ -747,10 +711,10 @@ contains
     ! !ARGUMENTS:
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'subgridRest_read_cleanup'
     !-----------------------------------------------------------------------
-    
+
     deallocate(pft_wtlunit_before_rest_read)
 
   end subroutine subgridRest_read_cleanup

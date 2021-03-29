@@ -462,14 +462,8 @@ contains
     if (masterproc) then
 !$OMP MASTER
        write(iulog,*)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) nmlname, ' settings'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,nml=water_tracers_inparm)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)
 !$OMP END MASTER
     end if
@@ -588,11 +582,7 @@ contains
     if (tracer_num - 1 /= num_tracers) then
 !$OMP MASTER
        write(iulog,*) subname//' ERROR: tracer_num discrepancy'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'num_tracers = ', num_tracers
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'but added ', tracer_num - 1, ' tracers'
 !$OMP END MASTER
        call endrun(msg='tracer_num discrepancy '//errMsg(sourcefile, __LINE__))

@@ -150,43 +150,24 @@ contains
     call shr_mpi_bcast(soilm_offset, mpicom)
     call shr_mpi_bcast(soilm_ignore_data_if_missing, mpicom)
 
+!$OMP MASTER
     if (masterproc) then
-
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'soil_moisture_stream settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  stream_year_first_soilm  = ',stream_year_first_soilm
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  stream_year_last_soilm   = ',stream_year_last_soilm
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  model_year_align_soilm   = ',model_year_align_soilm
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  stream_fldfilename_soilm = ',trim(stream_fldfilename_soilm)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  soilm_tintalgo = ',trim(soilm_tintalgo)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  soilm_offset = ',soilm_offset
-!$OMP END MASTER
        if ( soilm_ignore_data_if_missing )then
-!$OMP MASTER
           write(iulog,*) '  Do NOT override a point with streams data if the streams data is missing'
-!$OMP END MASTER
        else
-!$OMP MASTER
           write(iulog,*) '  Abort, if you find a model point where the input streams data is set to missing value'
-!$OMP END MASTER
        end if
 
     endif
+!$OMP END MASTER
 
     call clm_domain_mct (bounds, dom_clm, nlevels=nlevsoi)
 

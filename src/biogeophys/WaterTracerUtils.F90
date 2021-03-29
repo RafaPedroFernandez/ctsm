@@ -34,7 +34,7 @@ module WaterTracerUtils
   private :: CalcTracerFromBulk1Pt
 
   ! !PRIVATE MEMBER DATA:
-  
+
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
 
@@ -258,14 +258,8 @@ contains
     else if (bulk_val /= 0._r8) then
 !$OMP MASTER
        write(iulog,*) caller//' ERROR: Non-zero bulk val despite zero bulk source:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'bulk_val = ', bulk_val
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'at n = ', n
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'This would lead to an indeterminate tracer val.'
 !$OMP END MASTER
        call endrun(msg=caller//': Non-zero bulk val despite zero bulk source', &
@@ -278,14 +272,8 @@ contains
        ! discussion of this point in https://github.com/ESCOMP/ctsm/issues/487.)
 !$OMP MASTER
        write(iulog,*) caller//' ERROR: Non-zero tracer source despite zero bulk source:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'tracer_source = ', tracer_source
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'at n = ', n
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'This would lead to an indeterminate tracer val.'
 !$OMP END MASTER
        call endrun(msg=caller//': Non-zero tracer source despite zero bulk source', &
@@ -293,20 +281,10 @@ contains
     else
 !$OMP MASTER
        write(iulog,*) caller//' ERROR: unhandled condition; we should never get here.'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'This indicates a programming error in this subroutine.'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'bulk_val = ', bulk_val
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'bulk_source = ', bulk_source
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'tracer_source = ', tracer_source
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'at n = ', n
 !$OMP END MASTER
        call endrun(msg=caller//': unhandled condition; we should never get here', &
@@ -359,7 +337,7 @@ contains
     integer, intent(in) :: bounds_end
     real(r8), intent(in) :: bulk( bounds_beg: )
     real(r8), intent(in) :: tracer( bounds_beg: )
-    real(r8), intent(in) :: ratio 
+    real(r8), intent(in) :: ratio
     character(len=*), intent(in) :: caller_location  ! brief description of where this is called from (for error messages)
     character(len=*), intent(in) :: name             ! variable name (for error messages)
     !
@@ -380,61 +358,47 @@ contains
     arrays_equal = .true.
     do i = bounds_beg, bounds_end
        if (.not. shr_infnan_isnan(bulk(i)) .and. .not. shr_infnan_isnan(tracer(i))) then
-          ! neither value is nan: check error tolerance                        
+          ! neither value is nan: check error tolerance
           val1 = bulk(i)
           val2 = tracer(i)
           if ( val1 /= spval) then
              val1 = val1 * ratio
           end if
           if (val1 == 0.0_r8 .and. val2 == 0.0_r8) then
-             ! trap special case were both are zero to avoid division by zero. values equal                                                                    
+             ! trap special case were both are zero to avoid division by zero. values equal
           else if (abs(val1 - val2) / max(abs(val1), abs(val2)) > tolerance) then
              arrays_equal = .false.
              diffloc = i
              exit
           else
-             ! error < tolerance, considered equal.                             
+             ! error < tolerance, considered equal.
           end if
        else if (shr_infnan_isnan(bulk(i)) .and. shr_infnan_isnan(tracer(i))) then
-          ! both values are nan: values are considered equal.                   
+          ! both values are nan: values are considered equal.
        else
-          ! only one value is nan, not equal                                    
+          ! only one value is nan, not equal
           arrays_equal = .false.
           diffloc = i
           exit
        end if
     end do
 
+!$OMP MASTER
     if (.not. arrays_equal) then
-!$OMP MASTER
        write(iulog, '(a, a, a)') 'ERROR in ', subname, ': tracer does not agree with bulk water'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, a)') 'Called from: ', trim(caller_location)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, a)') 'Variable: ', trim(name)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, i0)') 'First difference at index: ', diffloc
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, e25.17)') 'Bulk  : ', bulk(diffloc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, e25.17)') 'Tracer: ', tracer(diffloc)
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog, '(a, e25.17)') 'ratio: ',ratio
-!$OMP END MASTER
        if (.not. shr_infnan_isnan(bulk(diffloc))) then
-!$OMP MASTER
           write(iulog, '(a, e25.17)') 'Bulk*ratio: ',bulk(diffloc)*ratio
-!$OMP END MASTER
        end if
        call shr_sys_flush(iulog)
        call endrun(msg=subname//': tracer does not agree with bulk water')
     end if
+!$OMP END MASTER
   end subroutine CompareBulkToTracer
 
   !-----------------------------------------------------------------------

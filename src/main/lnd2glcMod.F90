@@ -27,7 +27,7 @@ module lnd2glcMod
   use abortutils      , only : endrun
   use TemperatureType , only : temperature_type
   use WaterFluxBulkType   , only : waterfluxbulk_type
-  use LandunitType    , only : lun                
+  use LandunitType    , only : lun
   use ColumnType      , only : col
   use TopoMod         , only : topo_type
   !
@@ -52,7 +52,7 @@ module lnd2glcMod
   end type lnd2glc_type
 
   ! !PUBLIC MEMBER FUNCTIONS:
-  
+
   ! The following is public simply to support unit testing, and should not generally be
   ! called from outside this module.
   !
@@ -70,11 +70,11 @@ contains
   subroutine Init(this, bounds)
 
     class(lnd2glc_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
 
     call this%InitAllocate(bounds)
     call this%InitHistory(bounds)
-    
+
   end subroutine Init
 
   !------------------------------------------------------------------------
@@ -89,10 +89,10 @@ contains
     !
     ! !ARGUMENTS:
     class(lnd2glc_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
-    integer :: begg,endg 
+    integer :: begg,endg
     !------------------------------------------------------------------------
 
     begg = bounds%begg; endg = bounds%endg
@@ -107,11 +107,11 @@ contains
   subroutine InitHistory(this, bounds)
     !
     ! !USES:
-    use histFileMod, only : hist_addfld1d,hist_addfld2d 
+    use histFileMod, only : hist_addfld1d,hist_addfld2d
     !
     ! !ARGUMENTS:
     class(lnd2glc_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     real(r8), pointer :: data2dptr(:,:)
@@ -153,7 +153,7 @@ contains
     !
     ! !ARGUMENTS:
     class(lnd2glc_type)    , intent(inout) :: this
-    type(bounds_type)      , intent(in)    :: bounds  
+    type(bounds_type)      , intent(in)    :: bounds
     integer                , intent(in)    :: num_do_smb_c       ! number of columns in filter_do_smb_c
     integer                , intent(in)    :: filter_do_smb_c(:) ! column filter: columns where smb calculations are performed
     type(temperature_type) , intent(in)    :: temperature_inst
@@ -173,8 +173,8 @@ contains
 
     this%qice_grc(bounds%begg : bounds%endg, :) = 0._r8
     this%tsrf_grc(bounds%begg : bounds%endg, :) = tfrz
-    this%topo_grc(bounds%begg : bounds%endg, :) = 0._r8     
-  
+    this%topo_grc(bounds%begg : bounds%endg, :) = 0._r8
+
     ! Fill the lnd->glc data on the clm grid
 
     allocate(fields_assigned(bounds%begg:bounds%endg, 0:maxpatch_glcmec))
@@ -183,9 +183,9 @@ contains
     do fc = 1, num_do_smb_c
       c = filter_do_smb_c(fc)
       l = col%landunit(c)
-      g = col%gridcell(c) 
+      g = col%gridcell(c)
 
-      ! Set vertical index and a flux normalization, based on whether the column in question is glacier or vegetated.  
+      ! Set vertical index and a flux normalization, based on whether the column in question is glacier or vegetated.
       if (lun%itype(l) == istice_mec) then
          n = col_itype_to_icemec_class(col%itype(c))
          flux_normalization = 1.0_r8
@@ -207,14 +207,8 @@ contains
       if (fields_assigned(g,n)) then
 !$OMP MASTER
          write(iulog,*) subname//' ERROR: attempt to assign coupling fields twice for the same index.'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'One possible cause is having multiple columns in the istsoil landunit,'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'which this routine cannot handle.'
-!$OMP END MASTER
-!$OMP MASTER
          write(iulog,*) 'g, n = ', g, n
 !$OMP END MASTER
          call endrun(decomp_index=c, clmlevel=namec, msg=errMsg(sourcefile, __LINE__))
@@ -242,7 +236,7 @@ contains
     end do
 
     deallocate(fields_assigned)
-                
+
   end subroutine update_lnd2glc
 
   !-----------------------------------------------------------------------
@@ -311,4 +305,3 @@ contains
   end function bareland_normalization
 
 end module lnd2glcMod
-

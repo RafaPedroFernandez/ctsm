@@ -20,7 +20,7 @@ module CanopyHydrologyMod
   use clm_varctl      , only : iulog
   use column_varcon   , only : icol_sunwall, icol_shadewall
   use subgridAveMod   , only : p2c
-  use LandunitType    , only : lun                
+  use LandunitType    , only : lun
   use atm2lndType     , only : atm2lnd_type
   use AerosolMod      , only : aerosol_type
   use CanopyStateType , only : canopystate_type
@@ -102,7 +102,7 @@ contains
          use_clm5_fpi
 
     ! ----------------------------------------------------------------------
-    ! Read namelist from standard input. 
+    ! Read namelist from standard input.
     ! ----------------------------------------------------------------------
 
     if ( masterproc )then
@@ -129,23 +129,15 @@ contains
     call shr_mpi_bcast(maximum_leaf_wetted_fraction, mpicom)
     call shr_mpi_bcast(use_clm5_fpi, mpicom)
 
+!$OMP MASTER
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'canopyhydrology settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  interception_fraction        = ',interception_fraction
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  maximum_leaf_wetted_fraction = ',maximum_leaf_wetted_fraction
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  use_clm5_fpi                 = ',use_clm5_fpi
-!$OMP END MASTER
     endif
+!$OMP END MASTER
 
    end subroutine CanopyHydrology_readnl
 
@@ -1171,7 +1163,7 @@ contains
               fwet(p) = (h2ocan / (vegt * params_inst%liq_canopy_storage_scalar))**0.666666666666_r8
               fwet(p) = min (fwet(p),maximum_leaf_wetted_fraction)   ! Check for maximum limit of fwet
               if (snocan(p) > 0._r8) then
-                 fcansno(p) = (snocan(p) / (vegt * params_inst%snow_canopy_storage_scalar))**0.15_r8 ! must match snocanmx 
+                 fcansno(p) = (snocan(p) / (vegt * params_inst%snow_canopy_storage_scalar))**0.15_r8 ! must match snocanmx
                  fcansno(p) = min (fcansno(p),1.0_r8)
               else
                  fcansno(p) = 0._r8

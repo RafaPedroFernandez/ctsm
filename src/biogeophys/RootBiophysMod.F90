@@ -2,7 +2,7 @@ module RootBiophysMod
 
 #include "shr_assert.h"
 
-  !-------------------------------------------------------------------------------------- 
+  !--------------------------------------------------------------------------------------
   ! DESCRIPTION:
   ! module contains subroutine for root biophysics
   !
@@ -18,26 +18,26 @@ module RootBiophysMod
   integer, private, parameter :: jackson_1996_root = 1 !the jackson 1996 root profile function
   integer, private, parameter :: koven_exp_root    = 2 !the koven exponential root profile function
 
-  integer, public :: rooting_profile_method_water     !select the type of rooting profile parameterization for water  
-  integer, public :: rooting_profile_method_carbon    !select the type of rooting profile parameterization for carbon   
-  integer, public :: rooting_profile_varindex_water   !select the variant number of rooting profile parameterization for water  
-  integer, public :: rooting_profile_varindex_carbon  !select the variant number of rooting profile parameterization for carbon   
+  integer, public :: rooting_profile_method_water     !select the type of rooting profile parameterization for water
+  integer, public :: rooting_profile_method_carbon    !select the type of rooting profile parameterization for carbon
+  integer, public :: rooting_profile_varindex_water   !select the variant number of rooting profile parameterization for water
+  integer, public :: rooting_profile_varindex_carbon  !select the variant number of rooting profile parameterization for carbon
 
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
 
-  !-------------------------------------------------------------------------------------- 
+  !--------------------------------------------------------------------------------------
 
 contains
 
-  !-------------------------------------------------------------------------------------- 
+  !--------------------------------------------------------------------------------------
   subroutine init_rootprof(NLFilename)
     !
     !DESCRIPTION
     ! initialize methods for root profile calculation
 
     ! !USES:
-    use abortutils      , only : endrun   
+    use abortutils      , only : endrun
     use fileutils       , only : getavu, relavu
     use spmdMod         , only : mpicom, masterproc
     use shr_mpi_mod     , only : shr_mpi_bcast
@@ -90,47 +90,35 @@ contains
     call shr_mpi_bcast(rooting_profile_varindex_carbon, mpicom)
 
     if (masterproc) then
-
 !$OMP MASTER
        write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'rooting_profile settings:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '  rooting_profile_method_water  = ',rooting_profile_method_water
-!$OMP END MASTER
        if ( rooting_profile_method_water == jackson_1996_root )then
-!$OMP MASTER
           write(iulog,*) '  (rooting_profile_varindex_water  = ',rooting_profile_varindex_water, ')'
-!$OMP END MASTER
        end if
-!$OMP MASTER
        write(iulog,*) '  rooting_profile_method_carbon = ',rooting_profile_method_carbon
-!$OMP END MASTER
        if ( rooting_profile_method_carbon == jackson_1996_root )then
-!$OMP MASTER
           write(iulog,*) '  (rooting_profile_varindex_carbon  = ',rooting_profile_varindex_carbon, ')'
-!$OMP END MASTER
        end if
-
+!$OMP END MASTER
     endif
 
   end subroutine init_rootprof
 
-  !-------------------------------------------------------------------------------------- 
+  !--------------------------------------------------------------------------------------
   subroutine init_vegrootfr(bounds, nlevsoi, nlevgrnd, rootfr, water_carbon)
     !
     !DESCRIPTION
     !initialize plant root profiles
     !
     ! USES
-    use shr_kind_mod   , only : r8 => shr_kind_r8   
+    use shr_kind_mod   , only : r8 => shr_kind_r8
     use shr_log_mod    , only : errMsg => shr_log_errMsg
     use decompMod      , only : bounds_type
-    use abortutils     , only : endrun         
-    use ColumnType            , only : col                
-    use PatchType             , only : patch                
+    use abortutils     , only : endrun
+    use ColumnType            , only : col
+    use PatchType             , only : patch
         !
     ! !ARGUMENTS:
     type(bounds_type), intent(in) :: bounds                     ! bounds
@@ -149,7 +137,7 @@ contains
 
     SHR_ASSERT_ALL_FL((ubound(rootfr) == (/bounds%endp, nlevgrnd/)), sourcefile, __LINE__)
 
-    if (     water_carbon == 'water' ) then 
+    if (     water_carbon == 'water' ) then
        rooting_profile_method = rooting_profile_method_water
        rooting_profile_varidx = rooting_profile_varindex_water
     else if (water_carbon == 'carbon') then
@@ -158,7 +146,7 @@ contains
     else
        call endrun(subname // ':: input type can only be water or carbon = '//water_carbon )
     end if
- 
+
     select case( rooting_profile_method )
 
     case (zeng_2001_root)
@@ -168,13 +156,13 @@ contains
     case (koven_exp_root)
        rootfr(bounds%begp:bounds%endp, 1 : nlevsoi) = exponential_rootfr(bounds, nlevsoi)
     case default
-       call endrun(subname // ':: a root fraction function must be specified!')   
+       call endrun(subname // ':: a root fraction function must be specified!')
     end select
-    rootfr(bounds%begp:bounds%endp,nlevsoi+1:nlevgrnd)=0._r8   
+    rootfr(bounds%begp:bounds%endp,nlevsoi+1:nlevgrnd)=0._r8
 
     ! shift roots up above bedrock boundary (distribute equally to each layer)
     ! may not matter if normalized later
-    do p = bounds%begp,bounds%endp   
+    do p = bounds%begp,bounds%endp
        c = patch%column(p)
        rootfr(p,1:col%nbedrock(c)) = rootfr(p,1:col%nbedrock(c)) &
             + sum(rootfr(p,col%nbedrock(c)+1:nlevsoi))/real(col%nbedrock(c))
@@ -182,7 +170,7 @@ contains
     enddo
   end subroutine init_vegrootfr
 
-  !-------------------------------------------------------------------------   
+  !-------------------------------------------------------------------------
   function zeng2001_rootfr(bounds, ubj) result(rootfr)
     !
     ! DESCRIPTION
@@ -190,8 +178,8 @@ contains
     ! using equation from Zeng 2001, J. Hydrometeorology
     !
     ! USES
-    use shr_kind_mod   , only : r8 => shr_kind_r8   
-    use shr_log_mod    , only : errMsg => shr_log_errMsg   
+    use shr_kind_mod   , only : r8 => shr_kind_r8
+    use shr_log_mod    , only : errMsg => shr_log_errMsg
     use decompMod      , only : bounds_type
     use pftconMod      , only : pftcon
     use PatchType      , only : patch
@@ -211,9 +199,9 @@ contains
     !(computing from surface, d is depth in meter):
     ! Y = 1 -1/2 (exp(-ad)+exp(-bd) under the constraint that
     ! Y(d =0.1m) = 1-beta^(10 cm) and Y(d=d_obs)=0.99 with
-    ! beta & d_obs given in Zeng et al. (1998).   
+    ! beta & d_obs given in Zeng et al. (1998).
 
-    do p = bounds%begp,bounds%endp   
+    do p = bounds%begp,bounds%endp
 
        if (.not. patch%is_fates(p)) then
           c = patch%column(p)
@@ -237,7 +225,7 @@ contains
 
   end function zeng2001_rootfr
 
-  !-------------------------------------------------------------------------   
+  !-------------------------------------------------------------------------
   function jackson1996_rootfr(bounds, ubj, varindx, water_carbon) result(rootfr)
     !
     ! DESCRIPTION
@@ -245,8 +233,8 @@ contains
     ! using equation from Jackson et al. 1996, Oec.
     !
     ! USES
-    use shr_kind_mod   , only : r8 => shr_kind_r8   
-    use shr_log_mod    , only : errMsg => shr_log_errMsg   
+    use shr_kind_mod   , only : r8 => shr_kind_r8
+    use shr_log_mod    , only : errMsg => shr_log_errMsg
     use decompMod      , only : bounds_type
     use pftconMod      , only : pftcon
     use PatchType      , only : patch
@@ -268,11 +256,11 @@ contains
     !------------------------------------------------------------------------
 
     !(computing from surface, d is depth in centimeters):
-    ! Y = (1 - beta^d); beta given in Jackson et al. (1996).   
+    ! Y = (1 - beta^d); beta given in Jackson et al. (1996).
 
     rootfr(bounds%begp:bounds%endp, :)     = 0._r8
-    do p = bounds%begp,bounds%endp   
-       c = patch%column(p)       
+    do p = bounds%begp,bounds%endp
+       c = patch%column(p)
        if (.not.patch%is_fates(p)) then
           beta = pftcon%rootprof_beta(patch%itype(p),varindx)
           do lev = 1, ubj
@@ -283,13 +271,13 @@ contains
        else
           rootfr(p,:) = 0.
        endif
-       
+
     enddo
     return
 
   end function jackson1996_rootfr
 
-  !-------------------------------------------------------------------------   
+  !-------------------------------------------------------------------------
   function exponential_rootfr(bounds, ubj) result(rootfr)
     !
     ! DESCRIPTION
@@ -297,8 +285,8 @@ contains
     ! using equation from Koven
     !
     ! USES
-    use shr_kind_mod   , only : r8 => shr_kind_r8   
-    use shr_log_mod    , only : errMsg => shr_log_errMsg   
+    use shr_kind_mod   , only : r8 => shr_kind_r8
+    use shr_log_mod    , only : errMsg => shr_log_errMsg
     use decompMod      , only : bounds_type
     use pftconMod      , only : pftcon
     use PatchType      , only : patch
@@ -312,14 +300,14 @@ contains
     real(r8) :: rootfr(bounds%begp:bounds%endp , 1:ubj ) !
     !
     ! !LOCAL VARIABLES:
-    real(r8), parameter :: rootprof_exp  = 3.  ! how steep profile is for root C inputs (1/ e-folding depth) (1/m)      
+    real(r8), parameter :: rootprof_exp  = 3.  ! how steep profile is for root C inputs (1/ e-folding depth) (1/m)
     real(r8) :: norm
     integer :: p, lev, c
 
     !------------------------------------------------------------------------
 
     rootfr(bounds%begp:bounds%endp, :)     = 0._r8
-    do p = bounds%begp,bounds%endp   
+    do p = bounds%begp,bounds%endp
        c = patch%column(p)
        if (.not.patch%is_fates(p)) then
           do lev = 1, ubj
@@ -336,5 +324,5 @@ contains
     return
 
   end function exponential_rootfr
-  
+
 end module RootBiophysMod

@@ -12,11 +12,11 @@ module CNSharedParamsMod
 
   type, public  :: CNParamsShareType
       real(r8) :: Q10                   ! temperature dependence
-      real(r8) :: minpsi                ! minimum soil water potential for heterotrophic resp	  
+      real(r8) :: minpsi                ! minimum soil water potential for heterotrophic resp
       real(r8) :: cwd_fcel              ! cellulose fraction of coarse woody debris
       real(r8) :: cwd_flig              ! lignin fraction of coarse woody debris
       real(r8) :: froz_q10              ! separate q10 for frozen soil respiration rates
-      real(r8) :: decomp_depth_efolding ! e-folding depth for reduction in decomposition (m) 
+      real(r8) :: decomp_depth_efolding ! e-folding depth for reduction in decomposition (m)
       real(r8) :: mino2lim              ! minimum anaerobic decomposition rate as a fraction of potential aerobic rate
       real(r8) :: organic_max           ! organic matter content (kg/m3) where soil is assumed to act like peat
       logical  :: constrain_stress_deciduous_onset ! if true use additional constraint on stress deciduous onset trigger
@@ -30,7 +30,7 @@ module CNSharedParamsMod
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
   !-----------------------------------------------------------------------
-  
+
 contains
 
   !-----------------------------------------------------------------------
@@ -45,7 +45,7 @@ contains
     call CNParamsReadShared_namelist(namelist_file)
 
   end subroutine CNParamsReadShared
-  
+
   !-----------------------------------------------------------------------
   subroutine CNParamsReadShared_netcdf(ncid)
     !
@@ -73,7 +73,7 @@ contains
     tString='minpsi_hr'
     call ncd_io(trim(tString),tempr, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=trim(errCode)//trim(tString)//errMsg(sourcefile, __LINE__))
-    CNParamsShareInst%minpsi=tempr 
+    CNParamsShareInst%minpsi=tempr
 
     tString='cwd_fcel'
     call ncd_io(trim(tString),tempr, 'read', ncid, readvar=readv)
@@ -83,18 +83,18 @@ contains
     tString='cwd_flig'
     call ncd_io(trim(tString),tempr, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=trim(errCode)//trim(tString)//errMsg(sourcefile, __LINE__))
-    CNParamsShareInst%cwd_flig=tempr 
+    CNParamsShareInst%cwd_flig=tempr
 
     tString='froz_q10'
     call ncd_io(trim(tString),tempr, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=trim(errCode)//trim(tString)//errMsg(sourcefile, __LINE__))
-    CNParamsShareInst%froz_q10=tempr   
+    CNParamsShareInst%froz_q10=tempr
 
     tString='mino2lim'
     call ncd_io(trim(tString),tempr, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=trim(errCode)//trim(tString)//errMsg(sourcefile, __LINE__))
-    CNParamsShareInst%mino2lim=tempr 
-    !CNParamsShareInst%mino2lim=0.2_r8 
+    CNParamsShareInst%mino2lim=tempr
+    !CNParamsShareInst%mino2lim=0.2_r8
 
     tString='organic_max'
     call ncd_io(trim(tString),tempr, 'read', ncid, readvar=readv)
@@ -102,7 +102,7 @@ contains
     CNParamsShareInst%organic_max=tempr
 
   end subroutine CNParamsReadShared_netcdf
-  
+
   !-----------------------------------------------------------------------
   subroutine CNParamsReadShared_namelist(namelist_file)
     !
@@ -117,13 +117,13 @@ contains
     use clm_varctl  , only : iulog
     use abortutils  , only : endrun
     use shr_mpi_mod , only : shr_mpi_bcast
-    
+
     !
     implicit none
     !
 
     character(len=*), intent(in) :: namelist_file
-    
+
     integer :: i,j,n                ! loop indices
     integer :: ierr                 ! error code
     integer :: unitn                ! unit for namelist file
@@ -146,15 +146,12 @@ contains
 
 
     ! Read namelist from standard input.
+!$OMP MASTER
     if (masterproc) then
 
-!$OMP MASTER
        write(iulog,*) 'Attempting to read CN/BGC shared namelist parameters .....'
-!$OMP END MASTER
        unitn = getavu()
-!$OMP MASTER
        write(iulog,*) 'Read in ' // namelist_group // ' namelist from: ', trim(namelist_file)
-!$OMP END MASTER
        open( unitn, file=trim(namelist_file), status='old' )
        call shr_nl_find_group_name(unitn, namelist_group, status=ierr)
        if (ierr == 0) then
@@ -170,6 +167,7 @@ contains
        call relavu( unitn )
 
     end if ! masterproc
+!$OMP END MASTER
 
     ! Broadcast the parameters from master
     call shr_mpi_bcast ( decomp_depth_efolding, mpicom )
@@ -180,25 +178,16 @@ contains
     CNParamsShareInst%constrain_stress_deciduous_onset = constrain_stress_deciduous_onset
 
     ! Output read parameters to the lnd.log
+!$OMP MASTER
     if (masterproc) then
-!$OMP MASTER
        write(iulog,*) 'CN/BGC shared namelist parameters:'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)' '
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'  decomp_depth_efolding = ', decomp_depth_efolding
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*)'  constrain_stress_deciduous_onset = ',constrain_stress_deciduous_onset
-!$OMP END MASTER
-
-!$OMP MASTER
        write(iulog,*)
+    end if
 !$OMP END MASTER
 
-    end if
 
   end subroutine CNParamsReadShared_namelist
 

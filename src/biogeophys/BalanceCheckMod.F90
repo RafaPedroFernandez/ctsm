@@ -660,6 +660,7 @@ contains
               write(iulog,*)'errh2o_col                = ',errh2o_col(indexc)
               write(iulog,*)'forc_rain                 = ',forc_rain_col(indexc)*dtime
               write(iulog,*)'forc_snow                 = ',forc_snow_col(indexc)*dtime
+
               write(iulog,*)'endwb_col                 = ',endwb_col(indexc)
               write(iulog,*)'begwb_col                 = ',begwb_col(indexc)
 
@@ -980,7 +981,6 @@ contains
            write(iulog,*)'WARNING: BalanceCheck: surface flux energy balance error (W/m2)'
            write(iulog,*)'nstep          = ' ,nstep
            write(iulog,*)'errseb         = ' ,errseb(indexp)
-
 
            if ( errseb_max_val > error_thresh ) then
               write(iulog,*)'CTSM is stopping because errseb > ', error_thresh, ' W/m2'

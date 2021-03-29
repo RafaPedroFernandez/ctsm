@@ -914,72 +914,48 @@ contains
     write(iulog,*) '   Threshold above which the model keeps the lake landunit =', toosmall_lake
     write(iulog,*) '   Threshold above which the model keeps the wetland landunit =', toosmall_wetland
     write(iulog,*) '   Threshold above which the model keeps the urban landunits =', toosmall_urban
-!$OMP END MASTER
     if (use_cn) then
        if (suplnitro /= suplnNon)then
-!$OMP MASTER
           write(iulog,*) '   Supplemental Nitrogen mode is set to run over Patches: ', &
                trim(suplnitro)
-!$OMP END MASTER
        end if
 
        if (nfix_timeconst /= 0._r8) then
-!$OMP MASTER
           write(iulog,*) '   nfix_timeconst, timescale for smoothing npp in N fixation term: ', nfix_timeconst
-!$OMP END MASTER
        else
-!$OMP MASTER
           write(iulog,*) '   nfix_timeconst == zero, use standard N fixation scheme. '
-!$OMP END MASTER
        end if
 
-!$OMP MASTER
        write(iulog,*) '   spinup_state, (0 = normal mode; 1 = AD spinup; 2 AAD)         : ', spinup_state
-!$OMP END MASTER
        if ( spinup_state .eq. 0 ) then
-!$OMP MASTER
           write(iulog,*) '   model is currently NOT in AD spinup mode.'
-!$OMP END MASTER
        else if ( spinup_state .eq. 1 ) then
-!$OMP MASTER
           write(iulog,*) '   model is currently in AD spinup mode.'
-!$OMP END MASTER
        else if ( spinup_state .eq. 2 ) then
-!$OMP MASTER
           write(iulog,*) '   model is currently in accelerated AD spinup mode.'
-!$OMP END MASTER
        else
           call endrun(msg=' error: spinup_state can only have integer value of 0 or 1 or 2'//&
                errMsg(sourcefile, __LINE__))
        end if
 
        if ( use_fun ) then
-!$OMP MASTER
           write(iulog,*) '   Fixation and Uptake of Nitrogen Model Version 2 (FUN2) is turned on for Nitrogen Competition'
-!$OMP END MASTER
        end if
 
-!$OMP MASTER
        write(iulog,*) '   override_bgc_restart_mismatch_dump                     : ', override_bgc_restart_mismatch_dump
-!$OMP END MASTER
     end if
 
     if (use_cn .and. use_vertsoilc) then
-!$OMP MASTER
        write(iulog, *) '   som_adv_flux, the advection term in soil mixing (m/s) : ', som_adv_flux
        write(iulog, *) '   max_depth_cryoturb (m)                                : ', max_depth_cryoturb
        write(iulog, *) '   surfprof_exp                                          : ', surfprof_exp
-!$OMP END MASTER
     end if
 
     if (use_cn .and. .not. use_nitrif_denitrif) then
-!$OMP MASTER
        write(iulog, *) '   no_frozen_nitrif_denitrif                             : ', no_frozen_nitrif_denitrif
-!$OMP END MASTER
     end if
 
     if (use_cn) then
-!$OMP MASTER
        write(iulog, *) '  use_c13                                                : ', use_c13
        write(iulog, *) '  use_c13_timeseries                                     : ', use_c13_timeseries
        write(iulog, *) '  atm_c13_filename                                       : ', atm_c13_filename
@@ -987,29 +963,19 @@ contains
        write(iulog, *) '  use_c14_bombspike                                      : ', use_c14_bombspike
        write(iulog, *) '  atm_c14_filename                                       : ', atm_c14_filename
        write(iulog, *) '  for_testing_allow_interp_non_ciso_to_ciso              : ', for_testing_allow_interp_non_ciso_to_ciso
-!$OMP END MASTER
     end if
 
     if (fsnowoptics == ' ') then
-!$OMP MASTER
        write(iulog,*) '   snow optical properties file NOT set'
-!$OMP END MASTER
     else
-!$OMP MASTER
        write(iulog,*) '   snow optical properties file = ',trim(fsnowoptics)
-!$OMP END MASTER
     endif
     if (fsnowaging == ' ') then
-!$OMP MASTER
        write(iulog,*) '   snow aging parameters file NOT set'
-!$OMP END MASTER
     else
-!$OMP MASTER
        write(iulog,*) '   snow aging parameters file = ',trim(fsnowaging)
-!$OMP END MASTER
     endif
 
-!$OMP MASTER
     write(iulog,*) '   Number of snow layers =', nlevsno
     write(iulog,*) '   Max snow depth (mm) =', h2osno_max
 
@@ -1020,47 +986,31 @@ contains
        write(iulog,*) '   glc CLM glacier areas and topography will NOT evolve dynamically'
     end if
     write(iulog,*) '   glc snow persistence max days = ', glc_snow_persistence_max_days
-!$OMP END MASTER
 
     if (nsrest == nsrStartup) then
        if (finidat /= ' ') then
-!$OMP MASTER
           write(iulog,*) '   initial data: ', trim(finidat)
-!$OMP END MASTER
        else if (finidat_interp_source /= ' ') then
-!$OMP MASTER
           write(iulog,*) '   initial data interpolated from: ', trim(finidat_interp_source)
-!$OMP END MASTER
        else
-!$OMP MASTER
           write(iulog,*) '   initial data created by model (cold start)'
-!$OMP END MASTER
        end if
     else
-!$OMP MASTER
        write(iulog,*) '   restart data   = ',trim(nrevsn)
-!$OMP END MASTER
     end if
 
-!$OMP MASTER
     write(iulog,*) '   atmospheric forcing data is from cesm atm model'
     write(iulog,*) 'Restart parameters:'
     write(iulog,*)'   restart pointer file directory     = ',trim(rpntdir)
     write(iulog,*)'   restart pointer file name          = ',trim(rpntfil)
     write(iulog,*) 'model physics parameters:'
-!$OMP END MASTER
 
     if ( trim(co2_type) == 'constant' )then
-!$OMP MASTER
        write(iulog,*) '   CO2 volume mixing ratio   (umol/mol)   = ', co2_ppmv
-!$OMP END MASTER
     else
-!$OMP MASTER
        write(iulog,*) '   CO2 volume mixing ratio                = ', co2_type
-!$OMP END MASTER
     end if
 
-!$OMP MASTER
     write(iulog,*) '   land-ice albedos      (unitless 0-1)   = ', albice
     write(iulog,*) '   pre-defined soil layer structure = ', soil_layerstruct_predefined
     write(iulog,*) '   user-defined soil layer structure = ', soil_layerstruct_userdefined
@@ -1154,11 +1104,9 @@ contains
 
     character(len=*), parameter :: subname = 'apply_use_init_interp'
     !-----------------------------------------------------------------------
-
-    if (finidat == ' ') then
 !$OMP MASTER
+    if (finidat == ' ') then
        write(iulog,*)' WARNING: Setting use_init_interp has no effect if finidat is not also set'
-!$OMP END MASTER
     end if
 
     if (finidat_interp_source /= ' ') then
@@ -1168,29 +1116,16 @@ contains
 
     if (get_filename(finidat) == &
          get_filename(finidat_interp_dest)) then
-!$OMP MASTER
        write(iulog,*) 'ERROR: With use_init_interp, cannot use the same filename for source and dest'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '(because this will lead to the source being overwritten before it is read).'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'finidat             = ', trim(get_filename(finidat))
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'finidat_interp_dest = ', trim(get_filename(finidat_interp_dest))
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) '(Even if the two files are in different directories, you cannot use the same filename'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'due to problems related to <https://github.com/ESCOMP/ctsm/issues/329>.)'
-!$OMP END MASTER
-!$OMP MASTER
        write(iulog,*) 'As a workaround, copy or move the finidat file to a different name.'
-!$OMP END MASTER
        call endrun(msg=' ERROR: With use_init_interp, cannot use the same filename for source and dest')
     end if
+!$OMP END MASTER
 
     finidat_interp_source = finidat
     finidat = ' '

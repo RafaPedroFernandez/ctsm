@@ -212,26 +212,12 @@ contains
    if (masterproc) then
 !$OMP MASTER
       write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) 'popdens_streams settings:'
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  stream_year_first_popdens  = ',stream_year_first_popdens
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  stream_year_last_popdens   = ',stream_year_last_popdens
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  model_year_align_popdens   = ',model_year_align_popdens
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  stream_fldFileName_popdens = ',stream_fldFileName_popdens
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  popdens_tintalgo           = ',popdens_tintalgo
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) ' '
 !$OMP END MASTER
    endif
@@ -384,26 +370,12 @@ contains
    if (masterproc) then
 !$OMP MASTER
       write(iulog,*) ' '
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) 'light_stream settings:'
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  stream_year_first_lightng  = ',stream_year_first_lightng
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  stream_year_last_lightng   = ',stream_year_last_lightng
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  model_year_align_lightng   = ',model_year_align_lightng
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  stream_fldFileName_lightng = ',stream_fldFileName_lightng
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) '  lightng_tintalgo           = ',lightng_tintalgo
-!$OMP END MASTER
-!$OMP MASTER
       write(iulog,*) ' '
 !$OMP END MASTER
    endif

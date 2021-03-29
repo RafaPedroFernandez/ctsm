@@ -38,8 +38,8 @@ module TemperatureType
      real(r8), pointer :: tsl_col                  (:)   ! col temperature of near-surface soil layer (Kelvin)
      real(r8), pointer :: t_soi10cm_col            (:)   ! col soil temperature in top 10cm of soil (Kelvin)
      real(r8), pointer :: t_soi17cm_col            (:)   ! col soil temperature in top 17cm of soil (Kelvin)
-     real(r8), pointer :: t_sno_mul_mss_col        (:)   ! col snow temperature multiplied by layer mass, layer sum (K * kg/m2) 
-     real(r8), pointer :: t_lake_col               (:,:) ! col lake temperature (Kelvin)  (1:nlevlak)          
+     real(r8), pointer :: t_sno_mul_mss_col        (:)   ! col snow temperature multiplied by layer mass, layer sum (K * kg/m2)
+     real(r8), pointer :: t_lake_col               (:,:) ! col lake temperature (Kelvin)  (1:nlevlak)
      real(r8), pointer :: t_grnd_col               (:)   ! col ground temperature (Kelvin)
      real(r8), pointer :: t_grnd_r_col             (:)   ! col rural ground temperature (Kelvin)
      real(r8), pointer :: t_grnd_u_col             (:)   ! col urban ground temperature (Kelvin) (needed by Hydrology2Mod)
@@ -117,7 +117,7 @@ module TemperatureType
      real(r8), pointer    :: xmf_h2osfc_col        (:)   ! latent heat of phase change of surface water
      real(r8), pointer    :: fact_col              (:,:) ! used in computing tridiagonal matrix
      real(r8), pointer    :: c_h2osfc_col          (:)   ! heat capacity of surface water
-     
+
    contains
 
      procedure, public  :: Init
@@ -390,7 +390,7 @@ contains
          avgflag='A', long_name='Urban daily maximum of average 2-m temperature', &
          ptr_patch=this%t_ref2m_max_u_patch, set_nourb=spval, default='inactive')
 
-    if (use_biomass_heat_storage) then 
+    if (use_biomass_heat_storage) then
        this%t_stem_patch(begp:endp) = spval
        call hist_addfld1d (fname='TSTEM', units='K',  &
             avgflag='A', long_name='stem temperature', &
@@ -1062,8 +1062,6 @@ contains
        if (flag=='read' .and. .not. readvar) then
 !$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_building in initial file..."
-!$OMP END MASTER
-!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_building to taf"
 !$OMP END MASTER
           this%t_building_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
@@ -1077,8 +1075,6 @@ contains
        if (flag=='read' .and. .not. readvar) then
 !$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_roof_inner in initial file..."
-!$OMP END MASTER
-!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_roof_inner to taf"
 !$OMP END MASTER
           this%t_roof_inner_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
@@ -1092,8 +1088,6 @@ contains
        if (flag=='read' .and. .not. readvar) then
 !$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_sunw_inner in initial file..."
-!$OMP END MASTER
-!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_sunw_inner to taf"
 !$OMP END MASTER
           this%t_sunw_inner_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
@@ -1107,8 +1101,6 @@ contains
        if (flag=='read' .and. .not. readvar) then
 !$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_shdw_inner in initial file..."
-!$OMP END MASTER
-!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_shdw_inner to taf"
 !$OMP END MASTER
           this%t_shdw_inner_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
@@ -1122,8 +1114,6 @@ contains
        if (flag=='read' .and. .not. readvar) then
 !$OMP MASTER
           if (masterproc) write(iulog,*) "can't find t_floor in initial file..."
-!$OMP END MASTER
-!$OMP MASTER
           if (masterproc) write(iulog,*) "Initialize t_floor to taf"
 !$OMP END MASTER
           this%t_floor_lun(bounds%begl:bounds%endl) = this%taf_lun(bounds%begl:bounds%endl)
