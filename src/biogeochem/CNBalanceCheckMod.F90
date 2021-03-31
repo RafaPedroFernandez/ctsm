@@ -282,16 +282,16 @@ contains
             err_index = c
          end if
           if (abs(col_errcb(c)) > 1e-8_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
             write(iulog,*) 'cbalance warning at c =', c, col_errcb(c), col_endcb(c)
-!$OMP END MASTER
+!$OMP END CRITICAL
          end if
 
 
 
       end do ! end of columns loop
 
-!$OMP MASTER
+!$OMP CRITICAL
       if (err_found) then
          c = err_index
          write(iulog,*)'column cbalance error    = ', col_errcb(c), c
@@ -311,7 +311,7 @@ contains
          write(iulog,*)'-1*som_c_leached         = ',som_c_leached(c)*dt
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
       ! Repeat error check at the gridcell level
       call c2g( bounds = bounds, &
@@ -365,13 +365,13 @@ contains
             err_index = g
          end if
          if (abs(grc_errcb(g)) > 1e-8_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
             write(iulog,*) 'cbalance warning at g =', g, grc_errcb(g), grc_endcb(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
          end if
       end do ! end of gridcell loop
 
-!$OMP MASTER
+!$OMP CRITICAL
       if (err_found) then
          g = err_index
          write(iulog,*)'gridcell cbalance error =', grc_errcb(g), g
@@ -387,7 +387,7 @@ contains
          write(iulog,*)'-1*som_c_leached_grc    = ', som_c_leached_grc(g) * dt
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     end associate
 
@@ -529,17 +529,17 @@ contains
             err_index = c
          end if
 
-!$OMP MASTER
+!$OMP CRITICAL
          if (abs(col_errnb(c)) > 1e-7_r8) then
             write(iulog,*) 'nbalance warning at c =', c, col_errnb(c), col_endnb(c)
             write(iulog,*)'inputs,ffix,nfix,ndep = ',ffix_to_sminn(c)*dt,nfix_to_sminn(c)*dt,ndep_to_sminn(c)*dt
             write(iulog,*)'outputs,lch,roff,dnit = ',smin_no3_leached(c)*dt, smin_no3_runoff(c)*dt,f_n2o_nit(c)*dt
          end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
       end do ! end of columns loop
 
-!$OMP MASTER
+!$OMP CRITICAL
       if (err_found) then
          c = err_index
          write(iulog,*)'column nbalance error    = ',col_errnb(c), c
@@ -555,7 +555,7 @@ contains
 
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
 
 
@@ -608,13 +608,13 @@ contains
          end if
 
          if (abs(grc_errnb(g)) > 1e-7_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
             write(iulog,*) 'nbalance warning at g =', g, grc_errnb(g), grc_endnb(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
          end if
       end do
 
-!$OMP MASTER
+!$OMP CRITICAL
       if (err_found) then
          g = err_index
          write(iulog,*) 'gridcell nbalance error  =', grc_errnb(g), g
@@ -635,7 +635,7 @@ contains
          write(iulog,*) 'product_loss_grc         =', product_loss_grc(g) * dt
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     end associate
 

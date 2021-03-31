@@ -337,7 +337,7 @@ contains
     !-----------------------------------------------------------------------
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' : number of master fields = ',nfmaster
        write(iulog,*)' ******* MASTER FIELD LIST *******'
        do nf = 1,nfmaster
@@ -345,7 +345,7 @@ contains
 9000      format (i5,1x,a32,1x,a16)
        end do
        call shr_sys_flush(iulog)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     ! Print master field list in separate text file when namelist
@@ -486,9 +486,9 @@ contains
     !------------------------------------------------------------------------
 
     if (.not. avgflag_valid(avgflag, blank_valid=.true.)) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: unknown averaging flag=', avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -500,27 +500,27 @@ contains
     ! Ensure that new field is not all blanks
 
     if (fname == ' ') then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: blank field name not allowed'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
     ! Ensure that new field name isn't too long
 
     if (len_trim(fname) > max_namlen ) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: field name too long: ', trim(fname)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     ! Ensure that new field doesn't already exist
 
     do n = 1,nfmaster
        if (masterlist(n)%field%name == fname) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR:', fname, ' already on list'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -533,10 +533,10 @@ contains
     ! Check number of fields in master list against maximum number for master list
 
     if (nfmaster > max_flds) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: too many fields for primary history file ', &
             '-- max_flds,nfmaster=', max_flds, nfmaster
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -577,9 +577,9 @@ contains
        masterlist(f)%field%end1d = bounds%endp
        masterlist(f)%field%num1d = nump
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: unknown 1d output type= ',type1d
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end select
 
@@ -626,10 +626,10 @@ contains
     !-----------------------------------------------------------------------
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)  trim(subname),' Initializing ', trim(compname), ' history files'
        write(iulog,'(72a1)') ("-",i=1,60)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call shr_sys_flush(iulog)
     endif
 
@@ -645,10 +645,10 @@ contains
     do t=1,ntapes
        tape(t)%dov2xy = hist_dov2xy(t)
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)trim(subname),' hist tape = ',t,&
                ' written with dov2xy= ',tape(t)%dov2xy
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
     end do
 
@@ -677,10 +677,10 @@ contains
     end do
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)  trim(subname),' Successfully initialized ', trim(compname), ' history files'
        write(iulog,'(72a1)') ("-",i=1,60)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call shr_sys_flush(iulog)
     endif
 
@@ -707,17 +707,17 @@ contains
     ! Check validity of input arguments
 
     if (tape_index > max_tapes) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: tape index=', tape_index, ' is too big'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
     if (present(avgflag)) then
        if (.not. avgflag_valid(avgflag, blank_valid=.true.)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: unknown averaging flag=', avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        endif
     end if
@@ -738,9 +738,9 @@ contains
        end if
     end do
     if (.not. found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: field=', name, ' not found'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -764,9 +764,9 @@ contains
 
     avgflag = hist_avgflag_pertape(t)
     if (.not. avgflag_valid(avgflag, blank_valid = .false.)) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: unknown avgflag=',avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -841,10 +841,10 @@ contains
              if (name == mastername) exit
           end do
           if (name /= mastername) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) trim(subname),' ERROR: ', trim(name), ' in fincl(', f, ') ',&
                   'for history tape ',t,' not found'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end if
           f = f + 1
@@ -857,10 +857,10 @@ contains
              if (fexcl(f,t) == mastername) exit
           end do
           if (fexcl(f,t) /= mastername) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) trim(subname),' ERROR: ', fexcl(f,t), ' in fexcl(', f, ') ', &
                   'for history tape ',t,' not found'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end if
           f = f + 1
@@ -915,7 +915,7 @@ contains
        call sort_hist_list(t, tape(t)%nflds, tape(t)%hlist)
 
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           if (tape(t)%nflds > 0) then
              write(iulog,*) trim(subname),' : Included fields tape ',t,'=',tape(t)%nflds
           end if
@@ -923,7 +923,7 @@ contains
              write(iulog,*) f,' ',tape(t)%hlist(f)%field%name, &
                   tape(t)%hlist(f)%field%num2d,' ',tape(t)%hlist(f)%avgflag
           end do
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_flush(iulog)
        end if
     end do
@@ -949,7 +949,7 @@ contains
 
     do t = 1,ntapes
        if (hist_type1d_pertape(t) /= ' ' .and. (.not. hist_dov2xy(t))) then
-!$OMP MASTER
+!$OMP CRITICAL
           select case (trim(hist_type1d_pertape(t)))
           case ('PFTS','COLS', 'LAND', 'GRID')
              if ( masterproc ) &
@@ -958,12 +958,12 @@ contains
              write(iulog,*) trim(subname),' ERROR: unknown namelist type1d per tape=',hist_type1d_pertape(t)
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end select
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
     end do
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'There will be a total of ',ntapes,' history tapes'
        do t=1,ntapes
           write(iulog,*)
@@ -985,7 +985,7 @@ contains
           end if
           write(iulog,*)
        end do
-!$OMP END MASTER
+!$OMP END CRITICAL
        call shr_sys_flush(iulog)
     end if
 
@@ -1148,10 +1148,10 @@ contains
     ! Ensure that it is not to late to add a field to the history tape
 
     if (htapes_defined) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: attempt to add field ', &
             masterlist(f)%field%name, ' after history files are set'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -1204,9 +1204,9 @@ contains
        case ('PFTS')
           tape(t)%hlist(n)%field%type1d_out = namep
        case default
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: unknown input hist_type1d_pertape= ', hist_type1d_pertape(t)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end select
 
@@ -1236,9 +1236,9 @@ contains
        end1d_out = bounds%endp
        num1d_out = nump
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: incorrect value of type1d_out= ',type1d_out
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -1268,9 +1268,9 @@ contains
     ! override the default averaging flag with namelist setting
 
     if (.not. avgflag_valid(avgflag, blank_valid=.true.)) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: unknown avgflag=', avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -1505,9 +1505,9 @@ contains
              nacs(k,1) = 1
           end do
        case default
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: invalid time averaging flag ', avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end select
        deallocate( field_gcell )
@@ -1608,9 +1608,9 @@ contains
              nacs(k,1) = 1
           end do
        case default
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: invalid time averaging flag ', avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end select
     end if
@@ -1838,9 +1838,9 @@ contains
              end do
           end do
        case default
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: invalid time averaging flag ', avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end select
        deallocate( field_gcell )
@@ -1947,9 +1947,9 @@ contains
              end do
           end do
        case default
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: invalid time averaging flag ', avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end select
     end if
@@ -2013,10 +2013,10 @@ contains
     case (no_snow_zero)
        no_snow_val = 0._r8
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname), ' ERROR: unrecognized no_snow_behavior: ', &
             no_snow_behavior
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun()
     end select
 
@@ -2029,10 +2029,10 @@ contains
        else if (type1d == namep) then
           c = patch%column(point)
        else
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname), ' ERROR: Only implemented for patch and col-level fields'
           write(iulog,*) 'type1d = ', trim(type1d)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun()
        end if
 
@@ -2205,10 +2205,10 @@ contains
 
     if ( .not. lhistrest )then
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' : Opening netcdf htape ', &
                                       trim(locfnh(t))
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_flush(iulog)
        end if
        call ncd_pio_createfile(lnfid, trim(locfnh(t)))
@@ -2217,10 +2217,10 @@ contains
           "NOTE: None of the variables are weighted by land fraction!" )
     else
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' : Opening netcdf rhtape ', &
                                       trim(locfnhr(t))
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_flush(iulog)
        end if
        call ncd_pio_createfile(lnfid, trim(locfnhr(t)))
@@ -2336,18 +2336,18 @@ contains
        call ncd_defdim(lnfid, 'hist_interval', 2, hist_interval_dimid)
        call ncd_defdim(lnfid, 'time', ncd_unlimited, time_dimid)
        if (masterproc)then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname), &
                           ' : Successfully defined netcdf history file ',t
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_flush(iulog)
        end if
     else
        if (masterproc)then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname), &
                           ' : Successfully defined netcdf restart history file ',t
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_flush(iulog)
        end if
     end if
@@ -2570,9 +2570,9 @@ contains
 
        allocate(histi(bounds%begc:bounds%endc,nlevgrnd), stat=ier)
        if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: allocation error for histi'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
 
@@ -2581,9 +2581,9 @@ contains
        if (tape(t)%dov2xy) then
           allocate(histo(bounds%begg:bounds%endg,nlevgrnd), stat=ier)
           if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)  trim(subname),' ERROR: allocation error for histo'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end if
        end if
@@ -2685,9 +2685,9 @@ contains
 
        allocate(histil(bounds%begc:bounds%endc,nlevlak), stat=ier)
        if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: allocation error for histil'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
 
@@ -2696,9 +2696,9 @@ contains
        if (tape(t)%dov2xy) then
           allocate(histol(bounds%begg:bounds%endg,nlevlak), stat=ier)
           if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)  trim(subname),' ERROR: allocation error for histol'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end if
        end if
@@ -2907,9 +2907,9 @@ contains
 
 
        elseif (mode == 'write') then
-!$OMP MASTER
+!$OMP CRITICAL
           if ( masterproc ) write(iulog, *) ' zsoi:',zsoi
-!$OMP END MASTER
+!$OMP END CRITICAL
           call ncd_io(varname='levgrnd', data=zsoi, ncid=nfid(t), flag='write')
           call ncd_io(varname='levsoi', data=zsoi(1:nlevsoi), ncid=nfid(t), flag='write')
           call ncd_io(varname='levlak' , data=zlak, ncid=nfid(t), flag='write')
@@ -3253,9 +3253,9 @@ contains
           case ('SUM')
              avgstr = 'sum'
           case default
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) trim(subname),' ERROR: unknown time averaging flag (avgflag)=',avgflag
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end select
 
@@ -3306,9 +3306,9 @@ contains
           if (numdims == 1) then
              allocate(hist1do(beg1d_out:end1d_out), stat=ier)
              if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) trim(subname),' ERROR: allocation'
-!$OMP END MASTER
+!$OMP END CRITICAL
                 call endrun(msg=errMsg(sourcefile, __LINE__))
              end if
              hist1do(beg1d_out:end1d_out) = histo(beg1d_out:end1d_out,1)
@@ -3766,11 +3766,11 @@ contains
              locfnh(t) = set_hist_filename (hist_freq=tape(t)%nhtfrq, &
                                             hist_mfilt=tape(t)%mfilt, hist_file=t)
              if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) trim(subname),' : Creating history file ', trim(locfnh(t)), &
                      ' at nstep = ',get_nstep()
                 write(iulog,*)'calling htape_create for file t = ',t
-!$OMP END MASTER
+!$OMP END CRITICAL
              endif
              call htape_create (t)
 
@@ -3804,14 +3804,14 @@ contains
           end if
 
           if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)
              write(iulog,*) trim(subname),' : Writing current time sample to local history file ', &
                   trim(locfnh(t)),' at nstep = ',get_nstep(), &
                   ' for history time interval beginning at ', tape(t)%begtime, &
                   ' and ending at ',time
              write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
              call shr_sys_flush(iulog)
           endif
 
@@ -3847,12 +3847,12 @@ contains
        if (if_disphist(t)) then
           if (tape(t)%ntimes /= 0) then
              if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*)
                 write(iulog,*)  trim(subname),' : Closing local history file ',&
                      trim(locfnh(t)),' at nstep = ', get_nstep()
                 write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
              endif
 
             call ncd_pio_closefile(nfid(t))
@@ -3862,9 +3862,9 @@ contains
              end if
           else
              if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) trim(subname),' : history tape ',t,': no open file to close'
-!$OMP END MASTER
+!$OMP END CRITICAL
              end if
           endif
        endif
@@ -4334,9 +4334,9 @@ contains
        call ncd_inqdlen(ncid,dimid,ntapes_onfile, name='ntapes')
        if (is_restart()) then
           if (ntapes_onfile /= ntapes) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'ntapes = ', ntapes, ' ntapes_onfile = ', ntapes_onfile
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=' ERROR: number of ntapes differs from restart file. '// &
                   'You can NOT change history options on restart.', &
                   additional_msg=errMsg(sourcefile, __LINE__))
@@ -4354,7 +4354,7 @@ contains
              end if
              do t = 1, ntapes
                 if (history_tape_in_use_onfile(t) .neqv. history_tape_in_use(t)) then
-!$OMP MASTER
+!$OMP CRITICAL
                    write(iulog,*) subname//' ERROR: history_tape_in_use on restart file'
                    write(iulog,*) 'disagrees with current run: For tape ', t
                    write(iulog,*) 'On restart file: ', history_tape_in_use_onfile(t)
@@ -4362,7 +4362,7 @@ contains
                    write(iulog,*) 'This suggests that this tape was empty in one case,'
                    write(iulog,*) 'but non-empty in the other. (history_tape_in_use .false.'
                    write(iulog,*) 'means that history tape is empty.)'
-!$OMP END MASTER
+!$OMP END CRITICAL
                    call endrun(msg=' ERROR: history_tape_in_use differs from restart file. '// &
                         'You can NOT change history options on restart.', &
                         additional_msg=errMsg(sourcefile, __LINE__))
@@ -4415,9 +4415,9 @@ contains
 
              call ncd_io('nflds',   nflds_onfile, 'read', ncid_hist(t) )
              if ( nflds_onfile /= tape(t)%nflds )then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) 'nflds = ', tape(t)%nflds, ' nflds_onfile = ', nflds_onfile
-!$OMP END MASTER
+!$OMP END CRITICAL
                 call endrun(msg=' ERROR: number of fields different than on restart file!,'// &
                      ' you can NOT change history options on restart!' //&
                      errMsg(sourcefile, __LINE__))
@@ -4496,9 +4496,9 @@ contains
                    beg1d_out = bounds%begp
                    end1d_out = bounds%endp
                 case default
-!$OMP MASTER
+!$OMP CRITICAL
                    write(iulog,*) trim(subname),' ERROR: read unknown 1d output type=',trim(type1d_out)
-!$OMP END MASTER
+!$OMP END CRITICAL
                    call endrun(msg=errMsg(sourcefile, __LINE__))
                 end select
 
@@ -4511,9 +4511,9 @@ contains
                           tape(t)%hlist(f)%nacs(beg1d_out:end1d_out,num2d), &
                           stat=status)
                 if (status /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
                    write(iulog,*) trim(subname),' ERROR: allocation error for hbuf,nacs at t,f=',t,f
-!$OMP END MASTER
+!$OMP END CRITICAL
                    call endrun(msg=errMsg(sourcefile, __LINE__))
                 endif
                 tape(t)%hlist(f)%hbuf(:,:) = 0._r8
@@ -4542,9 +4542,9 @@ contains
                    beg1d = bounds%begp
                    end1d = bounds%endp
                 case default
-!$OMP MASTER
+!$OMP CRITICAL
                    write(iulog,*) trim(subname),' ERROR: read unknown 1d type=',type1d
-!$OMP END MASTER
+!$OMP END CRITICAL
                    call endrun(msg=errMsg(sourcefile, __LINE__))
                 end select
 
@@ -4621,9 +4621,9 @@ contains
                    allocate(hbuf1d(beg1d_out:end1d_out), &
                             nacs1d(beg1d_out:end1d_out), stat=status)
                    if (status /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
                       write(iulog,*) trim(subname),' ERROR: allocation'
-!$OMP END MASTER
+!$OMP END CRITICAL
                       call endrun(msg=errMsg(sourcefile, __LINE__))
                    end if
 
@@ -4678,9 +4678,9 @@ contains
                    allocate(hbuf1d(beg1d_out:end1d_out), &
                         nacs1d(beg1d_out:end1d_out), stat=status)
                    if (status /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
                       write(iulog,*) trim(subname),' ERROR: allocation'
-!$OMP END MASTER
+!$OMP END CRITICAL
                       call endrun(msg=errMsg(sourcefile, __LINE__))
                    end if
 
@@ -4751,9 +4751,9 @@ contains
      length = len (inname)
 
      if (length < max_namlen .or. length > max_namlen+2) then
-!$OMP MASTER
+!$OMP CRITICAL
         write(iulog,*) trim(subname),' ERROR: bad length=',length
-!$OMP END MASTER
+!$OMP END CRITICAL
         call endrun(msg=errMsg(sourcefile, __LINE__))
      end if
 
@@ -4784,9 +4784,9 @@ contains
      length = len (inname)
 
      if (length < max_namlen .or. length > max_namlen+2) then
-!$OMP MASTER
+!$OMP CRITICAL
         write(iulog,*) trim(subname),' ERROR: bad length=',length
-!$OMP END MASTER
+!$OMP END CRITICAL
         call endrun(msg=errMsg(sourcefile, __LINE__))
      end if
 
@@ -4872,7 +4872,7 @@ contains
    ! extension is '.nc'.
    filename_length = len_trim(set_hist_filename)
    if (set_hist_filename(filename_length-2:filename_length) /= '.nc') then
-!$OMP MASTER
+!$OMP CRITICAL
       write(iulog, '(a,a,a,a,a)') 'ERROR: ', subname, &
            ' : expected file extension ".nc", received extension "', &
            set_hist_filename(filename_length-2:filename_length), '"'
@@ -4881,7 +4881,7 @@ contains
       write(iulog, '(a,a,a,i3,a,i3)') 'ERROR: ', subname, &
            ' Did the constructed filename exceed the maximum length? : filename length = ', &
            filename_length, ', max length = ', max_length_filename
-!$OMP END MASTER
+!$OMP END CRITICAL
       call endrun(msg=errMsg(sourcefile, __LINE__))
    end if
   end function set_hist_filename
@@ -5069,10 +5069,10 @@ contains
           end do
        end if
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: must specify a valid pointer index,', &
           ' choices are [ptr_atm, ptr_lnd, ptr_gcell, ptr_lunit, ptr_col, ptr_patch] '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
 
     end if
@@ -5175,27 +5175,27 @@ contains
     ! defined above.
     if (present(no_snow_behavior)) then
        if (type2d /= 'levsno') then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname), &
                ' ERROR: Only specify no_snow_behavior for fields with dimension levsno'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun()
        end if
 
        if (no_snow_behavior < no_snow_MIN .or. no_snow_behavior > no_snow_MAX) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname), &
                ' ERROR: Invalid value for no_snow_behavior: ', no_snow_behavior
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun()
        end if
 
     else  ! no_snow_behavior is absent
        if (type2d == 'levsno') then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname), &
                ' ERROR: must specify no_snow_behavior for fields with dimension levsno'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun()
        end if
     end if
@@ -5261,10 +5261,10 @@ contains
        if (cft_size > 0) then
           num2d = cft_size
        else
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: 2d type =', trim(type2d), &
                ' only valid for cft_size > 0'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun()
        end if
     case ('glc_nec')
@@ -5280,11 +5280,11 @@ contains
     case ('nvegwcs')
         num2d = nvegwcs
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: unsupported 2d type ',type2d, &
           ' currently supported types for multi level fields are: ', &
           '[levgrnd,levsoi,levlak,numrad,levdcmp,levtrc,ltype,natpft,cft,glc_nec,elevclas,levsno,nvegwcs]'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end select
 
@@ -5405,10 +5405,10 @@ contains
        end if
 
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: must specify a valid pointer index,', &
           ' choices are ptr_atm, ptr_lnd, ptr_gcell, ptr_lunit, ptr_col, ptr_patch'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
 
     end if
@@ -5525,10 +5525,10 @@ contains
        endif
 
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog, *) ' error: hist_addfld_decomp needs either patch or column level pointer'
        write(iulog, *) fname
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 
@@ -5549,10 +5549,10 @@ contains
     pointer_index = lastindex
     lastindex = lastindex + 1
     if (lastindex > max_mapflds) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: ',&
             ' lastindex = ',lastindex,' greater than max_mapflds= ',max_mapflds
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 
@@ -5574,10 +5574,10 @@ contains
 
     num_subs = num_subs + 1
     if (num_subs > max_subs) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(subname),' ERROR: ',&
             ' num_subs = ',num_subs,' greater than max_subs= ',max_subs
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
     subs_name(num_subs) = name

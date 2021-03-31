@@ -130,14 +130,14 @@ contains
               num_filterc,filterc, soilstate_inst, waterfluxbulk_inst)
       end if
 
-!$OMP MASTER
+!$OMP CRITICAL
       if (num_hydrologyc /= num_filterc_tot) then
           write(iulog,*) 'The total number of columns flagged to root water uptake'
           write(iulog,*) 'did not match the total number calculated'
           write(iulog,*) 'This is likely a problem with the interpretation of column/lu filters.'
           call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
 
       return

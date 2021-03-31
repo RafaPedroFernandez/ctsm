@@ -120,9 +120,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -146,14 +146,14 @@ contains
     call shr_mpi_bcast (use_biomass_heat_storage, mpicom)
     call shr_mpi_bcast (itmax_canopy_fluxes, mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=canopyfluxes_inparm)
        write(iulog,*) ' '
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
   end subroutine CanopyFluxesReadNML
 
@@ -926,9 +926,9 @@ bioms:   do f = 1, fn
 
       if (found) then
          if ( .not. use_fates ) then
-!$OMP MASTER
+!$OMP CRITICAL
             write(iulog,*)'Error: Forcing height is below canopy height for patch index '
-!$OMP END MASTER
+!$OMP END CRITICAL
             call endrun(decomp_index=index, clmlevel=namep, msg=errmsg(sourcefile, __LINE__))
          end if
       end if
@@ -1631,9 +1631,9 @@ bioms:   do f = 1, fn
 
       do f = 1, fn
          p = filterp(f)
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*) 'energy balance in canopy ',p,', err=',err(p)
-!$OMP END MASTER
+!$OMP END CRITICAL
       end do
 
     end associate

@@ -276,10 +276,10 @@ contains
        l = col%landunit(c)
        col%active(c) = is_active_c(c, glc_behavior)
        if (col%active(c) .and. .not. lun%active(l)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: active column found on inactive landunit', &
                          'at c = ', c, ', l = ', l
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=c, clmlevel=namec, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -288,10 +288,10 @@ contains
        c = patch%column(p)
        patch%active(p) = is_active_p(p)
        if (patch%active(p) .and. .not. col%active(c)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: active patch found on inactive column', &
                          'at p = ', p, ', c = ', c
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=p, clmlevel=namep, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -521,10 +521,10 @@ contains
     if (l /= ispval) then
        lun%wtgcell(l) = weight
     else if (weight > 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname//' ERROR: Attempt to assign non-zero weight to a non-existent landunit'
        write(iulog,*) 'g, l, ltype, weight = ', g, l, ltype, weight
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(decomp_index=l, clmlevel=namel, msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -614,30 +614,30 @@ contains
 
     do c = bounds%begc,bounds%endc
        if (.not. weights_okay(sumwtcol(c), active_only, col%active(c))) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: at c = ',c,'total PFT weight is ',sumwtcol(c), &
                          'active_only = ', active_only
-!$OMP END MASTER
+!$OMP END CRITICAL
           error_found = .true.
        end if
     end do
 
     do l = bounds%begl,bounds%endl
        if (.not. weights_okay(sumwtlunit(l), active_only, lun%active(l))) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: at l = ',l,'total PFT weight is ',sumwtlunit(l), &
                          'active_only = ', active_only
-!$OMP END MASTER
+!$OMP END CRITICAL
           error_found = .true.
        end if
     end do
 
     do g = bounds%begg,bounds%endg
        if (.not. weights_okay(sumwtgcell(g), active_only, i_am_active=.true.)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: at g = ',g,'total PFT weight is ',sumwtgcell(g), &
                          'active_only = ', active_only
-!$OMP END MASTER
+!$OMP END CRITICAL
           error_found = .true.
        end if
     end do
@@ -658,20 +658,20 @@ contains
 
     do l = bounds%begl,bounds%endl
        if (.not. weights_okay(sumwtlunit(l), active_only, lun%active(l))) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: at l = ',l,'total col weight is ',sumwtlunit(l), &
                          'active_only = ', active_only
-!$OMP END MASTER
+!$OMP END CRITICAL
           error_found = .true.
        end if
     end do
 
     do g = bounds%begg,bounds%endg
        if (.not. weights_okay(sumwtgcell(g), active_only, i_am_active=.true.)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: at g = ',g,'total col weight is ',sumwtgcell(g), &
                          'active_only = ', active_only
-!$OMP END MASTER
+!$OMP END CRITICAL
           error_found = .true.
        end if
     end do
@@ -688,10 +688,10 @@ contains
 
     do g = bounds%begg,bounds%endg
        if (.not. weights_okay(sumwtgcell(g), active_only, i_am_active=.true.)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) trim(subname),' ERROR: at g = ',g,'total lunit weight is ',sumwtgcell(g), &
                          'active_only = ', active_only
-!$OMP END MASTER
+!$OMP END CRITICAL
           error_found = .true.
        end if
     end do
@@ -699,7 +699,7 @@ contains
     deallocate(sumwtcol, sumwtlunit, sumwtgcell)
 
     if (error_found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) 'If you are seeing this message at the beginning of a run with'
        write(iulog,*) 'use_init_interp = .true. and init_interp_method = "use_finidat_areas",'
@@ -708,7 +708,7 @@ contains
        write(iulog,*) 'The matching input grid cell had some non-zero-weight subgrid type'
        write(iulog,*) 'that is not present in memory in the new run.'
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 

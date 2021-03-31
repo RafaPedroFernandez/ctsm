@@ -284,9 +284,9 @@ contains
     ! ----------------------------------------------------------------------
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Attempting to initialize run control settings .....'
-!$OMP END MASTER
+!$OMP END CRITICAL
     endif
 
     finidat_interp_dest = 'finidat_interp_dest'//trim(inst_suffix)//'.nc'
@@ -315,9 +315,9 @@ contains
           call endrun(msg=' error: nlfilename not set'//errMsg(sourcefile, __LINE__))
        end if
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in clm_inparm namelist from: ', trim(NLFilename)
-!$OMP END MASTER
+!$OMP END CRITICAL
        open( unitn, file=trim(NLFilename), status='old' )
        call shr_nl_find_group_name(unitn, 'clm_inparm', status=ierr)
        if (ierr == 0) then
@@ -486,16 +486,16 @@ contains
        ! default value, then they were not specified by the user namelist and we generate
        ! an error message. Also check nlevsno for bounds.
        if (nlevsno < 3 .or. nlevsno > 12)  then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'ERROR: nlevsno = ',nlevsno,' is not supported, must be in range 3-12.'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=' ERROR: invalid value for nlevsno in CLM namelist. '//&
                errMsg(sourcefile, __LINE__))
        endif
        if (h2osno_max <= 0.0_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'ERROR: h2osno_max = ',h2osno_max,' is not supported, must be greater than 0.0.'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=' ERROR: invalid value for h2osno_max in CLM namelist. '//&
                errMsg(sourcefile, __LINE__))
        endif
@@ -556,9 +556,9 @@ contains
 
     ! Consistency settings for co2 type
     if (co2_type /= 'constant' .and. co2_type /= 'prognostic' .and. co2_type /= 'diagnostic') then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'co2_type = ',co2_type,' is not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR:: choices are constant, prognostic or diagnostic'//&
             errMsg(sourcefile, __LINE__))
     end if
@@ -604,10 +604,10 @@ contains
     end if
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Successfully initialized run control settings'
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     endif
 
   end subroutine control_init
@@ -872,7 +872,7 @@ contains
     integer i  !loop index
     !------------------------------------------------------------------------
 
-!$OMP MASTER
+!$OMP CRITICAL
     write(iulog,*) 'define run:'
     write(iulog,*) '   source                = ',trim(source)
     write(iulog,*) '   model_version         = ',trim(version)
@@ -1078,7 +1078,7 @@ contains
        write(iulog, *) '    use_fates_fixed_biogeog = ', use_fates_fixed_biogeog
        write(iulog, *) '    fates_inventory_ctrl_filename = ',fates_inventory_ctrl_filename
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
   end subroutine control_print
 
 
@@ -1104,7 +1104,7 @@ contains
 
     character(len=*), parameter :: subname = 'apply_use_init_interp'
     !-----------------------------------------------------------------------
-!$OMP MASTER
+!$OMP CRITICAL
     if (finidat == ' ') then
        write(iulog,*)' WARNING: Setting use_init_interp has no effect if finidat is not also set'
     end if
@@ -1125,7 +1125,7 @@ contains
        write(iulog,*) 'As a workaround, copy or move the finidat file to a different name.'
        call endrun(msg=' ERROR: With use_init_interp, cannot use the same filename for source and dest')
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     finidat_interp_source = finidat
     finidat = ' '

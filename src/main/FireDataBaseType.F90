@@ -210,7 +210,7 @@ contains
    call shr_mpi_bcast(popdens_tintalgo, mpicom)
 
    if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
       write(iulog,*) ' '
       write(iulog,*) 'popdens_streams settings:'
       write(iulog,*) '  stream_year_first_popdens  = ',stream_year_first_popdens
@@ -219,7 +219,7 @@ contains
       write(iulog,*) '  stream_fldFileName_popdens = ',stream_fldFileName_popdens
       write(iulog,*) '  popdens_tintalgo           = ',popdens_tintalgo
       write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
    endif
 
    call clm_domain_mct (bounds, dom_clm)
@@ -368,7 +368,7 @@ contains
    call shr_mpi_bcast(lightng_tintalgo, mpicom)
 
    if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
       write(iulog,*) ' '
       write(iulog,*) 'light_stream settings:'
       write(iulog,*) '  stream_year_first_lightng  = ',stream_year_first_lightng
@@ -377,7 +377,7 @@ contains
       write(iulog,*) '  stream_fldFileName_lightng = ',stream_fldFileName_lightng
       write(iulog,*) '  lightng_tintalgo           = ',lightng_tintalgo
       write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
    endif
 
    call clm_domain_mct (bounds, dom_clm)

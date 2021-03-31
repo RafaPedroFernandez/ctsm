@@ -405,18 +405,18 @@ contains
        ! Read urban data
 
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)' Reading in urban input data from fsurdat file ...'
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
 
        call getfil (fsurdat, locfn, 0)
        call ncd_pio_openfile (ncid, locfn, 0)
 
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname,trim(fsurdat)
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
 
        ! Check whether this file has new-format urban data
@@ -426,9 +426,9 @@ contains
        ! in this case, set nlevurb to zero
        if (.not. has_numurbl) then
          nlevurb = 0
-!$OMP MASTER
+!$OMP CRITICAL
          if (masterproc) write(iulog,*)'PCT_URBAN is not multi-density, nlevurb set to 0'
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
 
        if ( nlevurb == 0 ) return
@@ -468,41 +468,41 @@ contains
 
        call ncd_inqfdims (ncid, isgrid2d, ni, nj, ns)
        if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)trim(subname), 'ldomain and input file do not match dims '
           write(iulog,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
           write(iulog,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
           write(iulog,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errmsg(sourcefile, __LINE__))
        end if
 
        call ncd_inqdid(ncid, 'nlevurb', dimid)
        call ncd_inqdlen(ncid, dimid, nlevurb_i)
        if (nlevurb_i /= nlevurb) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)trim(subname)// ': parameter nlevurb= ',nlevurb, &
                'does not equal input dataset nlevurb= ',nlevurb_i
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errmsg(sourcefile, __LINE__))
        endif
 
        call ncd_inqdid(ncid, 'numrad', dimid)
        call ncd_inqdlen(ncid, dimid, numrad_i)
        if (numrad_i /= numrad) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)trim(subname)// ': parameter numrad= ',numrad, &
                'does not equal input dataset numrad= ',numrad_i
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errmsg(sourcefile, __LINE__))
        endif
        call ncd_inqdid(ncid, 'numurbl', dimid)
        call ncd_inqdlen(ncid, dimid, numurbl_i)
        if (numurbl_i /= numurbl) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)trim(subname)// ': parameter numurbl= ',numurbl, &
                'does not equal input dataset numurbl= ',numurbl_i
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errmsg(sourcefile, __LINE__))
        endif
        call ncd_io(ncid=ncid, varname='CANYON_HWR', flag='read', data=urbinp%canyon_hwr,&
@@ -669,10 +669,10 @@ contains
 
        call ncd_pio_closefile(ncid)
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)' Sucessfully read urban input data'
           write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
 
     else if (mode == 'finalize') then
@@ -711,9 +711,9 @@ contains
           call endrun(msg='initUrbanInput: deallocation error '//errmsg(sourcefile, __LINE__))
        end if
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'initUrbanInput error: mode ',trim(mode),' not supported '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errmsg(sourcefile, __LINE__))
     end if
 
@@ -797,7 +797,7 @@ contains
        end do
     end do
     if ( found ) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(caller), ' ERROR: no valid urban data for nl=',nindx
        write(iulog,*)'density type:    ',dindx
        write(iulog,*)'urban_valid:     ',urban_valid(nindx)
@@ -830,7 +830,7 @@ contains
           write(iulog,*)'tk_improad: ',urbinp%tk_improad(nindx,dindx,1:nlev)
           write(iulog,*)'cv_improad: ',urbinp%cv_improad(nindx,dindx,1:nlev)
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errmsg(sourcefile, __LINE__))
     end if
 
@@ -879,9 +879,9 @@ contains
     if ( masterproc )then
 
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in clmu_inparm  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, 'clmu_inparm', status=ierr)
        if (ierr == 0) then
@@ -903,17 +903,17 @@ contains
 
     !
     if (urban_traffic) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'Urban traffic fluxes are not implemented currently'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     !
     if ( masterproc )then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) '   urban air conditioning/heating and wasteheat   = ', urban_hac
        write(iulog,*) '   urban traffic flux   = ', urban_traffic
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     ReadNamelist = .true.
@@ -941,9 +941,9 @@ contains
     !-----------------------------------------------------------------------
 
     if ( .not. ReadNamelist )then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'Testing on building_temp_method before urban namelist was read in'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     IsSimpleBuildTemp = building_temp_method == BUILDING_TEMP_METHOD_SIMPLE
@@ -971,9 +971,9 @@ contains
     !-----------------------------------------------------------------------
 
     if ( .not. ReadNamelist )then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'Testing on building_temp_method before urban namelist was read in'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     IsProgBuildTemp = building_temp_method == BUILDING_TEMP_METHOD_PROG

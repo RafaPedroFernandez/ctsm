@@ -148,7 +148,7 @@ contains
     call shr_mpi_bcast(stream_fldFileName_lai, mpicom)
     call shr_mpi_bcast(lai_tintalgo, mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
 
        write(iulog,*) ' '
@@ -160,7 +160,7 @@ contains
        write(iulog,*) '  lai_tintalgo           = ',trim(lai_tintalgo)
 
     endif
-!$OMP END MASTER
+!$OMP END CRITICAL
 
 
     call clm_domain_mct (bounds, dom_clm)
@@ -316,9 +316,9 @@ contains
             mhvb2t(bounds%begp:bounds%endp,2), stat=ier)
     end if
     if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'EcosystemDynini allocation error'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -481,12 +481,12 @@ contains
     timwt(2) = 1._r8-timwt(1)
 
     if (InterpMonths1 /= months(1)) then
-!$OMP MASTER
+!$OMP CRITICAL
        if (masterproc) then
           write(iulog,*) 'Attempting to read monthly vegetation data .....'
           write(iulog,*) 'nstep = ',get_nstep(),' month = ',kmo,' day = ',kda
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
        call t_startf('readMonthlyVeg')
        call readMonthlyVegetation (bounds, fsurdat, months, canopystate_inst)
        InterpMonths1 = months(1)
@@ -535,9 +535,9 @@ contains
 
     allocate(mlai(bounds%begg:bounds%endg,0:maxveg), stat=ier)
     if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)subname, 'allocation error '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -549,7 +549,7 @@ contains
     call ncd_pio_openfile (ncid, trim(locfn), 0)
     call ncd_inqfdims (ncid, isgrid2d, ni, nj, ns)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
        write(iulog,*)trim(subname), 'ldomain and input file do not match dims '
        write(iulog,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
@@ -557,7 +557,7 @@ contains
        write(iulog,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
     call check_dim_size(ncid, 'lsmpft', maxsoil_patches)
 
     do k=1,12   !! loop over months and read vegetated data
@@ -638,9 +638,9 @@ contains
          mhgtb(bounds%begg:bounds%endg,0:maxveg), &
          stat=ier)
     if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)subname, 'allocation big error '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -697,14 +697,14 @@ contains
 
     call ncd_pio_closefile(ncid)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        k = 2
        write(iulog,*) 'Successfully read monthly vegetation data for'
        write(iulog,*) 'month ', months(k)
        write(iulog,*)
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     deallocate(mlai, msai, mhgtt, mhgtb)
 

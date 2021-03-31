@@ -419,7 +419,7 @@ contains
 
     equal = .true.
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (this%num /= other%num) then
        equal = .false.
        write(iulog,*) ' '
@@ -437,7 +437,7 @@ contains
           end if
        end do
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
   end function equals_filter
 

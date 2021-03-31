@@ -253,9 +253,9 @@ contains
             soilhydrology_inst, &
             fsat = fsat(bounds%begc:bounds%endc))
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname//' ERROR: Unrecognized fsat_method: ', this%fsat_method
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(subname//' ERROR: Unrecognized fsat_method')
     end select
 

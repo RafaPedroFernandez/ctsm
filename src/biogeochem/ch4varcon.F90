@@ -118,11 +118,11 @@ contains
        ! ----------------------------------------------------------------------
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Attempting to read CH4 parameters .....'
        unitn = getavu()
        write(iulog,*) 'Read in ch4par_in namelist from: ', trim(NLFilename_in)
-!$OMP END MASTER
+!$OMP END CRITICAL
        open( unitn, file=trim(NLFilename_in), status='old' )
        call shr_nl_find_group_name(unitn, 'ch4par_in', status=ierr)
        if (ierr == 0) then
@@ -160,7 +160,7 @@ contains
     call mpi_bcast (ch4offline,         1 , MPI_LOGICAL, 0, mpicom, ierr)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Successfully read CH4 namelist'
        write(iulog,*)' '
        write(iulog,*)'allowlakeprod      = ', allowlakeprod
@@ -182,7 +182,7 @@ contains
              'WILL BE TRANSIENTLY RELEASED: COUPLED MODEL WILL NOT CONSERVE CARBON IN THIS MODE!'
        write(iulog,*)'Successfully initialized CH4 parameters from namelist.'
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine ch4conrd

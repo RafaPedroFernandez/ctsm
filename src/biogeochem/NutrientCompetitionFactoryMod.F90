@@ -76,9 +76,9 @@ contains
             source=nutrient_competition_FlexibleCN_type())
 
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname//' ERROR: unknown method: ', method
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
 
     end select

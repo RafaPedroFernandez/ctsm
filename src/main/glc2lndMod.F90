@@ -443,7 +443,7 @@ contains
           ! we allocated memory based on has_virtual_columns, so it is a problem if the
           ! ice sheet tries to expand beyond the area defined by has_virtual_columns.
           if (.not. this%glc_behavior%has_virtual_columns_grc(g)) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,'(a)') subname//' ERROR: icemask must be a subset of has_virtual_columns.'
              write(iulog,'(a)') 'Ensure that the glacier_region_behavior namelist item is set correctly.'
              write(iulog,'(a)') '(It should specify "virtual" for the region corresponding to the GLC domain.)'
@@ -451,7 +451,7 @@ contains
              write(iulog,'(a)') 'by modifying GLACIER_REGION on the surface dataset.'
              write(iulog,'(a)') '(Expand the region that corresponds to the GLC domain'
              write(iulog,'(a)') '- i.e., the region specified as "virtual" in glacier_region_behavior.)'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=g, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
           end if
 
@@ -460,7 +460,7 @@ contains
           ! (according to the logic for building the do_smb filter), and we need SMB
           ! everywhere inside the icemask.
           if (.not. this%glc_behavior%melt_replaced_by_ice_grc(g)) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,'(a)') subname//' ERROR: icemask must be a subset of melt_replaced_by_ice.'
              write(iulog,'(a)') 'Ensure that the glacier_region_melt_behavior namelist item is set correctly.'
              write(iulog,'(a)') '(It should specify "replaced_by_ice" for the region corresponding to the GLC domain.)'
@@ -468,7 +468,7 @@ contains
              write(iulog,'(a)') 'by modifying GLACIER_REGION on the surface dataset.'
              write(iulog,'(a)') '(Expand the region that corresponds to the GLC domain'
              write(iulog,'(a)') '- i.e., the region specified as "replaced_by_ice" in glacier_region_melt_behavior.)'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=g, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
           end if
 
@@ -502,9 +502,9 @@ contains
        ! to ensure that this intuitive relationship holds, so that code developed in the
        ! future can rely on it.
        if (this%icemask_coupled_fluxes_grc(g) > 0._r8 .and. this%icemask_grc(g) == 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname//' ERROR: icemask_coupled_fluxes must be a subset of icemask.'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=g, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
        end if
 
@@ -593,7 +593,7 @@ contains
           ! given by melt_replaced_by_ice (because the latter is used to create the do_smb
           ! filter, and the do_smb filter controls where glacial melt is computed).
           if (.not. this%glc_behavior%melt_replaced_by_ice_grc(g)) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,'(a)') subname//' ERROR: icemask_coupled_fluxes must be a subset of melt_replaced_by_ice.'
              write(iulog,'(a)') 'Ensure that the glacier_region_melt_behavior namelist item is set correctly.'
              write(iulog,'(a)') '(It should specify "replaced_by_ice" for the region corresponding to the GLC domain.)'
@@ -601,7 +601,7 @@ contains
              write(iulog,'(a)') 'by modifying GLACIER_REGION on the surface dataset.'
              write(iulog,'(a)') '(Expand the region that corresponds to the GLC domain'
              write(iulog,'(a)') '- i.e., the region specified as "replaced_by_ice" in glacier_region_melt_behavior.)'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=g, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
           end if
        end if
@@ -655,9 +655,9 @@ contains
                 ! Determine index of the glc_mec landunit
                 l_ice_mec = grc%landunit_indices(istice_mec, g)
                 if (l_ice_mec == ispval) then
-!$OMP MASTER
+!$OMP CRITICAL
                    write(iulog,*) subname//' ERROR: no ice_mec landunit found within the icemask, for g = ', g
-!$OMP END MASTER
+!$OMP END CRITICAL
                    call endrun()
                 end if
 
@@ -678,14 +678,14 @@ contains
                    end if
                 end do
                 if (error) then
-!$OMP MASTER
+!$OMP CRITICAL
                    write(iulog,*) subname//' ERROR: at least one glc_mec column has non-zero area from the coupler,'
                    write(iulog,*) 'but there was no slot in memory for this column; g = ', g
                    write(iulog,*) 'this%frac_grc(g, 1:maxpatch_glcmec) = ', &
                         this%frac_grc(g, 1:maxpatch_glcmec)
                    write(iulog,*) 'frac_assigned(1:maxpatch_glcmec) = ', &
                         frac_assigned(1:maxpatch_glcmec)
-!$OMP END MASTER
+!$OMP END CRITICAL
                    call endrun()
                 end if  ! error
              end if  ! area_ice_mec > 0

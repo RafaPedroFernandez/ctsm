@@ -84,9 +84,9 @@ contains
     ! Skip a minimum of two time steps, but otherwise skip the number of time-steps in the skip_size rounded to the nearest integer
     skip_steps = max(2, nint( (skip_size / dtime) ) )
 
-!$OMP MASTER
+!$OMP CRITICAL
     if ( masterproc ) write(iulog,*) ' Skip balance checking for the first ', skip_steps, ' time steps'
-!$OMP END MASTER
+!$OMP END CRITICAL
 
   end subroutine BalanceCheckInit
 
@@ -644,7 +644,7 @@ contains
        end do
 
        errh2o_max_val = maxval(abs(errh2o_col(bounds%begc:bounds%endc)))
-!$OMP MASTER
+!$OMP CRITICAL
        if (errh2o_max_val > h2o_warning_thresh) then
 
            indexc = maxloc( abs(errh2o_col(bounds%begc:bounds%endc)), 1 ) + bounds%begc - 1
@@ -690,7 +690,7 @@ contains
          end if
 
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
        ! Water balance check at the grid cell level
 
@@ -826,7 +826,7 @@ contains
 
        errh2osno_max_val = maxval( abs(errh2osno(bounds%begc:bounds%endc)))
 
-!$OMP MASTER
+!$OMP CRITICAL
        if (errh2osno_max_val > h2o_warning_thresh) then
             indexc = maxloc( abs(errh2osno(bounds%begc:bounds%endc)), 1) + bounds%begc -1
 
@@ -866,7 +866,7 @@ contains
             end if
 
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
        ! Energy balance checks
 
@@ -925,7 +925,7 @@ contains
 
        errsol_max_val = maxval( abs(errsol(bounds%begp:bounds%endp)), mask = (errsol(bounds%begp:bounds%endp) /= spval) )
 
-!$OMP MASTER
+!$OMP CRITICAL
        if  ((errsol_max_val > energy_warning_thresh) .and. (DAnstep > skip_steps)) then
 
            indexp = maxloc( abs(errsol(bounds%begp:bounds%endp)), 1 , mask = (errsol(bounds%begp:bounds%endp) /= spval) ) + bounds%begp -1
@@ -949,12 +949,12 @@ contains
            end if
 
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
        ! Longwave radiation energy balance check
 
        errlon_max_val = maxval( abs(errlon(bounds%begp:bounds%endp)), mask = (errlon(bounds%begp:bounds%endp) /= spval) )
 
-!$OMP MASTER
+!$OMP CRITICAL
        if ((errlon_max_val > energy_warning_thresh) .and. (DAnstep > skip_steps)) then
             indexp = maxloc( abs(errlon(bounds%begp:bounds%endp)), 1 , mask = (errlon(bounds%begp:bounds%endp) /= spval) ) + bounds%begp -1
             write(iulog,*)'indexp         = ',indexp
@@ -966,12 +966,12 @@ contains
                  call endrun(decomp_index=indexp, clmlevel=namep, msg=errmsg(sourcefile, __LINE__))
             end if
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
        ! Surface energy balance check
 
        errseb_max_val = maxval( abs(errseb(bounds%begp:bounds%endp)))
 
-!$OMP MASTER
+!$OMP CRITICAL
        if ((errseb_max_val > energy_warning_thresh) .and. (DAnstep > skip_steps)) then
 
            indexp = maxloc( abs(errseb(bounds%begp:bounds%endp)), 1 ) + bounds%begp -1
@@ -1004,14 +1004,14 @@ contains
            end if
 
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
        ! Soil energy balance check
 
        errsoi_col_max_val  =  maxval( abs(errsoi_col(bounds%begc:bounds%endc)) , mask = col%active(bounds%begc:bounds%endc))
 
        if (errsoi_col_max_val > 1.0e-5_r8 ) then
            indexc = maxloc( abs(errsoi_col(bounds%begc:bounds%endc)), 1 , mask = col%active(bounds%begc:bounds%endc) ) + bounds%begc -1
-!$OMP MASTER
+!$OMP CRITICAL
            write(iulog,*)'WARNING: BalanceCheck: soil balance error (W/m2)'
            write(iulog,*)'nstep         = ',nstep
            write(iulog,*)'errsoi_col    = ',errsoi_col(indexc)
@@ -1020,7 +1020,7 @@ contains
               write(iulog,*)'CTSM is stopping'
               call endrun(decomp_index=indexc, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
            end if
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
 
      end associate

@@ -441,9 +441,9 @@ contains
      case(nameCohort)
         get_clmlevel_gsize = numCohort
      case default
-!$OMP MASTER
+!$OMP CRITICAL
         write(iulog,*) 'get_clmlevel_gsize does not match clmlevel type: ', trim(clmlevel)
-!$OMP END MASTER
+!$OMP END CRITICAL
         call shr_sys_abort()
      end select
 
@@ -474,9 +474,9 @@ contains
     case(nameCohort)
        gsmap => gsMap_cohort_gdc2glo
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'get_clmlevel_gsmap: Invalid expansion character: ',trim(clmlevel)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call shr_sys_abort()
     end select
 

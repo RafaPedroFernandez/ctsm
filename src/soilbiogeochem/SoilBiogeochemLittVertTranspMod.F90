@@ -271,9 +271,9 @@ contains
                source            => c14_soilbiogeochem_carbonflux_inst%decomp_cpools_sourcesink_col
                trcr_tendency_ptr => c14_soilbiogeochem_carbonflux_inst%decomp_cpools_transport_tendency_col
             else
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'error.  ncase = 4, but c13 and c14 not both enabled.'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=errMsg(sourcefile, __LINE__))
             endif
          end select
@@ -459,14 +459,14 @@ contains
                         c = filter_soilc (fc)
                         conc_trcr(c,j) = conc_ptr(c,j,s) + source(c,j,s)
                         if (j > col%nbedrock(c) .and. source(c,j,s) > 0._r8) then 
-!$OMP MASTER
+!$OMP CRITICAL
                            write(iulog,*) 'source >0',c,j,s,source(c,j,s)
-!$OMP END MASTER
+!$OMP END CRITICAL
                         end if
                         if (j > col%nbedrock(c) .and. conc_ptr(c,j,s) > 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                            write(iulog,*) 'conc_ptr >0',c,j,s,conc_ptr(c,j,s)
-!$OMP END MASTER
+!$OMP END CRITICAL
                         end if
 
                      end do

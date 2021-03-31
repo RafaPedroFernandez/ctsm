@@ -348,9 +348,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -369,14 +369,14 @@ contains
 
     this%int_snow_max = int_snow_max
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        write(iulog,*) ' '
        write(iulog,*) nmlname // ' settings:'
        write(iulog, nml=scf_swenson_lawrence_2012_inparm)
        write(iulog,*) ' '
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
   end subroutine ReadNamelist
 
@@ -420,17 +420,17 @@ contains
     !-----------------------------------------------------------------------
 
     if (this%int_snow_max <= 0.0_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'ERROR: int_snow_max = ', this%int_snow_max,' is not supported, must be greater than 0.0.'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: invalid value for int_snow_max in CLM namelist. '//&
             errMsg(sourcefile, __LINE__))
     end if
 
     if (n_melt_glcmec <= 0.0_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'ERROR: n_melt_glcmec = ', n_melt_glcmec,' is not supported, must be greater than 0.0.'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: invalid value for n_melt_glcmec in CLM namelist. '//&
             errMsg(sourcefile, __LINE__))
     end if

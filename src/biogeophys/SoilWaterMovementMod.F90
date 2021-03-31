@@ -197,7 +197,7 @@ contains
 
     if (masterproc) then
 
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) 'soilwater_movement settings:'
        write(iulog,*) '  soilwater_movement_method  = ',soilwater_movement_method
@@ -212,7 +212,7 @@ contains
        write(iulog,*) '  expensive                  = ',expensive
        write(iulog,*) '  inexpensive                = ',inexpensive
        write(iulog,*) '  flux_calculation           = ',flux_calculation
-!$OMP END MASTER
+!$OMP END CRITICAL
     endif
 
   end subroutine init_soilwater_movement

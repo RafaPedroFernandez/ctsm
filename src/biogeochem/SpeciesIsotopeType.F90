@@ -59,7 +59,7 @@ contains
     character(len=*), intent(in) :: isotope_name  ! e.g., '13' for C13
     !-----------------------------------------------------------------------
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (len_trim(species_name) > species_name_maxlen) then
        write(iulog,*) 'species_isotope_type constructor: species_name too long'
        write(iulog,*) trim(species_name) // ' exceeds max length: ', species_name_maxlen
@@ -72,7 +72,7 @@ contains
        call endrun(msg='species_isotope_type constructor: isotope_name too long: '// &
             errMsg(sourcefile, __LINE__))
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     this%species_name = trim(species_name)
     this%isotope_name = trim(isotope_name)

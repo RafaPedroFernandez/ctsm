@@ -256,12 +256,12 @@ contains
        ! This is acceptable: bulk_source, bulk_val and tracer_source are all 0
        tracer_val = 0._r8
     else if (bulk_val /= 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) caller//' ERROR: Non-zero bulk val despite zero bulk source:'
        write(iulog,*) 'bulk_val = ', bulk_val
        write(iulog,*) 'at n = ', n
        write(iulog,*) 'This would lead to an indeterminate tracer val.'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=caller//': Non-zero bulk val despite zero bulk source', &
             additional_msg=errMsg(sourcefile, __LINE__))
     else if (tracer_source /= 0._r8) then
@@ -270,23 +270,23 @@ contains
        ! and the tracer state is originally near 0 (within roundoff) - in order deal
        ! with roundoff issues arising during state updates. (There's a bit of
        ! discussion of this point in https://github.com/ESCOMP/ctsm/issues/487.)
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) caller//' ERROR: Non-zero tracer source despite zero bulk source:'
        write(iulog,*) 'tracer_source = ', tracer_source
        write(iulog,*) 'at n = ', n
        write(iulog,*) 'This would lead to an indeterminate tracer val.'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=caller//': Non-zero tracer source despite zero bulk source', &
             additional_msg=errMsg(sourcefile, __LINE__))
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) caller//' ERROR: unhandled condition; we should never get here.'
        write(iulog,*) 'This indicates a programming error in this subroutine.'
        write(iulog,*) 'bulk_val = ', bulk_val
        write(iulog,*) 'bulk_source = ', bulk_source
        write(iulog,*) 'tracer_source = ', tracer_source
        write(iulog,*) 'at n = ', n
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=caller//': unhandled condition; we should never get here', &
             additional_msg=errMsg(sourcefile, __LINE__))
     end if
@@ -383,7 +383,7 @@ contains
        end if
     end do
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (.not. arrays_equal) then
        write(iulog, '(a, a, a)') 'ERROR in ', subname, ': tracer does not agree with bulk water'
        write(iulog, '(a, a)') 'Called from: ', trim(caller_location)
@@ -398,7 +398,7 @@ contains
        call shr_sys_flush(iulog)
        call endrun(msg=subname//': tracer does not agree with bulk water')
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
   end subroutine CompareBulkToTracer
 
   !-----------------------------------------------------------------------

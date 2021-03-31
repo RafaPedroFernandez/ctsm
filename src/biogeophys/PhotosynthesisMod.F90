@@ -793,9 +793,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -826,14 +826,14 @@ contains
     call shr_mpi_bcast (this%stomatalcond_mtd, mpicom)
     call shr_mpi_bcast (this%modifyphoto_and_lmr_forcrop, mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=photosyns_inparm)
        write(iulog,*) ' '
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
   end subroutine ReadNML
 
@@ -2193,9 +2193,9 @@ contains
     fa=f1
     fb=f2
     if((fa > 0._r8 .and. fb > 0._r8).or.(fa < 0._r8 .and. fb < 0._r8))then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'root must be bracketed for brent'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errmsg(sourcefile, __LINE__))
     endif
     c=b
@@ -2263,9 +2263,9 @@ contains
 
     enddo
 
-!$OMP MASTER
+!$OMP CRITICAL
     if(iter==itmax)write(iulog,*) 'brent exceeding maximum iterations', b, fb
-!$OMP END MASTER
+!$OMP END CRITICAL
     x=b
 
     return
@@ -3878,9 +3878,9 @@ contains
 
     do phase=1, nphs
        if ( (fa(phase) > 0._r8 .and. fb(phase) > 0._r8) .or. (fa(phase) < 0._r8 .and. fb(phase) < 0._r8) ) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'root must be bracketed for brent'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errmsg(sourcefile, __LINE__))
        endif
     enddo
@@ -3962,9 +3962,9 @@ contains
 
        if( (fb(sun) == 0._r8) .and. (fb(sha) == 0._r8) ) exit
     enddo
-!$OMP MASTER
+!$OMP CRITICAL
     if( iter == itmax) write(iulog,*) 'brent exceeding maximum iterations', b, fb
-!$OMP END MASTER
+!$OMP END CRITICAL
     xsun=b(sun)
     xsha=b(sha)
 

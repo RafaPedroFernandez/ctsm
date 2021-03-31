@@ -710,11 +710,11 @@ contains
        else
           restart_file_spinup_state = spinup_state
           if ( masterproc ) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) ' CNRest: WARNING!  Restart file does not contain info ' &
                    // ' on spinup state used to generate the restart file. '
              write(iulog,*) '   Assuming the same as current setting: ', spinup_state
-!$OMP END MASTER
+!$OMP END CRITICAL
           end if
        end if
     end if
@@ -722,20 +722,20 @@ contains
     if (flag == 'read' .and. spinup_state /= restart_file_spinup_state .and. .not. use_cndv) then
        if (spinup_state <= 1 .and. restart_file_spinup_state == 2 ) then
           exit_spinup = .true.
-!$OMP MASTER
+!$OMP CRITICAL
           if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood N pools out of AD spinup mode'
           if ( masterproc ) write(iulog, *) 'Multiplying stemn and crootn by ', spinup_factor_deadwood, 'for exit spinup '
-!$OMP END MASTER
+!$OMP END CRITICAL
           do i = bounds%begp,bounds%endp
              this%deadstemn_patch(i) = this%deadstemn_patch(i) * spinup_factor_deadwood
              this%deadcrootn_patch(i) = this%deadcrootn_patch(i) * spinup_factor_deadwood
           end do
        else if (spinup_state == 2 .and. restart_file_spinup_state <= 1 ) then
           enter_spinup = .true.
-!$OMP MASTER
+!$OMP CRITICAL
           if ( masterproc ) write(iulog,*) ' CNRest: taking Dead wood N pools into AD spinup mode'
           if ( masterproc ) write(iulog, *) 'Dividing stemn and crootn by ', spinup_factor_deadwood, 'for enter spinup '
-!$OMP END MASTER
+!$OMP END CRITICAL
           do i = bounds%begp,bounds%endp
              this%deadstemn_patch(i) = this%deadstemn_patch(i) / spinup_factor_deadwood
              this%deadcrootn_patch(i) = this%deadcrootn_patch(i) / spinup_factor_deadwood
@@ -745,9 +745,9 @@ contains
     end if
     ! Reseed dead plants
     if ( flag == 'read' .and. num_reseed_patch > 0 )then
-!$OMP MASTER
+!$OMP CRITICAL
        if ( masterproc ) write(iulog, *) 'Reseed dead plants for CNVegNitrogenState'
-!$OMP END MASTER
+!$OMP END CRITICAL
        do i = 1, num_reseed_patch
           p = filter_reseed_patch(i)
 

@@ -1836,10 +1836,10 @@ contains
             forc_pch4(g) = atmch4*forc_pbot(g)
          else
             if (forc_pch4(g) == 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*)'not using ch4offline, but methane concentration not passed from the atmosphere', &
                     'to land model! CLM Model is stopping.'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Methane not being passed to atmosphere'//&
                     errMsg(sourcefile, __LINE__))
             end if
@@ -2222,7 +2222,7 @@ contains
                  - dtime*(ch4_prod_tot(c) - ch4_oxid_tot(c) &
                  - ch4_surf_flux_tot_col(c)*1000._r8) ! kg C --> g C
             if (abs(errch4) > 1.e-7_r8) then ! g C / m^2 / timestep
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*)'Column-level CH4 Conservation Error in CH4Mod driver, nstep, c, errch4 (gC /m^2.timestep)', &
                     nstep,c,errch4
                write(iulog,*)'Latdeg,Londeg,col%itype=',grc%latdeg(g),grc%londeg(g),col%itype(c)
@@ -2232,7 +2232,7 @@ contains
                write(iulog,*)'dtime*ch4_oxid_tot           = ', dtime*ch4_oxid_tot(c)
                write(iulog,*)'dtime*ch4_surf_flux_tot*1000 = ', dtime*&
                     ch4_surf_flux_tot_col(c)*1000._r8
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Methane conservation error'//errMsg(sourcefile, __LINE__))
             end if
          end if
@@ -2249,7 +2249,7 @@ contains
                     - dtime*(ch4_prod_tot(c) - ch4_oxid_tot(c) &
                     - ch4_surf_flux_tot_col(c)*1000._r8) ! kg C --> g C
                if (abs(errch4) > 1.e-7_r8) then ! g C / m^2 / timestep
-!$OMP MASTER
+!$OMP CRITICAL
                   write(iulog,*)'Column-level CH4 Conservation Error in CH4Mod driver for lake column, nstep, c, errch4 (gC/m^2.timestep)', &
                        nstep,c,errch4
                   write(iulog,*)'Latdeg,Londeg=',grc%latdeg(g),grc%londeg(g)
@@ -2259,7 +2259,7 @@ contains
                   write(iulog,*)'dtime*ch4_oxid_tot           = ', dtime*ch4_oxid_tot(c)
                   write(iulog,*)'dtime*ch4_surf_flux_tot*1000 = ', dtime*&
                        ch4_surf_flux_tot_col(c)*1000._r8
-!$OMP END MASTER
+!$OMP END CRITICAL
                   call endrun(msg=' ERROR: Methane conservation error, allowlakeprod'//&
                        errMsg(sourcefile, __LINE__))
                end if
@@ -2299,7 +2299,7 @@ contains
               (nem_grc(g) + ch4_surf_flux_tot_grc(g) * 1000._r8)  ! kg C --> g C
 
             if (abs(errch4) > 1.e-7_r8) then  ! g C / m^2 / timestep
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*)'Gridcell-level CH4 Conservation Error in CH4Mod driver, nstep, g, errch4 (gC /m^2.timestep)', &
                     nstep, g, errch4
                write(iulog,*)'latdeg, londeg =', grc%latdeg(g), grc%londeg(g)
@@ -2307,7 +2307,7 @@ contains
                write(iulog,*)'totcolch4_bef_grc =', totcolch4_bef_grc(g)
                write(iulog,*)'dtime * nem_grc   =', dtime * nem_grc(g)
                write(iulog,*)'dtime * ch4_surf_flux_tot * 1000 =', dtime * ch4_surf_flux_tot_grc(g) * 1000._r8
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Methane conservation error'//errMsg(sourcefile, __LINE__))
             end if
          end if
@@ -3507,42 +3507,42 @@ contains
             ! aerenchyma added to surface flux below
             ! ebul added to soil depth just above WT
             if (source(c,j,1) + conc_ch4(c,j) / dtime < -1.e-12_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'Methane demands exceed methane available. Error in methane competition (mol/m^3/s), c,j:', &
                     source(c,j,1) + conc_ch4(c,j) / dtime, c, j
                g = col%gridcell(c)
                write(iulog,*)'Latdeg,Londeg=',grc%latdeg(g),grc%londeg(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Methane demands exceed methane available.'&
                     //errMsg(sourcefile, __LINE__))
             else if (ch4stress(c,j) < 1._r8 .and. source(c,j,1) + conc_ch4(c,j) / dtime > 1.e-12_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'Methane limited, yet some left over. Error in methane competition (mol/m^3/s), c,j:', &
                     source(c,j,1) + conc_ch4(c,j) / dtime, c, j
                g = col%gridcell(c)
                write(iulog,*)'Latdeg,Londeg=',grc%latdeg(g),grc%londeg(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Methane limited, yet some left over.'//&
                     errMsg(sourcefile, __LINE__))
             end if
 
             source(c,j,2) = -o2_oxid_depth(c,j) - o2_decomp_depth(c,j) + o2_aere_depth(c,j) ! O2 [mol/m3/s]
             if (source(c,j,2) + conc_o2(c,j) / dtime < -1.e-12_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'Oxygen demands exceed oxygen available. Error in oxygen competition (mol/m^3/s), c,j:', &
                     source(c,j,2) + conc_o2(c,j) / dtime, c, j
                g = col%gridcell(c)
                write(iulog,*)'Latdeg,Londeg=',grc%latdeg(g),grc%londeg(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Oxygen demands exceed oxygen available.'//&
                     errMsg(sourcefile, __LINE__) )
             else if (o2stress(c,j) < 1._r8 .and. source(c,j,2) + conc_o2(c,j) / dtime > 1.e-12_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'Oxygen limited, yet some left over. Error in oxygen competition (mol/m^3/s), c,j:', &
                     source(c,j,2) + conc_o2(c,j) / dtime, c, j
                g = col%gridcell(c)
                write(iulog,*)'Latdeg,Londeg=',grc%latdeg(g),grc%londeg(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Oxygen limited, yet some left over.'//errMsg(sourcefile, __LINE__))
             end if
 
@@ -3883,7 +3883,7 @@ contains
                      deficit = - conc_ch4_rel(c,j)*epsilon_t(c,j,1)*dz(c,j)  ! Mol/m^2 added
                      if (deficit > 1.e-3_r8 * scale_factor_gasdiff) then
                         if (deficit > 1.e-2_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                            write(iulog,*)'Note: sink > source in ch4_tran, sources are changing '// &
                                 ' quickly relative to diffusion timestep, and/or diffusion is rapid.'
                            g = col%gridcell(c)
@@ -3892,11 +3892,11 @@ contains
                                 ' diffusive flux.'
                            write(iulog,*)'If this occurs frequently, consider reducing land model (or '// &
                                 ' methane model) timestep, or reducing the max. sink per timestep in the methane model.'
-!$OMP END MASTER
+!$OMP END CRITICAL
                         end if
-!$OMP MASTER
+!$OMP CRITICAL
                         write(iulog,*) 'Negative conc. in ch4tran. c,j,deficit (mol):',c,j,deficit
-!$OMP END MASTER
+!$OMP END CRITICAL
                      end if
                      conc_ch4_rel(c,j) = 0._r8
                      ! Subtract deficit
@@ -4010,12 +4010,12 @@ contains
          if (abs(errch4(c)) < 1.e-8_r8) then
             ch4_surf_diff(c) = ch4_surf_diff(c) - errch4(c)/dtime
          else ! errch4 > 1e-8 mol / m^2 / timestep
-!$OMP MASTER
+!$OMP CRITICAL
             write(iulog,*)'CH4 Conservation Error in CH4Mod during diffusion, nstep, c, errch4 (mol /m^2.timestep)', &
                  nstep,c,errch4(c)
             g = col%gridcell(c)
             write(iulog,*)'Latdeg,Londeg=',grc%latdeg(g),grc%londeg(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
             call endrun(msg=' ERROR: CH4 Conservation Error in CH4Mod during diffusion'//&
                  errMsg(sourcefile, __LINE__))
          end if

@@ -85,12 +85,12 @@ contains
     ! Initialize run control variables, timestep
 
     if ( masterproc )then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(version)
        write(iulog,*)
        write(iulog,*) 'Attempting to initialize the land model .....'
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call shr_sys_flush(iulog)
     endif
 
@@ -443,23 +443,23 @@ contains
           if (finidat_interp_source == ' ') then
              is_cold_start = .true.
              if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*)'Using cold start initial conditions '
-!$OMP END MASTER
+!$OMP END CRITICAL
              end if
           else
              if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*)'Interpolating initial conditions from ',trim(finidat_interp_source),&
                      ' and creating new initial conditions ', trim(finidat_interp_dest)
-!$OMP END MASTER
+!$OMP END CRITICAL
              end if
           end if
        else
           if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Reading initial conditions from ',trim(finidat)
-!$OMP END MASTER
+!$OMP END CRITICAL
           end if
           call getfil( finidat, fnamer, 0 )
           call restFile_read(bounds_proc, fnamer, glc_behavior, &
@@ -467,9 +467,9 @@ contains
        end if
     else if ((nsrest == nsrContinue) .or. (nsrest == nsrBranch)) then
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'Reading restart file ',trim(fnamer)
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
        call restFile_read(bounds_proc, fnamer, glc_behavior, &
             reset_dynbal_baselines_lake_columns = reset_dynbal_baselines_lake_columns)
@@ -522,7 +522,7 @@ contains
     ! wrong on the restart file.
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        if (reset_dynbal_baselines_all_columns) then
           write(iulog,*) ' '
           write(iulog,*) 'Resetting dynbal baselines for all columns'
@@ -532,7 +532,7 @@ contains
           write(iulog,*) 'Resetting dynbal baselines for lake columns'
           write(iulog,*) ' '
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     !$OMP PARALLEL DO PRIVATE (nc, bounds_clump)
@@ -640,22 +640,22 @@ contains
     ! Write log output for end of initialization
     call t_startf('init_wlog')
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Successfully initialized the land model'
        if (nsrest == nsrStartup) then
           write(iulog,*) 'begin initial run at: '
        else
           write(iulog,*) 'begin continuation run at:'
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
        call get_curr_date(yr, mon, day, ncsec)
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) '   nstep= ',get_nstep(), ' year= ',yr,' month= ',mon,&
             ' day= ',day,' seconds= ',ncsec
        write(iulog,*)
        write(iulog,'(72a1)') ("*",i=1,60)
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     endif
     call t_stopf('init_wlog')
 

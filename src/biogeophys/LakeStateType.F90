@@ -199,10 +199,10 @@ contains
     call ncd_io(ncid=ncid, varname='ETALAKE', flag='read', data=etal_in, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'WARNING:: ETALAKE not found on surface data set. All lake columns will have eta', &
                ' set equal to default value as a function of depth.'
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
        etal_in(:) = -1._r8
     end if
@@ -217,10 +217,10 @@ contains
     call ncd_io(ncid=ncid, varname='LAKEFETCH', flag='read', data=lakefetch_in, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'WARNING:: LAKEFETCH not found on surface data set. All lake columns will have fetch', &
                ' set equal to default value as a function of depth.'
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
        lakefetch_in(:) = -1._r8
     end if

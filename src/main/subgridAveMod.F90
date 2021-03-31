@@ -129,9 +129,9 @@ contains
           scale_p2c(p) = 1.0_r8
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2c_1d error: scale type ',p2c_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -157,9 +157,9 @@ contains
        end if
     end do
     if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2c_1d error: sumwt is greater than 1.0'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(decomp_index=index, clmlevel=namec, msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -195,9 +195,9 @@ contains
           scale_p2c(p) = 1.0_r8
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2c_2d error: scale type ',p2c_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -224,9 +224,9 @@ contains
           end if
        end do
        if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'p2c_2d error: sumwt is greater than 1.0 at c= ',index,' lev= ',j
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=index, clmlevel=namec, msg=errMsg(sourcefile, __LINE__))
        end if
     end do 
@@ -357,9 +357,9 @@ contains
           end if
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2l_1d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -368,9 +368,9 @@ contains
           scale_p2c(p) = 1.0_r8
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2l_1d error: scale type ',p2c_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -397,9 +397,9 @@ contains
        end if
     end do
     if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2l_1d error: sumwt is greater than 1.0 at l= ',index
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(decomp_index=index, clmlevel=namel, msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -471,9 +471,9 @@ contains
           end if
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2l_2d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -482,9 +482,9 @@ contains
           scale_p2c(p) = 1.0_r8
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2l_2d error: scale type ',p2c_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -512,9 +512,9 @@ contains
           end if
        end do
        if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'p2l_2d error: sumwt is greater than 1.0 at l= ',index,' j= ',j
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=index, clmlevel=namel, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -591,9 +591,9 @@ contains
           end if
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2g_1d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -602,9 +602,9 @@ contains
           scale_p2c(p) = 1.0_r8
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2g_1d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -632,9 +632,9 @@ contains
        end if
     end do
     if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2g_1d error: sumwt is greater than 1.0 at g= ',index
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(decomp_index=index, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -713,9 +713,9 @@ contains
           end if
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2g_2d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -724,9 +724,9 @@ contains
           scale_p2c(p) = 1.0_r8
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'p2g_2d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -755,9 +755,9 @@ contains
           end if
        end do
        if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'p2g_2d error: sumwt gt 1.0 at g/sumwt = ',index,sumwt(index)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=index, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -841,9 +841,9 @@ contains
           end if
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'c2l_1d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -869,9 +869,9 @@ contains
        end if
     end do
     if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'c2l_1d error: sumwt is greater than 1.0 at l= ',index
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(decomp_index=index, clmlevel=namel, msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -941,9 +941,9 @@ contains
           end if
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'c2l_2d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -970,9 +970,9 @@ contains
           end if
        end do
        if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'c2l_2d error: sumwt is greater than 1.0 at l= ',index,' lev= ',j
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=index, clmlevel=namel, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -1047,9 +1047,9 @@ contains
           end if
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'c2l_1d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -1076,9 +1076,9 @@ contains
        end if
     end do
     if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'c2g_1d error: sumwt is greater than 1.0 at g= ',index
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(decomp_index=index, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -1153,9 +1153,9 @@ contains
           end if
        end do
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'c2g_2d error: scale type ',c2l_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -1183,9 +1183,9 @@ contains
           end if
        end do
        if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'c2g_2d error: sumwt is greater than 1.0 at g= ',index
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=index, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -1241,9 +1241,9 @@ contains
        end if
     end do
     if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'l2g_1d error: sumwt is greater than 1.0 at g= ',index
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(decomp_index=index, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -1301,9 +1301,9 @@ contains
           end if
        end do
        if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'l2g_2d error: sumwt is greater than 1.0 at g= ',index,' lev= ',j
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=index, clmlevel=nameg, msg=errMsg(sourcefile, __LINE__))
        end if
     end do
@@ -1405,9 +1405,9 @@ contains
         scale_lookup(istcrop) = 1.0_r8
         scale_lookup(istdlak) = 1.0_r8
      else
-!$OMP MASTER
+!$OMP CRITICAL
         write(iulog,*)'scale_l2g_lookup_array error: scale type ',l2g_scale_type,' not supported'
-!$OMP END MASTER
+!$OMP END CRITICAL
         call endrun(msg=errMsg(sourcefile, __LINE__))
      end if
 

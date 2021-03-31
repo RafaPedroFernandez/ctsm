@@ -197,7 +197,7 @@ contains
        call dgbsv( n, kl, ku, 1, ab, m, ipiv, result, n, info )
        u(ci,jtop(ci):jbot(ci))=result(:)
 
-!$OMP MASTER
+!$OMP CRITICAL
        if(info /= 0) then
           write(iulog,*)'index: ', ci
           write(iulog,*)'n,kl,ku,m ',n,kl,ku,m
@@ -212,7 +212,7 @@ contains
           write(iulog,*) ''
           call endrun( 'BandDiagonal ERROR: dgbsv returned error code' )
        endif
-!$OMP END MASTER
+!$OMP END CRITICAL
        deallocate(temp)
 
        deallocate(ab)

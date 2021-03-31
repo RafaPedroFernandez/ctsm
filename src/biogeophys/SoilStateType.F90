@@ -400,12 +400,12 @@ contains
          readrootfr = .false.
      end if
      if (flag=='read' .and. .not. readrootfr ) then
-!$OMP MASTER
+!$OMP CRITICAL
             if (masterproc) then
                write(iulog,*) "can't find rootfr in restart (or initial) file..."
                write(iulog,*) "Initialize rootfr to default"
             end if
-!$OMP END MASTER
+!$OMP END CRITICAL
             call init_vegrootfr(bounds, nlevsoi, nlevgrnd, &
             this%rootfr_patch(bounds%begp:bounds%endp,1:nlevgrnd), 'water')
             call init_vegrootfr(bounds, nlevsoi, nlevgrnd, &

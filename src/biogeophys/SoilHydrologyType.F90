@@ -355,9 +355,9 @@ contains
      if ( masterproc )then
 
         unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
         write(iulog,*) 'Read in clm_soilhydrology_inparm  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
         call opnfil (NLFilename, unitn, 'F')
         call find_nlgroup_name(unitn, 'clm_soilhydrology_inparm', status=ierr)
         if (ierr == 0) then

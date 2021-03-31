@@ -85,9 +85,9 @@ contains
     if ( masterproc )then
 
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nl_name//' namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (nlfilename, unitn, 'F')
        call find_nlgroup_name(unitn, nl_name, status=ierr)
        if (ierr == 0) then
@@ -299,9 +299,9 @@ contains
     ! --------------------------------------------------------------------
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Attempting to read soil color, sand and clay boundary data .....'
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     call getfil (fsurdat, locfn, 0)
@@ -465,9 +465,9 @@ contains
                 end if
                 ! If not found, then something's wrong
                 if (found == 0) then
-!$OMP MASTER
+!$OMP CRITICAL
                    write(iulog,*) 'For model soil level =', lev
-!$OMP END MASTER
+!$OMP END CRITICAL
                    call endrun(msg="ERROR finding a soil dataset depth to interpolate the model depth to"//errmsg(sourcefile, __LINE__))
                 end if
              else  ! if lev > nlevsoi

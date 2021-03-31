@@ -126,9 +126,9 @@ module LunaMod
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -145,12 +145,12 @@ module LunaMod
     call shr_mpi_bcast (Jmaxb1, mpicom)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=luna)
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine lunaReadNML
@@ -401,10 +401,10 @@ module LunaMod
                          FNCa     = FNCa_z(z)
                          if(FNCa>15.0_r8) then !boundary condition check for unrealistically high leaf nitrogen content
                              FNCa = 15.0_r8
-!$OMP MASTER
+!$OMP CRITICAL
                              write(iulog, *) 'Warning: leaf nitrogen content become unrealistically high (>15.0 g N/m2 leaf) ', &
                                   'for patch=', p, 'z=', z, "pft=", ft
-!$OMP END MASTER
+!$OMP END CRITICAL
                          endif
                          radmax2mean = par240x_z(p,z) / par240d_z(p,z)
                          if(tlai_z(p,z)>0.0_r8)then
@@ -448,39 +448,39 @@ module LunaMod
 !DML turn off endrun and instead modify vcmx25_z(p,z) and jmx25_z(p,z) to a reasonable value
                          !-----------------------------------------------------------------------------------------------------
                          if(isnan(vcmx25_z(p, z)))then
-!$OMP MASTER
+!$OMP CRITICAL
                              write(iulog, *) 'Error: Vc,mx25 is NaN for patch=', &
                                   p, 'z=', z, "pft=", ft
                              write(iulog, *) 'LUNA env:',FNCa,forc_pbot10(p), relh10, CO2a10, O2a10, PARi10, PARimx10, rb10v, &
                                   hourpd, tair10, tleafd10, tleafn10
-!$OMP END MASTER
+!$OMP END CRITICAL
                              call endrun(msg=errmsg(sourcefile, __LINE__))
                          endif
                          if(vcmx25_z(p, z)>1000._r8 .or. vcmx25_z(p, z)<0._r8)then
-!$OMP MASTER
+!$OMP CRITICAL
                              write(iulog, *) 'Warning: Vc,mx25 become unrealistic (>1000 or negative) for patch=', &
                                   p, 'z=', z, "pft=", ft
                              write(iulog, *) 'LUNA env:',vcmx25_z(p,z),FNCa,forc_pbot10(p), relh10, CO2a10, &
                                   O2a10, PARi10, PARimx10, rb10v, hourpd, tair10, tleafd10, tleafn10
-!$OMP END MASTER
+!$OMP END CRITICAL
                              vcmx25_z(p,z) = 50._r8
                          endif
                          if(isnan(jmx25_z(p, z)))then
-!$OMP MASTER
+!$OMP CRITICAL
                              write(iulog, *) 'Error: Jmx25 is NaN for patch=', &
                                   p, 'z=', z, "pft=", ft
                              write(iulog, *) 'LUNA env:', FNCa,forc_pbot10(p), relh10, CO2a10, O2a10, PARi10, PARimx10, rb10v, &
                                   hourpd, tair10, tleafd10, tleafn10
-!$OMP END MASTER
+!$OMP END CRITICAL
                              call endrun(msg=errmsg(sourcefile, __LINE__))
                          endif
                          if(jmx25_z(p, z)>2000._r8 .or.  jmx25_z(p, z)<0._r8)then
-!$OMP MASTER
+!$OMP CRITICAL
                              write(iulog, *) 'Warning: Jmx25 become unrealistic (>2000, or negative) for patch=', &
                                   p, 'z=', z, "pft=", ft
                              write(iulog, *) 'LUNA env:', jmx25_z(p,z),FNCa,forc_pbot10(p), relh10, CO2a10, &
                                   O2a10, PARi10, PARimx10, rb10v, hourpd, tair10, tleafd10, tleafn10
-!$OMP END MASTER
+!$OMP END CRITICAL
                              jmx25_z(p,z) = 85._r8
                          endif
 

@@ -180,9 +180,9 @@ contains
        allocate(this_filter(nclumps), stat=ier)
     end if
     if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'allocFiltersOneGroup(): allocation error for clumpsfilters'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 

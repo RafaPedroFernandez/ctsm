@@ -1656,25 +1656,25 @@ contains
        psum = sum(lnd2atm_inst%t_rad_grc(bounds%begg:bounds%endg))
        call mpi_reduce(psum, tsum, 1, MPI_REAL8, MPI_SUM, 0, mpicom, ier)
        if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'write_diagnostic: Error in mpi_reduce()'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
        if (masterproc) then
           tsxyav = tsum / numg
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,1000) nstep, tsxyav
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_flush(iulog)
        end if
 
     else
 
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'clm: completed timestep ',nstep
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_flush(iulog)
        end if
 

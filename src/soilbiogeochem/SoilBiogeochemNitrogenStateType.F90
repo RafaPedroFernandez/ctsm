@@ -548,23 +548,23 @@ contains
           ! is not in the restart file, then the current model state is the same as
           ! the prior model state
           restart_file_decomp_cascade_state = decomp_cascade_state
-!$OMP MASTER
+!$OMP CRITICAL
           if ( masterproc ) write(iulog,*) ' CNRest: WARNING!  Restart file does not ' &
                // ' contain info on decomp_cascade_state used to generate the restart file.  '
           if ( masterproc ) write(iulog,*) '   Assuming the same as current setting: ', decomp_cascade_state
-!$OMP END MASTER
+!$OMP END CRITICAL
        else
           restart_file_decomp_cascade_state = itemp
           if (decomp_cascade_state /= restart_file_decomp_cascade_state ) then
              if ( masterproc ) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) 'CNRest: ERROR--the decomposition cascade differs between the current ' &
                      // ' model state and the model that wrote the restart file. '
                 write(iulog,*) 'The model will be horribly out of equilibrium until after a lengthy spinup. '
                 write(iulog,*) 'Stopping here since this is probably an error in configuring the run. '
                 write(iulog,*) 'If you really wish to proceed, then override by setting '
                 write(iulog,*) 'override_bgc_restart_mismatch_dump to .true. in the namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
                 if ( .not. override_bgc_restart_mismatch_dump ) then
                    call endrun(msg= ' CNRest: Stopping. Decomposition cascade mismatch error.'//&
                         errMsg(sourcefile, __LINE__))
@@ -594,11 +594,11 @@ contains
           ! the restart file then current model state is the same as prior model state
           restart_file_spinup_state = spinup_state
           if ( masterproc ) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) ' WARNING!  Restart file does not contain info ' &
                   // ' on spinup state used to generate the restart file. '
              write(iulog,*) '   Assuming the same as current setting: ', spinup_state
-!$OMP END MASTER
+!$OMP END CRITICAL
           end if
        end if
     end if
@@ -613,14 +613,14 @@ contains
 
     if (flag == 'read' .and. spinup_state /= restart_file_spinup_state ) then
        if (spinup_state == 0 .and. restart_file_spinup_state >= 1 ) then
-!$OMP MASTER
+!$OMP CRITICAL
           if ( masterproc ) write(iulog,*) ' NitrogenStateType Restart: taking SOM pools out of AD spinup mode'
-!$OMP END MASTER
+!$OMP END CRITICAL
           exit_spinup = .true.
        else if (spinup_state >= 1 .and. restart_file_spinup_state == 0 ) then
-!$OMP MASTER
+!$OMP CRITICAL
           if ( masterproc ) write(iulog,*) ' NitrogenStateType Restart: taking SOM pools into AD spinup mode'
-!$OMP END MASTER
+!$OMP END CRITICAL
           enter_spinup = .true.
        else
           call endrun(msg=' Error in entering/exiting spinup.  spinup_state ' &

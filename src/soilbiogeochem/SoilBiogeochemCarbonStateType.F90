@@ -576,10 +576,10 @@ contains
                   interpinic_flag='interp' , readvar=readvar, data=ptr1d)
           end if
           if (flag=='read' .and. .not. readvar) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'initializing soilbiogeochem_carbonstate_inst%decomp_cpools_vr_col' &
                   // ' with atmospheric c13 value for: '//trim(varname)
-!$OMP END MASTER
+!$OMP END CRITICAL
              do i = bounds%begc,bounds%endc
                 do j = 1, nlevdecomp
                    if (this%decomp_cpools_vr_col(i,j,k) /= spval .and. .not. isnan(this%decomp_cpools_vr_col(i,j,k)) ) then
@@ -626,10 +626,10 @@ contains
                   interpinic_flag='interp' , readvar=readvar, data=ptr1d)
           end if
           if (flag=='read' .and. .not. readvar) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'initializing soilbiogeochem_carbonstate_inst%decomp_cpools_vr_col with atmospheric c14 value for: '//&
                   trim(varname)
-!$OMP END MASTER
+!$OMP END CRITICAL
              do i = bounds%begc,bounds%endc
                 do j = 1, nlevdecomp
                    if (this%decomp_cpools_vr_col(i,j,k) /= spval .and. .not. isnan(this%decomp_cpools_vr_col(i,j,k)) ) then
@@ -688,14 +688,14 @@ contains
 
         if (flag == 'read' .and. spinup_state /= this%restart_file_spinup_state ) then
            if (spinup_state == 0 .and. this%restart_file_spinup_state >= 1 ) then
-!$OMP MASTER
+!$OMP CRITICAL
               if ( masterproc ) write(iulog,*) ' CNRest: taking ',carbon_type,' SOM pools out of AD spinup mode'
-!$OMP END MASTER
+!$OMP END CRITICAL
               exit_spinup = .true.
            else if (spinup_state >= 1 .and. this%restart_file_spinup_state == 0 ) then
-!$OMP MASTER
+!$OMP CRITICAL
               if ( masterproc ) write(iulog,*) ' CNRest: taking ',carbon_type,' SOM pools into AD spinup mode'
-!$OMP END MASTER
+!$OMP END CRITICAL
               enter_spinup = .true.
            else
               call endrun(msg=' CNRest: error in entering/exiting spinup.  spinup_state ' &

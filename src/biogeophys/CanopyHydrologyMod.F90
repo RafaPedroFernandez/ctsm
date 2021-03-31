@@ -108,9 +108,9 @@ contains
     if ( masterproc )then
 
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in clm_CanopyHydrology_inparm  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, 'clm_canopyhydrology_inparm', status=ierr)
        if (ierr == 0) then
@@ -129,7 +129,7 @@ contains
     call shr_mpi_bcast(maximum_leaf_wetted_fraction, mpicom)
     call shr_mpi_bcast(use_clm5_fpi, mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        write(iulog,*) ' '
        write(iulog,*) 'canopyhydrology settings:'
@@ -137,7 +137,7 @@ contains
        write(iulog,*) '  maximum_leaf_wetted_fraction = ',maximum_leaf_wetted_fraction
        write(iulog,*) '  use_clm5_fpi                 = ',use_clm5_fpi
     endif
-!$OMP END MASTER
+!$OMP END CRITICAL
 
    end subroutine CanopyHydrology_readnl
 

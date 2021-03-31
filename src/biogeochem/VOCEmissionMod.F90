@@ -646,10 +646,10 @@ contains
              endif
 
              if (debug .and. gamma > 0.0_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) 'MEGAN: n, megan name, epsilon, gamma, vocflx: ', &
                      imeg, meg_cmp%name, epsilon, gamma, vocflx_meg(imeg), gamma_p,gamma_t,gamma_a,gamma_sm,gamma_l
-!$OMP END MASTER
+!$OMP END CRITICAL
              endif
 
              meg_cmp => meg_cmp%next_megcomp
@@ -877,9 +877,9 @@ contains
        endif
 
        if (get_gamma_SM > 1.0_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'healdSM > 1: gamma_SM, nl', get_gamma_SM, nl
-!$OMP END MASTER
+!$OMP END CRITICAL
           get_gamma_SM=1.0_r8
        endif
 

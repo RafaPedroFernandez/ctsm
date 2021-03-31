@@ -751,9 +751,9 @@ contains
     else if (carbon_type == 'c14') then
        carbon_type_suffix = 'c_14'
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'CNVegCarbonFluxType InitAllocate: Unknown carbon_type: ', trim(carbon_type)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg='CNVegCarbonFluxType InitAllocate: Unknown carbon_type: ' // &
             errMsg(sourcefile, __LINE__))
     end if

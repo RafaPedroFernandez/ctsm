@@ -132,9 +132,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -151,14 +151,14 @@ contains
     call shr_mpi_bcast (initial_Cstocks      , mpicom)
     call shr_mpi_bcast (initial_Cstocks_depth, mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=CENTURY_soilBGCDecompCascade)
        write(iulog,*) ' '
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     params_inst%initial_Cstocks(:)    = initial_Cstocks(:)
     params_inst%initial_Cstocks_depth = initial_Cstocks_depth
@@ -552,12 +552,12 @@ contains
       spinup_factor(i_soil2) = max(1._r8, (speedup_fac * params_inst%tau_s2_bgc))
       spinup_factor(i_soil3) = max(1._r8, (speedup_fac * params_inst%tau_s3_bgc))
 
-!$OMP MASTER
+!$OMP CRITICAL
       if ( masterproc ) then
          write(iulog,*) 'Spinup_state ',spinup_state
          write(iulog,*) 'Spinup factors ',spinup_factor
       end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
       !----------------  list of transitions and their time-independent coefficients  ---------------!
       i_l1s1 = 1

@@ -408,7 +408,7 @@ contains
     call shr_mpi_bcast(precip_repartition_nonglc_all_rain_t, mpicom)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        ! Write settings one-by-one rather than with a nml write because some settings may
@@ -427,7 +427,7 @@ contains
           write(iulog,*) 'precip_repartition_nonglc_all_rain_t = ', precip_repartition_nonglc_all_rain_t
        end if
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     this%params = atm2lnd_params_type( &
@@ -757,18 +757,18 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' in '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg="InitAccVars allocation error for rbufslp"//&
             errMsg(sourcefile, __LINE__))
     endif
     ! Allocate needed dynamic memory for single level col field
     allocate(rbufslc(begc:endc), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' in '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg="InitAccVars allocation error for rbufslc"//&
             errMsg(sourcefile, __LINE__))
     endif
@@ -845,17 +845,17 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'UpdateAccVars allocation error for rbufslp'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
     ! Allocate needed dynamic memory for single level col field
     allocate(rbufslc(begc:endc), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'UpdateAccVars allocation error for rbufslc'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 

@@ -365,7 +365,7 @@ contains
    call shr_mpi_bcast(stream_fldFileName_ch4finundated, mpicom)
    call shr_mpi_bcast(ch4finundatedmapalgo            , mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
    if (masterproc) then
       write(iulog,*) ' '
       write(iulog,*) namelist_name, ' stream settings:'
@@ -373,7 +373,7 @@ contains
       write(iulog,*) '  ch4finundatedmapalgo             = ',ch4finundatedmapalgo
       write(iulog,*) ' '
    endif
-!$OMP END MASTER
+!$OMP END CRITICAL
    this%stream_fldFileName_ch4finundated = stream_fldFileName_ch4finundated
    this%ch4finundatedmapalgo             = ch4finundatedmapalgo
    if (      finundation_mtd == finundation_mtd_ZWT_inversion  )then

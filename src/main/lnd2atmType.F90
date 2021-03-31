@@ -204,9 +204,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -223,12 +223,12 @@ contains
     call shr_mpi_bcast(melt_non_icesheet_ice_runoff, mpicom)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)
        write(iulog,*) nmlname, ' settings:'
        write(iulog,nml=lnd2atm_inparm)
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     this%params = lnd2atm_params_type( &

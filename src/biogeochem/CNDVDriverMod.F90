@@ -404,10 +404,10 @@ contains
       call ncd_pio_closefile(ncid)
 
       if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*)'(histCNDV): Finished writing CNDV history dataset ',&
               trim(dgvm_fn), 'at nstep = ',get_nstep()
-!$OMP END MASTER
+!$OMP END CRITICAL
       end if
 
     end associate

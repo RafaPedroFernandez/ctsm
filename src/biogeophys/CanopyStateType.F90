@@ -334,9 +334,9 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' in '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg="extract_accum_hist allocation error for rbufslp"//&
             errMsg(sourcefile, __LINE__))
     endif
@@ -394,9 +394,9 @@ contains
     if ( masterproc )then
 
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in clm_canopy_inparm  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, 'clm_canopy_inparm', status=ierr)
        if (ierr == 0) then
@@ -446,9 +446,9 @@ contains
 
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'update_accum_hist allocation error for rbuf1dp'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 

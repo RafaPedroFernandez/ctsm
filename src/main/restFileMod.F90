@@ -145,10 +145,10 @@ contains
     ! Write out diagnostic info
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Successfully wrote out restart data at nstep = ',get_nstep()
        write(iulog,'(72a1)') ("-",i=1,60)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine restFile_write
@@ -235,11 +235,11 @@ contains
     ! Write out diagnostic info
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,'(72a1)') ("-",i=1,60)
        write(iulog,*) 'Successfully read restart data for restart run'
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine restFile_read
@@ -293,14 +293,14 @@ contains
        status = index(trim(ftest),trim(ctest))
        if (status /= 0 .and. .not.(brnch_retain_casename)) then
           if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'Must change case name on branch run if ',&
                   'brnch_retain_casename namelist is not set'
              write(iulog,*) 'previous case filename= ',trim(file),&
                   ' current case = ',trim(caseid), &
                   ' ctest = ',trim(ctest), &
                   ' ftest = ',trim(ftest)
-!$OMP END MASTER
+!$OMP END CRITICAL
           end if
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
@@ -364,9 +364,9 @@ contains
     ! New history files are always created for branch runs.
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Reading restart pointer file....'
-!$OMP END MASTER
+!$OMP END CRITICAL
     endif
 
     nio = getavu()
@@ -376,10 +376,10 @@ contains
     call relavu (nio)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Reading restart data.....'
        write(iulog,'(72a1)') ("-",i=1,60)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine restFile_read_pfile
@@ -407,11 +407,11 @@ contains
     !-----------------------------------------------------------------------
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Successfully wrote local restart file ',trim(file)
        write(iulog,'(72a1)') ("-",i=1,60)
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine restFile_closeRestart
@@ -443,9 +443,9 @@ contains
 
        write(nio,'(a)') fnamer
        call relavu( nio )
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'Successfully wrote local restart pointer file'
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine restFile_write_pfile
@@ -468,12 +468,12 @@ contains
        ! to "no fill" to optimize performance
 
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)
           write(iulog,*)'restFile_open: writing restart dataset at ',&
                trim(file), ' at nstep = ',get_nstep()
           write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
        call ncd_pio_createfile(ncid, trim(file))
 
@@ -482,9 +482,9 @@ contains
        ! Open netcdf restart file
 
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'Reading restart dataset'
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
        call ncd_pio_openfile (ncid, trim(file), 0)
 
@@ -507,9 +507,9 @@ contains
     restFile_filename = "./"//trim(caseid)//"."//trim(compname)//trim(inst_suffix)//&
          ".r."//trim(rdate)//".nc"
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'writing restart file ',trim(restFile_filename),' for model date = ',rdate
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end function restFile_filename
@@ -946,12 +946,12 @@ contains
     call shr_mpi_bcast (check_finidat_pct_consistency, mpicom)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) 'finidat_consistency_checks settings:'
        write(iulog,nml=finidat_consistency_checks)
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine restFile_read_consistency_nl
@@ -993,13 +993,13 @@ contains
        if (att_found) then
           call ncd_getatt(ncid, NCD_GLOBAL, 'flanduse_timeseries', flanduse_timeseries_rest)
        else
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) ' '
           write(iulog,*) subname//' WARNING: flanduse_timeseries attribute not found on restart file'
           write(iulog,*) 'Assuming that the restart file was generated from a non-transient run,'
           write(iulog,*) 'and thus skipping the year check'
           write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
 
           flanduse_timeseries_rest = ' '
        end if
@@ -1011,7 +1011,7 @@ contains
           call get_rest_date(ncid, rest_year)
           if (year /= rest_year) then
              if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) 'ERROR: Current model year does not match year on initial conditions file (finidat)'
                 write(iulog,*) 'Current year: ', year
                 write(iulog,*) 'Year on initial conditions file: ', rest_year
@@ -1028,7 +1028,7 @@ contains
                 write(iulog,*) '      check_finidat_year_consistency = .false.'
                 write(iulog,*) '    in user_nl_clm'
                 write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
              end if
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end if  ! year /= rest_year

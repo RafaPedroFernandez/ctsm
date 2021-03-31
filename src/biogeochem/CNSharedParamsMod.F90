@@ -146,7 +146,7 @@ contains
 
 
     ! Read namelist from standard input.
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
 
        write(iulog,*) 'Attempting to read CN/BGC shared namelist parameters .....'
@@ -167,7 +167,7 @@ contains
        call relavu( unitn )
 
     end if ! masterproc
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     ! Broadcast the parameters from master
     call shr_mpi_bcast ( decomp_depth_efolding, mpicom )
@@ -178,7 +178,7 @@ contains
     CNParamsShareInst%constrain_stress_deciduous_onset = constrain_stress_deciduous_onset
 
     ! Output read parameters to the lnd.log
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        write(iulog,*) 'CN/BGC shared namelist parameters:'
        write(iulog,*)' '
@@ -186,7 +186,7 @@ contains
        write(iulog,*)'  constrain_stress_deciduous_onset = ',constrain_stress_deciduous_onset
        write(iulog,*)
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
 
   end subroutine CNParamsReadShared_namelist

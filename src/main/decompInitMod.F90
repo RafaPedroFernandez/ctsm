@@ -80,16 +80,16 @@ contains
     if (clump_pproc > 0) then
        nclumps = clump_pproc * npes
        if (nclumps < npes) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'decompInit_lnd(): Number of gridcell clumps= ',nclumps, &
                ' is less than the number of processes = ', npes
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'clump_pproc= ',clump_pproc,'  must be greater than 0'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -98,9 +98,9 @@ contains
 
     allocate(procinfo%cid(clump_pproc), stat=ier)
     if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'decompInit_lnd(): allocation error for procinfo%cid'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
     procinfo%nclumps   = clump_pproc
@@ -123,9 +123,9 @@ contains
 
     allocate(clumps(nclumps), stat=ier)
     if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'decompInit_lnd(): allocation error for clumps'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     clumps(:)%owner     = -1
@@ -150,18 +150,18 @@ contains
     do n = 1,nclumps
        pid = mod(n-1,npes)
        if (pid < 0 .or. pid > npes-1) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'decompInit_lnd(): round robin pid error ',n,pid,npes
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        endif
        clumps(n)%owner = pid
        if (iam == pid) then
           cid = cid + 1
           if (cid < 1 .or. cid > clump_pproc) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'decompInit_lnd(): round robin pid error ',n,pid,npes
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=errMsg(sourcefile, __LINE__))
           endif
           procinfo%cid(cid) = n
@@ -177,17 +177,17 @@ contains
     enddo
 
     if (npes > numg) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'decompInit_lnd(): Number of processes exceeds number ', &
             'of land grid cells',npes,numg
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     if (nclumps > numg) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'decompInit_lnd(): Number of clumps exceeds number ', &
             'of land grid cells',nclumps,numg
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -200,11 +200,11 @@ contains
     endif
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' decomp precompute numg,nclumps,seglen1,avg_seglen,nsegspc=', &
             numg,nclumps,seglen1,&
             sngl(seglen),sngl(dble(numg)/(seglen*dble(nclumps)))
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     ! Assign gridcells to clumps (and thus pes) ---
@@ -260,16 +260,16 @@ contains
 
     allocate(ldecomp%gdc2glo(numg), stat=ier)
     if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'decompInit_lnd(): allocation error1 for ldecomp, etc'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
     allocate(clumpcnt(nclumps),stat=ier)
     if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'decompInit_lnd(): allocation error1 for clumpcnt'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -322,7 +322,7 @@ contains
     ! Diagnostic output
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' Surface Grid Characteristics'
        write(iulog,*)'   longitude points               = ',lni
        write(iulog,*)'   latitude points                = ',lnj
@@ -332,7 +332,7 @@ contains
        write(iulog,*)' gsMap Characteristics'
        write(iulog,*) '  lnd gsmap glo num of segs      = ',mct_gsMap_ngseg(gsMap_lnd_gdc2glo)
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     call shr_sys_flush(iulog)
@@ -378,7 +378,7 @@ contains
     ! Diagnostic output
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' 3D GSMap'
        write(iulog,*)'   longitude points               = ',lni
        write(iulog,*)'   latitude points                = ',lnj
@@ -389,7 +389,7 @@ contains
        write(iulog,*)' gsMap Characteristics'
        write(iulog,*) '  lnd gsmap glo num of segs      = ',mct_gsMap_ngseg(gsMap_lnd2Dsoi_gdc2glo)
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     deallocate(gindex)
@@ -600,13 +600,13 @@ contains
            clumps(n)%npatches /= allvecg(n,4) .or. &
            clumps(n)%nCohorts /= allvecg(n,5)) then
 
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog ,*) 'decompInit_glcp(): allvecg error ncells ',iam,n,clumps(n)%ncells   ,allvecg(n,1)
           write(iulog ,*) 'decompInit_glcp(): allvecg error lunits ',iam,n,clumps(n)%nlunits  ,allvecg(n,2)
           write(iulog ,*) 'decompInit_glcp(): allvecg error ncols  ',iam,n,clumps(n)%ncols    ,allvecg(n,3)
           write(iulog ,*) 'decompInit_glcp(): allvecg error patches',iam,n,clumps(n)%npatches ,allvecg(n,4)
           write(iulog ,*) 'decompInit_glcp(): allvecg error cohorts',iam,n,clumps(n)%nCohorts ,allvecg(n,5)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
           call endrun(msg=errMsg(sourcefile, __LINE__))
        endif
@@ -803,25 +803,25 @@ contains
     i = begg-1
     do gi = begg,endg
        if (gcount(gi) <  1) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'decompInit_glcp warning count g ',k,iam,g,gcount(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
        endif
        do l = 1,gcount(gi)
           i = i + 1
           if (i < begg .or. i > endg) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'decompInit_glcp error i ',i,begg,endg
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=errMsg(sourcefile, __LINE__))
           endif
           gindex(i) = gstart(gi) + l - 1
        enddo
     enddo
     if (i /= endg) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'decompInit_glcp error size ',i,begg,endg
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
     locsize = endg-begg+1
@@ -904,7 +904,7 @@ contains
     ! Diagnostic output
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' Surface Grid Characteristics'
        write(iulog,*)'   longitude points          = ',lni
        write(iulog,*)'   latitude points           = ',lnj
@@ -923,7 +923,7 @@ contains
        write(iulog,*) '  patch gsmap glo num of segs = ',mct_gsMap_ngseg(gsMap_patch_gdc2glo)
        write(iulog,*) '  coh gsmap glo num of segs = ',mct_gsMap_ngseg(gsMap_cohort_gdc2glo)
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     ! Write out clump and proc info, one pe at a time,
@@ -952,7 +952,7 @@ contains
        pid = min(pid,npes-1)
 
        if (iam == pid) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)
           write(iulog,*)'proc= ',pid,&
                ' beg gridcell= ',procinfo%begg, &
@@ -993,7 +993,7 @@ contains
                ' coh ngseg   = ',mct_gsMap_ngseg(gsMap_cohort_gdc2glo), &
                ' coh nlseg   = ',mct_gsMap_nlseg(gsMap_cohort_gdc2glo,iam)
           write(iulog,*)'proc= ',pid,' nclumps = ',procinfo%nclumps
-!$OMP END MASTER
+!$OMP END CRITICAL
 
           clmin = 1
           clmax = procinfo%nclumps
@@ -1004,7 +1004,7 @@ contains
           endif
           do n = clmin,clmax
              cid = procinfo%cid(n)
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'proc= ',pid,' clump no = ',n, &
                   ' clump id= ',procinfo%cid(n),    &
                   ' beg gridcell= ',clumps(cid)%begg, &
@@ -1030,7 +1030,7 @@ contains
                   ' beg cohort     = ',clumps(cid)%begCohort, &
                   ' end cohort     = ',clumps(cid)%endCohort, &
                   ' total cohorts per clump     = ',clumps(cid)%nCohorts
-!$OMP END MASTER
+!$OMP END CRITICAL
           end do
        end if
        call shr_sys_flush(iulog)

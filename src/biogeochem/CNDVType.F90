@@ -411,9 +411,9 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' in '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=" allocation error for rbufslp"//&
             errMsg(sourcefile, __LINE__))
     endif
@@ -482,9 +482,9 @@ contains
 
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'update_accum_hist allocation error for rbuf1dp'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 

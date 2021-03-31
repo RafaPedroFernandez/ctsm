@@ -309,10 +309,10 @@ contains
        call subgrid_get_info_lake(gi, &
             npatches=npatches, ncols=ncols, nlunits=nlunits)
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' set_landunit_wet_lake: ltype of ',ltype,' not valid'
        write(iulog,*)' only istwet and istdlak ltypes are valid'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
 
@@ -321,11 +321,11 @@ contains
     if (npatches > 0) then
 
        if (npatches /= 1) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)' set_landunit_wet_lake: compete landunit must'// &
                ' have one patch '
           write(iulog,*)' current value of npatches=',npatches
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
 
@@ -471,9 +471,9 @@ contains
        if ( create_crop_landunit )then
           my_ltype = ltype    ! Will always be istcrop
           if ( ltype /= istcrop )then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)' create_crop_landunit on and ltype is not istcrop: ', ltype
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=errMsg(sourcefile, __LINE__))
           end if
        else
@@ -556,9 +556,9 @@ contains
        call subgrid_get_info_urban_md(gi, &
             npatches=npatches, ncols=ncols, nlunits=nlunits)
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' set_landunit_urban: unknown ltype: ', ltype
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end select
 

@@ -247,9 +247,9 @@ contains
             soilhydrology_inst, soilstate_inst, &
             qinmax_on_unsaturated_area = qinmax_on_unsaturated_area(bounds%begc:bounds%endc))
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname//' ERROR: Unrecognized qinmax_method: ', this%qinmax_method
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(subname//' ERROR: Unrecognized qinmax_method')
     end select
 

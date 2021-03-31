@@ -319,9 +319,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -337,14 +337,14 @@ contains
 
     call shr_mpi_bcast (fresh_snw_rds_max       , mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
    if (masterproc) then
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=aerosol)
        write(iulog,*) ' '
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
   end subroutine InitReadNML
 

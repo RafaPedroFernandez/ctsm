@@ -409,9 +409,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -451,7 +451,7 @@ contains
          irrig_method_default = irrig_method_default_int)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        ! Write settings one-by-one rather than with a nml write because
@@ -469,7 +469,7 @@ contains
        write(iulog,*) 'use_groundwater_irrigation = ', use_groundwater_irrigation
        write(iulog,*) 'irrig_method_default = ', irrig_method_default
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
 
        call this%CheckNamelistValidity(use_aquifer_layer)
     end if
@@ -482,9 +482,9 @@ contains
       case ('sprinkler')
          irrig_method_default_int = irrig_method_sprinkler
       case default
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*) 'ERROR: unknown irrig_method_default: ', trim(irrig_method_default)
-!$OMP END MASTER
+!$OMP END CRITICAL
          call endrun('Unknown irrig_method_default')
       end select
     end subroutine translate_irrig_method_default
@@ -523,87 +523,87 @@ contains
          limit_irrigation_if_rof_enabled => this%params%limit_irrigation_if_rof_enabled)
 
     if (irrig_min_lai < 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' ERROR: irrig_min_lai must be >= 0'
        write(iulog,*) ' irrig_min_lai = ', irrig_min_lai
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: irrig_min_lai must be >= 0 ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_start_time < 0 .or. irrig_start_time >= isecspday) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' ERROR: irrig_start_time must be >= 0 and < ', isecspday
        write(iulog,*) ' irrig_start_time = ', irrig_start_time
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: irrig_start_time out of bounds ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_length <= 0 .or. irrig_length > isecspday) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' ERROR: irrig_length must be > 0 and <= ', isecspday
        write(iulog,*) ' irrig_length = ', irrig_length
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: irrig_length out of bounds ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_target_smp >= 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' ERROR: irrig_target_smp must be negative'
        write(iulog,*) ' irrig_target_smp = ', irrig_target_smp
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: irrig_target_smp must be negative ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_target_smp < wilting_point_smp) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' ERROR: irrig_target_smp must be >= wilting_point_smp'
        write(iulog,*) ' irrig_target_smp (from namelist) = ', irrig_target_smp
        write(iulog,*) ' wilting_point_smp (hard-coded) = ', wilting_point_smp
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: irrig_target_smp must be >= wilting_point_smp ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_depth < 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' ERROR: irrig_depth must be > 0'
        write(iulog,*) ' irrig_depth = ', irrig_depth
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: irrig_depth must be > 0 ' // errMsg(sourcefile, __LINE__))
     end if
 
     if (irrig_threshold_fraction < 0._r8 .or. irrig_threshold_fraction > 1._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' ERROR: irrig_threshold_fraction must be between 0 and 1'
        write(iulog,*) ' irrig_threshold_fraction = ', irrig_threshold_fraction
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: irrig_threshold_fraction must be between 0 and 1 ' // &
             errMsg(sourcefile, __LINE__))
     end if
 
     if (limit_irrigation_if_rof_enabled) then
        if (irrig_river_volume_threshold < 0._r8 .or. irrig_river_volume_threshold > 1._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) ' ERROR: irrig_river_volume_threshold must be between 0 and 1'
           write(iulog,*) ' irrig_river_volume_threshold = ', irrig_river_volume_threshold
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=' ERROR: irrig_river_volume_threshold must be between 0 and 1 ' // &
                errMsg(sourcefile, __LINE__))
        end if
     end if
 
     if (use_groundwater_irrigation .and. .not. limit_irrigation_if_rof_enabled) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' ERROR: use_groundwater_irrigation only makes sense if limit_irrigation_if_rof_enabled is set.'
        write(iulog,*) '(If limit_irrigation_if_rof_enabled is .false., then groundwater extraction will never be invoked.)'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=' ERROR: use_groundwater_irrigation only makes sense if limit_irrigation_if_rof_enabled is set' // &
             errMsg(sourcefile, __LINE__))
     end if
 
     if (use_aquifer_layer .and. use_groundwater_irrigation) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) ' ERROR: use_groundwater_irrigation and use_aquifer_layer may not be used simultaneously'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=' ERROR: use_groundwater_irrigation and use_aquifer_layer cannot both be set to true' // &
                errMsg(sourcefile, __LINE__))
     end if
@@ -786,9 +786,9 @@ contains
           if(irrig_method(g,m) == irrig_method_unset) then
              this%irrig_method_patch(p) = this%params%irrig_method_default
           else if (irrig_method(g,m) /= irrig_method_drip .and. irrig_method(g,m) /= irrig_method_sprinkler) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) subname //' invalid irrigation method specified'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=g, clmlevel=nameg, msg='bad irrig_method '// &
                   errMsg(sourcefile, __LINE__))
           end if
@@ -1284,14 +1284,14 @@ contains
           else
              if (qflx_sfc_irrig_bulk_patch(p) > 0._r8 .or. &
                   waterflux_inst%qflx_sfc_irrig_col(c) > 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) 'If qflx_sfc_irrig_bulk_col <= 0, ' // &
                      'expect qflx_sfc_irrig_bulk_patch = waterflux_inst%qflx_sfc_irrig_col = 0'
                 write(iulog,*) 'qflx_sfc_irrig_bulk_col = ', qflx_sfc_irrig_bulk_col(c)
                 write(iulog,*) 'qflx_sfc_irrig_bulk_patch = ', qflx_sfc_irrig_bulk_patch(p)
                 write(iulog,*) 'waterflux_inst%qflx_sfc_irrig_col = ', &
                      waterflux_inst%qflx_sfc_irrig_col(c)
-!$OMP END MASTER
+!$OMP END CRITICAL
                 call endrun(decomp_index=p, clmlevel=namep, &
                      msg = 'If qflx_sfc_irrig_bulk_col <= 0, ' // &
                      'expect qflx_sfc_irrig_bulk_patch = waterflux_inst%qflx_sfc_irrig_col = 0', &
@@ -1321,12 +1321,12 @@ contains
        else
           if (qflx_gw_demand_bulk_patch(p) > 0._r8 .or. &
                qflx_gw_irrig_withdrawn_col(c) > 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'If qflx_gw_demand_bulk_col <= 0, expect qflx_gw_demand_bulk_patch = qflx_gw_irrig_withdrawn_col = 0'
              write(iulog,*) 'qflx_gw_demand_bulk_col = ', qflx_gw_demand_bulk_col(c)
              write(iulog,*) 'qflx_gw_demand_bulk_patch = ', qflx_gw_demand_bulk_patch(p)
              write(iulog,*) 'qflx_gw_irrig_withdrawn_col = ', qflx_gw_irrig_withdrawn_col(c)
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=p, clmlevel=namep, &
                   msg = 'If qflx_gw_demand_bulk_col <= 0, expect qflx_gw_demand_bulk_patch = qflx_gw_irrig_withdrawn_col = 0', &
                   additional_msg = errMsg(sourcefile, __LINE__))
@@ -1576,11 +1576,11 @@ contains
           ! irrigation target is less than the irrigation threshold, which is not
           ! supposed to happen
           if (deficit(c) < 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) subname//' ERROR: deficit < 0'
              write(iulog,*) 'This implies that irrigation target is less than irrigatio&
                   &n threshold, which should never happen'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=c, clmlevel=namec, msg='deficit < 0 '// &
                   errMsg(sourcefile, __LINE__))
           end if

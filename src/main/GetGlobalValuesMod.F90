@@ -156,32 +156,32 @@ contains
     if (trim(clmlevel) == nameg) then
 
        igrc = decomp_index
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'local  gridcell index = ',igrc
        write(iulog,*)'global gridcell index = ',GetGlobalIndex(decomp_index=igrc, clmlevel=nameg)
        write(iulog,*)'gridcell longitude    = ',grc%londeg(igrc)
        write(iulog,*)'gridcell latitude     = ',grc%latdeg(igrc)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     else if (trim(clmlevel) == namel) then
 
        ilun = decomp_index
        igrc = lun%gridcell(ilun)
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'local  landunit index = ',ilun
        write(iulog,*)'global landunit index = ',GetGlobalIndex(decomp_index=ilun, clmlevel=namel)
        write(iulog,*)'global gridcell index = ',GetGlobalIndex(decomp_index=igrc, clmlevel=nameg)
        write(iulog,*)'gridcell longitude    = ',grc%londeg(igrc)
        write(iulog,*)'gridcell latitude     = ',grc%latdeg(igrc)
        write(iulog,*)'landunit type         = ',lun%itype(decomp_index)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     else if (trim(clmlevel) == namec) then
 
        icol = decomp_index
        ilun = col%landunit(icol)
        igrc = col%gridcell(icol)
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'local  column   index = ',icol
        write(iulog,*)'global column   index = ',GetGlobalIndex(decomp_index=icol, clmlevel=namec)
        write(iulog,*)'global landunit index = ',GetGlobalIndex(decomp_index=ilun, clmlevel=namel)
@@ -190,7 +190,7 @@ contains
        write(iulog,*)'gridcell latitude     = ',grc%latdeg(igrc)
        write(iulog,*)'column   type         = ',col%itype(icol)
        write(iulog,*)'landunit type         = ',lun%itype(ilun)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     else if (trim(clmlevel) == namep) then
 
@@ -198,7 +198,7 @@ contains
        icol = patch%column(ipft)
        ilun = patch%landunit(ipft)
        igrc = patch%gridcell(ipft)
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'local  patch      index = ',ipft
        write(iulog,*)'global patch      index = ',GetGlobalIndex(decomp_index=ipft, clmlevel=namep)
        write(iulog,*)'global column   index = ',GetGlobalIndex(decomp_index=icol, clmlevel=namec)
@@ -209,7 +209,7 @@ contains
        write(iulog,*)'pft      type         = ',patch%itype(ipft)
        write(iulog,*)'column   type         = ',col%itype(icol)
        write(iulog,*)'landunit type         = ',lun%itype(ilun)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     else
        call shr_sys_abort('clmlevel '//trim(clmlevel)//'not supported '//errmsg(sourcefile, __LINE__))

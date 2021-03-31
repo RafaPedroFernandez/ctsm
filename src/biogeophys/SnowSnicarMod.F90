@@ -885,7 +885,7 @@ contains
                      err_idx = err_idx + 1
                   elseif((trip == 1).and.(flg_dover == 4).and.(err_idx >= 20)) then
                      flg_dover = 0
-!$OMP MASTER
+!$OMP CRITICAL
                      write(iulog,*) "SNICAR ERROR: FOUND A WORMHOLE. STUCK IN INFINITE LOOP! Called from: ", flg_snw_ice
                      write(iulog,*) "SNICAR STATS: snw_rds(0)= ", snw_rds(c_idx,0)
                      write(iulog,*) "SNICAR STATS: L_snw(0)= ", L_snw(0)
@@ -900,7 +900,7 @@ contains
                      write(iulog,*) "column index: ", c_idx
                      write(iulog,*) "landunit type", lun%itype(l_idx)
                      write(iulog,*) "frac_sno: ", frac_sno(c_idx)
-!$OMP END MASTER
+!$OMP END CRITICAL
                      call endrun(decomp_index=c_idx, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
                   else
                      flg_dover = 0
@@ -1345,14 +1345,14 @@ contains
 
      !
      ! Open optics file:
-!$OMP MASTER
+!$OMP CRITICAL
      if(masterproc) write(iulog,*) 'Attempting to read snow optical properties .....'
-!$OMP END MASTER
+!$OMP END CRITICAL
      call getfil (fsnowoptics, locfn, 0)
      call ncd_pio_openfile(ncid, locfn, 0)
-!$OMP MASTER
+!$OMP CRITICAL
      if(masterproc) write(iulog,*) subname,trim(fsnowoptics)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
      ! direct-beam snow Mie parameters:
      call ncd_io('ss_alb_ice_drc', ss_alb_snw_drc,            'read', ncid, posNOTonfile=.true.)
@@ -1408,7 +1408,7 @@ contains
      call ncd_pio_closefile(ncid)
      if (masterproc) then
 
-!$OMP MASTER
+!$OMP CRITICAL
         write(iulog,*) 'Successfully read snow optical properties'
         ! print some diagnostics:
         write (iulog,*) 'SNICAR: Mie single scatter albedos for direct-beam ice, rds=100um: ', &
@@ -1441,7 +1441,7 @@ contains
         write (iulog,*) 'SNICAR: Mie single scatter albedos for dust species 4: ', &
              ss_alb_dst4(1), ss_alb_dst4(2), ss_alb_dst4(3), ss_alb_dst4(4), ss_alb_dst4(5)
         write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
      end if
 
    end subroutine SnowOptics_init
@@ -1464,14 +1464,14 @@ contains
      allocate(snowage_kappa(idx_rhos_max,idx_Tgrd_max,idx_T_max))
      allocate(snowage_drdt0(idx_rhos_max,idx_Tgrd_max,idx_T_max))
 
-!$OMP MASTER
+!$OMP CRITICAL
      if(masterproc)  write(iulog,*) 'Attempting to read snow aging parameters .....'
-!$OMP END MASTER
+!$OMP END CRITICAL
      call getfil (fsnowaging, locfn, 0)
      call ncd_pio_openfile(ncid, locfn, 0)
-!$OMP MASTER
+!$OMP CRITICAL
      if(masterproc) write(iulog,*) subname,trim(fsnowaging)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
      ! snow aging parameters
 
@@ -1482,14 +1482,14 @@ contains
      call ncd_pio_closefile(ncid)
      if (masterproc) then
 
-!$OMP MASTER
+!$OMP CRITICAL
         write(iulog,*) 'Successfully read snow aging properties'
 
         ! print some diagnostics:
         write (iulog,*) 'SNICAR: snowage tau for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_tau(3,11,9)
         write (iulog,*) 'SNICAR: snowage kappa for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_kappa(3,11,9)
         write (iulog,*) 'SNICAR: snowage dr/dt_0 for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_drdt0(3,11,9)
-!$OMP END MASTER
+!$OMP END CRITICAL
      endif
 
    end subroutine SnowAge_init

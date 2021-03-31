@@ -138,9 +138,9 @@ contains
     if (soil_layerstruct_predefined == '10SL_3.5m' .or. soil_layerstruct_predefined == '23SL_3.5m') then
        calc_method = 'node-based'  ! node-based followed by error check
        if (soil_layerstruct_userdefined(1) /= rundef) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname//' ERROR: Both soil_layerstruct_predefined and soil_layer_userdefined have values'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_abort(subname//' ERROR: Cannot decide how to set the soil layer structure')
        end if
     ! thickness-based (part 1) and error check
@@ -149,24 +149,24 @@ contains
              soil_layerstruct_predefined == '4SL_2m') then
        calc_method = 'thickness-based'
        if (soil_layerstruct_userdefined(1) /= rundef) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname//' ERROR: Both soil_layerstruct_predefined and soil_layer_userdefined have values'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_abort(subname//' ERROR: Cannot decide how to set the soil layer structure')
        end if
     ! thickness-based (part 2) and error check
     else if (soil_layerstruct_userdefined(1) /= rundef) then
        calc_method = 'thickness-based'
        if (soil_layerstruct_predefined /= 'UNSET') then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname//' ERROR: Both soil_layerstruct_predefined and soil_layer_userdefined have values'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_abort(subname//' ERROR: Cannot decide how to set the soil layer structure')
        end if
     else  ! error check
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname//' ERROR: Unrecognized pre-defined and user-defined soil layer structures: ', trim(soil_layerstruct_predefined), soil_layerstruct_userdefined
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(subname//' ERROR: Unrecognized soil layer structure')
     end if
 
@@ -253,9 +253,9 @@ contains
        enddo
 
     else  ! error check
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname//' ERROR: Unrecognized calc_method: ', trim(calc_method)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(subname//' ERROR: Unrecognized calc_method')
     end if  ! calc_method is node-based or thickness-based
 
@@ -268,12 +268,12 @@ contains
     end if
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog, *) 'zsoi', zsoi(:)
        write(iulog, *) 'zisoi: ', zisoi(:)
        write(iulog, *) 'dzsoi: ', dzsoi(:)
        write(iulog, *) 'dzsoi_decomp: ',dzsoi_decomp
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     if (nlevurb > 0) then
@@ -314,38 +314,38 @@ contains
              dzurb_wall(l,3) = 0.070_r8
              dzurb_wall(l,4) = 0.070_r8
              dzurb_wall(l,5) = 0.030_r8
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Total thickness of wall: ',sum(dzurb_wall(l,:))
              write(iulog,*)'Wall layer thicknesses: ',dzurb_wall(l,:)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
              dzurb_roof(l,1) = 0.010_r8
              dzurb_roof(l,2) = 0.010_r8
              dzurb_roof(l,3) = 0.010_r8
              dzurb_roof(l,4) = 0.010_r8
              dzurb_roof(l,5) = 0.030_r8
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Total thickness of roof: ',sum(dzurb_roof(l,:))
              write(iulog,*)'Roof layer thicknesses: ',dzurb_roof(l,:)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
              ziurb_wall(l,0) = 0.
              ziurb_wall(l,1) = dzurb_wall(l,1)
              do j = 2,nlevurb
                 ziurb_wall(l,j) = sum(dzurb_wall(l,1:j))
              end do
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Wall layer interface depths: ',ziurb_wall(l,:)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
              ziurb_roof(l,0) = 0.
              ziurb_roof(l,1) = dzurb_roof(l,1)
              do j = 2,nlevurb
                 ziurb_roof(l,j) = sum(dzurb_roof(l,1:j))
              end do
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Roof layer interface depths: ',ziurb_roof(l,:)
-!$OMP END MASTER
+!$OMP END CRITICAL
           else if (use_mexicocity) then
              zurb_wall(l,1) = 0.015_r8/2._r8
              zurb_wall(l,2) = zurb_wall(l,1) + 0.015_r8/2._r8 + 0.120_r8/2._r8
@@ -364,38 +364,38 @@ contains
              dzurb_wall(l,3) = 0.150_r8
              dzurb_wall(l,4) = 0.150_r8
              dzurb_wall(l,5) = 0.015_r8
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Total thickness of wall: ',sum(dzurb_wall(l,:))
              write(iulog,*)'Wall layer thicknesses: ',dzurb_wall(l,:)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
              dzurb_roof(l,1) = 0.010_r8
              dzurb_roof(l,2) = 0.050_r8
              dzurb_roof(l,3) = 0.050_r8
              dzurb_roof(l,4) = 0.050_r8
              dzurb_roof(l,5) = 0.025_r8
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Total thickness of roof: ',sum(dzurb_roof(l,:))
              write(iulog,*)'Roof layer thicknesses: ',dzurb_roof(l,:)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
              ziurb_wall(l,0) = 0.
              ziurb_wall(l,1) = dzurb_wall(l,1)
              do j = 2,nlevurb
                 ziurb_wall(l,j) = sum(dzurb_wall(l,1:j))
              end do
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Wall layer interface depths: ',ziurb_wall(l,:)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
              ziurb_roof(l,0) = 0.
              ziurb_roof(l,1) = dzurb_roof(l,1)
              do j = 2,nlevurb
                 ziurb_roof(l,j) = sum(dzurb_roof(l,1:j))
              end do
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Roof layer interface depths: ',ziurb_roof(l,:)
-!$OMP END MASTER
+!$OMP END CRITICAL
           else
              do j = 1, nlevurb
                 zurb_wall(l,j) = (j-0.5)*(thick_wall(l)/float(nlevurb))  !node depths
@@ -494,9 +494,9 @@ contains
 
     !  if use_bedrock = false, set zbedrock to lowest layer bottom interface
     else
-!$OMP MASTER
+!$OMP CRITICAL
        if (masterproc) write(iulog,*) 'not using use_bedrock!!'
-!$OMP END MASTER
+!$OMP END CRITICAL
        zbedrock_in(:) = zisoi(nlevsoi)
     endif
 
@@ -508,9 +508,9 @@ contains
        endif
     enddo
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) write(iulog,*) 'jmin_bedrock: ', jmin_bedrock
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     !  Determine gridcell bedrock index
     do g = bounds%begg,bounds%endg
@@ -538,10 +538,10 @@ contains
     call ncd_io(ncid=ncid, varname='LAKEDEPTH', flag='read', data=lakedepth_in, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'WARNING:: LAKEDEPTH not found on surface data set. All lake columns will have lake depth', &
                ' set equal to default value.'
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
        lakedepth_in(:) = spval
     end if
@@ -638,9 +638,9 @@ contains
 
           else
 
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'Bad lake depth: lakedepth: ', col%lakedepth(c)
-!$OMP END MASTER
+!$OMP END CRITICAL
              call shr_sys_abort(errmsg(sourcefile, __LINE__))
 
           end if
@@ -763,11 +763,11 @@ contains
     !-----------------------------------------------------------------------
 
     if (depth <= zisoi(0)) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname, ': ERROR: depth above top of soil'
        write(iulog,*) 'depth = ', depth
        write(iulog,*) 'zisoi = ', zisoi
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=subname//': depth above top of soil')
     end if
 
@@ -781,11 +781,11 @@ contains
     end do
 
     if (.not. found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname, ': ERROR: depth below bottom of soil'
        write(iulog,*) 'depth = ', depth
        write(iulog,*) 'zisoi = ', zisoi
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=subname//': depth below bottom of soil')
     end if
 

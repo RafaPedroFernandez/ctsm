@@ -82,10 +82,10 @@ contains
 
     if (fsurdat /= ' ') then
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'Attempting to read organic matter data .....'
           write(iulog,*) subname,trim(fsurdat)
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
 
        call getfil (fsurdat, locfn, 0)
@@ -93,12 +93,12 @@ contains
 
        call ncd_inqfdims (ncid, isgrid2d, ni, nj, ns)
        if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)trim(subname), 'ldomain and input file do not match dims '
           write(iulog,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
           write(iulog,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
           write(iulog,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun()
        end if
 
@@ -107,10 +107,10 @@ contains
        if (.not. readvar) call endrun('organicrd: errror reading ORGANIC')
 
        if ( masterproc )then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'Successfully read organic matter data'
           write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
     endif
 

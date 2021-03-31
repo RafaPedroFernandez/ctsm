@@ -665,7 +665,7 @@ contains
          if (lun%itype(l) == istsoil) then
             diff = abs(patch%wtlunit(p) - pft_wtlunit_before_rest_read(p))
             if (diff > tol .and. patch%wtgcell(p) > 1.0e-16_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'ERROR: PATCH weights are SIGNIFICANTLY different between :'
                write(iulog,*) 'the restart (finidat) file : ', patch%wtlunit(p)
                write(iulog,*) 'and the surface dataset (fsurdat): ', pft_wtlunit_before_rest_read(p)
@@ -685,7 +685,7 @@ contains
                write(iulog,*) '    in user_nl_clm'
                write(iulog,*) '    In this case, CLM will take the weights from the initial conditions file.'
                write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(decomp_index=p, clmlevel=namep, msg=errMsg(sourcefile, __LINE__))
             end if
          end if

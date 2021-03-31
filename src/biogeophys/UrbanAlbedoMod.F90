@@ -1245,7 +1245,7 @@ contains
                err = stot_dir(l) + stot_dif(l) &
                     - (sabs_canyon_dir(l) + sabs_canyon_dif(l) + sref_canyon_dir(l) + sref_canyon_dif(l))
                if (abs(err) > 0.001_r8 ) then
-!$OMP MASTER
+!$OMP CRITICAL
                   write(iulog,*)'urban net solar radiation balance error for ib=',ib,' err= ',err
                   write(iulog,*)' l= ',l,' ib= ',ib
                   write(iulog,*)' stot_dir        = ',stot_dir(l)
@@ -1255,7 +1255,7 @@ contains
                   write(iulog,*)' sref_canyon_dir = ',sref_canyon_dir(l)
                   write(iulog,*)' sref_canyon_dif = ',sref_canyon_dir(l)
                   write(iulog,*) 'clm model is stopping'
-!$OMP END MASTER
+!$OMP END CRITICAL
                   call endrun(decomp_index=l, clmlevel=namel, msg=errmsg(sourcefile, __LINE__))
                endif
 

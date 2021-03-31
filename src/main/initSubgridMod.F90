@@ -92,9 +92,9 @@ contains
        if (patch%column(p) /= curc) then
           curc = patch%column(p)
           if (curc < bounds%begc .or. curc > bounds%endc) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'clm_ptrs_compdown ERROR: pcolumn ',p,curc,bounds%begc,bounds%endc
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=p, clmlevel=namep, msg=errMsg(sourcefile, __LINE__))
           endif
           col%patchi(curc) = p
@@ -104,9 +104,9 @@ contains
        if (patch%landunit(p) /= curl) then
           curl = patch%landunit(p)
           if (curl < bounds%begl .or. curl > bounds%endl) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'clm_ptrs_compdown ERROR: plandunit ',p,curl,bounds%begl,bounds%endl
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=p, clmlevel=namep, msg=errMsg(sourcefile, __LINE__))
           endif
           lun%patchi(curl) = p
@@ -120,9 +120,9 @@ contains
        if (col%landunit(c) /= curl) then
           curl = col%landunit(c)
           if (curl < bounds%begl .or. curl > bounds%endl) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'clm_ptrs_compdown ERROR: clandunit ',c,curl,bounds%begl,bounds%endl
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=c, clmlevel=namec, msg=errMsg(sourcefile, __LINE__))
           endif
           lun%coli(curl) = c
@@ -138,19 +138,19 @@ contains
        ltype = lun%itype(l)
        curg = lun%gridcell(l)
        if (curg < bounds%begg .or. curg > bounds%endg) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'clm_ptrs_compdown ERROR: landunit_indices ', l,curg,bounds%begg,bounds%endg
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=l, clmlevel=namel, msg=errMsg(sourcefile, __LINE__))
        end if
 
        if (grc%landunit_indices(ltype, curg) == ispval) then
           grc%landunit_indices(ltype, curg) = l
        else
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'clm_ptrs_compdown ERROR: This landunit type has already been set for this gridcell'
           write(iulog,*) 'l, ltype, curg = ', l, ltype, curg
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=l, clmlevel=namel, msg=errMsg(sourcefile, __LINE__))
        end if
     end do

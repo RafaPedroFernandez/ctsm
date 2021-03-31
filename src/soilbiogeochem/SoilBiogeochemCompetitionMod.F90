@@ -154,10 +154,10 @@ contains
     case(suplnAll)
        carbon_only = .true.
     case default
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Supplemental Nitrogen flag (suplnitro) can only be: ', &
             suplnNon, ' or ', suplnAll
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg='ERROR: supplemental Nitrogen flag is not correct'//&
             errMsg(sourcefile, __LINE__))
     end select
@@ -776,20 +776,20 @@ contains
                sminn_to_plant(c) = 0._r8 !this isn't use in fun.
                do j = 1, nlevdecomp
                   if ((sminn_to_plant_fun_no3_vr(c,j)-smin_no3_to_plant_vr(c,j)).gt.0.0000000000001_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                       write(iulog,*) 'problem with limitations on no3 uptake', &
                                  sminn_to_plant_fun_no3_vr(c,j),smin_no3_to_plant_vr(c,j)
-!$OMP END MASTER
+!$OMP END CRITICAL
                       call endrun("too much NO3 uptake predicted by FUN")
                   end if
 !KO                  if ((sminn_to_plant_fun_nh4_vr(c,j)-smin_nh4_to_plant_vr(c,j)).gt.0.0000000000001_r8) then
 !KO
                   if ((sminn_to_plant_fun_nh4_vr(c,j)-smin_nh4_to_plant_vr(c,j)).gt.0.0000001_r8) then
 !KO
-!$OMP MASTER
+!$OMP CRITICAL
                       write(iulog,*) 'problem with limitations on nh4 uptake', &
                                   sminn_to_plant_fun_nh4_vr(c,j),smin_nh4_to_plant_vr(c,j)
-!$OMP END MASTER
+!$OMP END CRITICAL
                       call endrun("too much NH4 uptake predicted by FUN")
                   end if
                end do

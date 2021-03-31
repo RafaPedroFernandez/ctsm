@@ -827,7 +827,7 @@ contains
           endif
 
           ! This situation should not happen:
-!$OMP MASTER
+!$OMP CRITICAL
           if (abs(sum(sabg_lyr(p,:))-sabg_snow(p)) > 0.00001_r8) then
              write(iulog,*)"SNICAR ERROR: Absorbed ground radiation not equal to summed snow layer radiation"
              write(iulog,*)"Diff        = ",sum(sabg_lyr(p,:))-sabg_snow(p)
@@ -846,7 +846,7 @@ contains
              write(iulog,*)"coszen      = ",coszen(c)
              call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
           endif
-!$OMP END MASTER
+!$OMP END CRITICAL
 
           ! Diagnostic: shortwave penetrating ground (e.g. top layer)
           if (lun%itype(l) == istsoil .or. lun%itype(l) == istcrop) then
@@ -978,9 +978,9 @@ contains
           g = patch%gridcell(p)
 
           if(elai(p)==0.0_r8.and.fabd(p,1)>0._r8)then
-!$OMP MASTER
+!$OMP CRITICAL
              if ( local_debug ) write(iulog,*) 'absorption without LAI',elai(p),tlai(p),fabd(p,1),p
-!$OMP END MASTER
+!$OMP END CRITICAL
           endif
 
           ! Solar incident

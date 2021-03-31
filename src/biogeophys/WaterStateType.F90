@@ -391,9 +391,9 @@ contains
                   this%h2osoi_vol_col(c,j) = 1.0_r8 * ratio
                end do
             else
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'water_state_type InitCold: unhandled landunit type ', lun%itype(l)
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg = 'unhandled landunit type', &
                     additional_msg = errMsg(sourcefile, __LINE__))
             endif
@@ -766,12 +766,12 @@ contains
        c = filter_c(fc)
        if (col%snl(c) < 0) then
           if (this%h2osno_no_layers_col(c) /= 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) subname//' ERROR: col has snow layers but non-zero h2osno_no_layers'
              write(iulog,*) '(Called from: ', trim(caller), ')'
              write(iulog,*) 'c, snl, h2osno_no_layers = ', c, col%snl(c), &
                   this%h2osno_no_layers_col(c)
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=c, clmlevel=namec, &
                   msg = subname//' ERROR: col has snow layers but non-zero h2osno_no_layers')
           end if
@@ -781,12 +781,12 @@ contains
           ice_bad = (this%h2osoi_ice_col(c,j) /= 0._r8 .and. this%h2osoi_ice_col(c,j) /= spval)
           liq_bad = (this%h2osoi_liq_col(c,j) /= 0._r8 .and. this%h2osoi_liq_col(c,j) /= spval)
           if (ice_bad .or. liq_bad) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) subname//' ERROR: col has non-zero h2osoi_ice or h2osoi_liq outside resolved snow layers'
              write(iulog,*) '(Called from: ', trim(caller), ')'
              write(iulog,*) 'c, j, snl, h2osoi_ice, h2osoi_liq = ', c, j, col%snl(c), &
                   this%h2osoi_ice_col(c,j), this%h2osoi_liq_col(c,j)
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(decomp_index=c, clmlevel=namec, &
                   msg = subname//' ERROR: col has non-zero h2osoi_ice or h2osoi_liq outside resolved snow layers')
           end if

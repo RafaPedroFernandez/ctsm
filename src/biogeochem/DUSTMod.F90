@@ -296,9 +296,9 @@ contains
          end if
       end do
       if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*) subname//':: error: sumwt is greater than 1.0 at l= ',index
-!$OMP END MASTER
+!$OMP END CRITICAL
          call endrun(msg=errMsg(sourcefile, __LINE__))
       end if
 
@@ -334,9 +334,9 @@ contains
       do fp = 1,num_nolakep
          p = filter_nolakep(fp)
          if (lnd_frc_mbl(p)>1.0_r8 .or. lnd_frc_mbl(p)<0.0_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
             write(iulog,*)'Error dstmbl: pft= ',p,' lnd_frc_mbl(p)= ',lnd_frc_mbl(p)
-!$OMP END MASTER
+!$OMP END CRITICAL
             call endrun(msg=errMsg(sourcefile, __LINE__))
          end if
       end do
@@ -727,9 +727,9 @@ contains
       ryn_nbr_frc_thr_prx_opt = 0.38_r8 + 1331.0_r8 * (100.0_r8*dmt_slt_opt)**1.56_r8
 
       if (ryn_nbr_frc_thr_prx_opt < 0.03_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*) 'dstmbl: ryn_nbr_frc_thr_prx_opt < 0.03'
-!$OMP END MASTER
+!$OMP END CRITICAL
          call endrun(msg=errMsg(sourcefile, __LINE__))
       else if (ryn_nbr_frc_thr_prx_opt < 10.0_r8) then
          ryn_nbr_frc_thr_opt_fnc = -1.0_r8 + 1.928_r8 * (ryn_nbr_frc_thr_prx_opt**0.0922_r8)
@@ -766,9 +766,9 @@ contains
             dmt_dlt(n) = dmt_max(n)-dmt_min(n)            ![m] Width of size bin
          end do
       else
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*) 'Dustini error: ndst must equal to 4 with current code'
-!$OMP END MASTER
+!$OMP END CRITICAL
          call endrun(msg=errMsg(sourcefile, __LINE__))
          !see more comments above end if ndst == 4
       end if
@@ -893,10 +893,10 @@ contains
             else if (ryn_nbr_grv(m) < 2.0e5_r8) then
                cff_drg_grv(m) = 0.44_r8                         !Sep97 p.463 (8.32)
             else
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,'(a,es9.2)') "ryn_nbr_grv(m) = ",ryn_nbr_grv(m)
                write(iulog,*)'Dustini error: Reynolds number too large in stk_crc_get()'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=errMsg(sourcefile, __LINE__))
             end if
 
@@ -912,10 +912,10 @@ contains
                vlc_grv(m) = 0.5_r8 * (vlc_grv(m)+vlc_grv_old)  ! [m s-1]
             end if
             if (itr_idx > 20) then
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'Dustini error: Terminal velocity not converging ',&
                     ' in stk_crc_get(), breaking loop...'
-!$OMP END MASTER
+!$OMP END CRITICAL
                goto 100                                        !to next iteration
             end if
             itr_idx = itr_idx + 1

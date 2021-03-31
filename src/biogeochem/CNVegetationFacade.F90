@@ -314,9 +314,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -337,12 +337,12 @@ contains
     this%dribble_crophrv_xsmrpool_2atm = dribble_crophrv_xsmrpool_2atm
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=cn_general)    ! Name here MUST be the same as in nmlname above!
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     !-----------------------------------------------------------------------
@@ -1131,9 +1131,9 @@ contains
     DA_nstep = get_nstep_since_startup_or_lastDA_restart_or_pause()
     if (DA_nstep <= skip_steps )then
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) '--WARNING-- skipping CN balance check for first timesteps after startup or data assimilation'
-!$OMP END MASTER
+!$OMP END CRITICAL
        end if
     else
 
@@ -1203,10 +1203,10 @@ contains
 
           if (masterproc) then
              nstep = get_nstep()
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'End of year. CNDV called now: ncdate=', &
                   ncdate,' nbdate=',nbdate,' kyr=',kyr,' nstep=', nstep
-!$OMP END MASTER
+!$OMP END CRITICAL
           end if
 
           call CNDVDriver(bounds, &
@@ -1249,9 +1249,9 @@ contains
        if (is_end_curr_year() .and. .not. is_first_step())  then
           call t_startf('clm_drv_io_hdgvm')
           call CNDVHist( bounds, this%dgvs_inst )
-!$OMP MASTER
+!$OMP CRITICAL
           if (masterproc) write(iulog,*) 'Annual CNDV calculations are complete'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call t_stopf('clm_drv_io_hdgvm')
        end if
     end if

@@ -554,10 +554,10 @@ contains
          do g = bounds%begg, bounds%endg
             if (sum_wts_g(g) > 0._r8) then
                if (abs((newsum_lwrad_g(g) / sum_wts_g(g)) - forc_lwrad_g(g)) > 1.e-8_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                   write(iulog,*) 'g, newsum_lwrad_g, sum_wts_g, forc_lwrad_g: ', &
                        g, newsum_lwrad_g(g), sum_wts_g(g), forc_lwrad_g(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
                   call endrun(msg=' ERROR: Energy conservation error downscaling longwave'//&
                        errMsg(sourcefile, __LINE__))
                end if
@@ -701,7 +701,7 @@ contains
                   forc_pbot_c(c)  /= forc_pbot_g(g) .or. &
                   forc_rho_c(c)   /= forc_rho_g(g)  .or. &
                   forc_lwrad_c(c) /= forc_lwrad_g(g)) then
-!$OMP MASTER
+!$OMP CRITICAL
                 write(iulog,*) subname//' ERROR: column-level forcing differs from gridcell-level forcing for urban point'
                 write(iulog,*) 'c, g = ', c, g
                 write(iulog,*) 'forc_t_c, forc_t_g = ', forc_t_c(c), forc_t_g(g)
@@ -710,7 +710,7 @@ contains
                 write(iulog,*) 'forc_pbot_c, forc_pbot_g = ', forc_pbot_c(c), forc_pbot_g(g)
                 write(iulog,*) 'forc_rho_c, forc_rho_g = ', forc_rho_c(c), forc_rho_g(g)
                 write(iulog,*) 'forc_lwrad_c, forc_lwrad_g = ', forc_lwrad_c(c), forc_lwrad_g(g)
-!$OMP END MASTER
+!$OMP END CRITICAL
                 call endrun(msg=errMsg(sourcefile, __LINE__))
              end if  ! inequal
           end if  ! urbpoi

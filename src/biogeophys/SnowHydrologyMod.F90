@@ -224,9 +224,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in clm_SnowHydrology_inparm  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, 'clm_SnowHydrology_inparm', status=ierr)
        if (ierr == 0) then
@@ -257,12 +257,12 @@ contains
     call shr_mpi_bcast (snow_dzmax_u_2, mpicom)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) 'SnowHydrology settings:'
        write(iulog,nml=clm_snowhydrology_inparm)
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     if (      trim(lotmp_snowdensity_method) == 'Slater2017' ) then
@@ -1225,7 +1225,7 @@ contains
        c = filter_snowc(fc)
 
        if (h2osoi_ice(c,lev_top(c)) < 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) "ERROR: In UpdateState_TopLayerFluxes, h2osoi_ice has gone significantly negative"
           write(iulog,*) "Bulk/tracer name = ", name
           write(iulog,*) "c, lev_top(c) = ", c, lev_top(c)
@@ -1234,12 +1234,12 @@ contains
           write(iulog,*) "frac_sno_eff        = ", frac_sno_eff(c)
           write(iulog,*) "qflx_soliddew_to_top_layer*dtime = ", qflx_soliddew_to_top_layer(c)*dtime
           write(iulog,*) "qflx_solidevap_from_top_layer*dtime = ", qflx_solidevap_from_top_layer(c)*dtime
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun("In UpdateState_TopLayerFluxes, h2osoi_ice has gone significantly negative")
        end if
 
        if (h2osoi_liq(c,lev_top(c)) < 0._r8) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) "ERROR: In UpdateState_TopLayerFluxes, h2osoi_liq has gone significantly negative"
           write(iulog,*) "Bulk/tracer name = ", name
           write(iulog,*) "c, lev_top(c) = ", c, lev_top(c)
@@ -1249,7 +1249,7 @@ contains
           write(iulog,*) "qflx_liq_grnd*dtime  = ", qflx_liq_grnd(c)*dtime
           write(iulog,*) "qflx_liqdew_to_top_layer*dtime  = ", qflx_liqdew_to_top_layer(c)*dtime
           write(iulog,*) "qflx_liqevap_from_top_layer*dtime = ", qflx_liqevap_from_top_layer(c)*dtime
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun("In UpdateState_TopLayerFluxes, h2osoi_liq has gone significantly negative")
        end if
 
@@ -2819,19 +2819,19 @@ contains
 
              if (j == 0) then
                 if ( abs(dztot(c)) > 1.e-10_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
                    write(iulog,*)'Inconsistency in SnowDivision_Lake! c, remainders', &
                         'dztot = ',c,dztot(c)
-!$OMP END MASTER
+!$OMP END CRITICAL
                    call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
                 end if
 
                 do wi = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
                    if ( abs(snwicetot(wi,c)) > 1.e-7_r8 .or. abs(snwliqtot(wi,c)) > 1.e-7_r8 ) then
-!$OMP MASTER
+!$OMP CRITICAL
                       write(iulog,*)'Inconsistency in SnowDivision_Lake! wi, c, remainders', &
                            'snwicetot, snwliqtot = ',wi,c,snwicetot(wi,c),snwliqtot(wi,c)
-!$OMP END MASTER
+!$OMP END CRITICAL
                       call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
                    end if
                 end do
@@ -2966,52 +2966,52 @@ contains
     ! Error check loops
     do j = 2, nlevsno
        if (dzmin(j) <= dzmin(j-1)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmin(j) =', dzmin(j), ' and dzmin(j-1) =', dzmin(j-1)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg="ERROR dzmin(j) cannot be <= dzmin(j-1)"// &
                errMsg(sourcefile, __LINE__))
        end if
        if (dzmax_u(j) <= dzmax_u(j-1)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmax_u(j) =', dzmax_u(j), ' and dzmax_u(j-1) =', dzmax_u(j-1)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg="ERROR dzmax_u(j) cannot be <= dzmax_u(j-1)"// &
                errMsg(sourcefile, __LINE__))
        end if
        if (dzmax_l(j) <= dzmax_l(j-1)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmax_l(j) =', dzmax_l(j), ' and dzmax_l(j-1) =', dzmax_l(j-1)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg="ERROR dzmax_l(j) cannot be <= dzmax_l(j-1)"// &
                errMsg(sourcefile, __LINE__))
        end if
     end do
     do j = 1, nlevsno
        if (dzmin(j) >= dzmax_u(j)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmin(j) =', dzmin(j), ' and dzmax_u(j) =', dzmax_u(j)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg="ERROR dzmin(j) cannot be >= dzmax_u(j)"// &
                errMsg(sourcefile, __LINE__))
        end if
     end do
     do j = 1, nlevsno-1
        if (dzmax_u(j) >= dzmax_l(j)) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'ERROR at snow layer j =', j, ' because dzmax_u(j) =', dzmax_u(j), ' and dzmax_l(j) =', dzmax_l(j)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg="ERROR dzmax_u(j) cannot be >= dzmax_l(j)"// &
                errMsg(sourcefile, __LINE__))
        end if
     end do
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'dzmin =', dzmin
        write(iulog,*) 'dzmax_l =', dzmax_l
        write(iulog,*) 'dzmax_u =', dzmax_u
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     loop_columns: do c = bounds%begc,bounds%endc
@@ -3580,10 +3580,10 @@ contains
 
        ! Check that water capacity is still positive
        if (h2osoi_ice_bottom(c) < 0._r8 .or. h2osoi_liq_bottom(c) < 0._r8 ) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*)'ERROR: capping procedure failed (negative mass remaining) c = ',c
           write(iulog,*)'h2osoi_ice_bottom = ', h2osoi_ice_bottom(c), ' h2osoi_liq_bottom = ', h2osoi_liq_bottom(c)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(decomp_index=c, clmlevel=namec, msg=errmsg(sourcefile, __LINE__))
        end if
 

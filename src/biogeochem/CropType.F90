@@ -133,9 +133,9 @@ contains
     baset_latvary_slope     = 0.4_r8
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -156,7 +156,7 @@ contains
     this%baset_mapping           = baset_mapping
     this%baset_latvary_intercept = baset_latvary_intercept
     this%baset_latvary_slope     = baset_latvary_slope
-!$OMP MASTER
+!$OMP CRITICAL
     if (      trim(this%baset_mapping) == baset_map_constant ) then
        if ( masterproc ) write(iulog,*) 'baset mapping for ALL crops are constant'
     else if ( trim(this%baset_mapping) == baset_map_latvary ) then
@@ -171,7 +171,7 @@ contains
        write(iulog,nml=crop)
        write(iulog,*) ' '
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     !-----------------------------------------------------------------------
 
@@ -380,9 +380,9 @@ contains
     ! Allocate needed dynamic memory for single level patch field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)' in '
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=" allocation error for rbufslp"//&
             errMsg(sourcefile, __LINE__))
     endif
@@ -572,9 +572,9 @@ contains
 
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*)'update_accum_hist allocation error for rbuf1dp'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 
@@ -714,15 +714,15 @@ contains
        stmon_day   = stymd - styr*10000
        call get_start_date( rsyr, rsmon, rsday, tod )
        rsmon_day = rsmon*100 + rsday
-!$OMP MASTER
+!$OMP CRITICAL
        if ( masterproc ) &
             write(iulog,formDate) 'Date on the restart file is: ', rsyr, rsmon, rsday
-!$OMP END MASTER
+!$OMP END CRITICAL
        if ( stmon_day /= rsmon_day )then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,formDate) 'Start date is: ', styr, stmon_day/100, &
                (stmon_day - stmon_day/100)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=' ERROR: For prognostic crop to work correctly, the start date (month and day)'// &
                ' and the date on the restart file needs to match (years can be different)'//&
                errMsg(sourcefile, __LINE__))

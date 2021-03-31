@@ -167,7 +167,7 @@ contains
    call shr_mpi_bcast(stream_fldFileName_urbantv, mpicom)
    call shr_mpi_bcast(urbantv_tintalgo, mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
    if (masterproc) then
       write(iulog,*) ' '
       write(iulog,*) 'urbantv_streams settings:'
@@ -178,7 +178,7 @@ contains
       write(iulog,*) '  urbantv_tintalgo           = ',urbantv_tintalgo
       write(iulog,*) ' '
    endif
-!$OMP END MASTER
+!$OMP END CRITICAL
 
    call clm_domain_mct (bounds, dom_clm)
 
@@ -299,7 +299,7 @@ contains
          end if
       end if
    end do
-!$OMP MASTER
+!$OMP CRITICAL
    if ( found ) then
       write(iulog,*)'ERROR: no valid urban data for g= ',gindx
       write(iulog,*)'landunit type:   ',lun%itype(l)
@@ -307,7 +307,7 @@ contains
       write(iulog,*)'t_building_max:  ',this%t_building_max(lindx)
       call endrun(msg=errmsg(sourcefile, __LINE__))
    end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
 
   end subroutine urbantv_interp

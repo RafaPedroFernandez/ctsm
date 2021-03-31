@@ -96,11 +96,11 @@ contains
 !!$    call shr_mpi_bcast(soil_resis_method, mpicom)
 !!$
 !!$    if (masterproc) then
-!!$OMP MASTER
+!!$OMP CRITICAL
 !!$       write(iulog,*) ' '
 !!$       write(iulog,*) 'soil_resis settings:'
 !!$       write(iulog,*) '  soil_resis_method  = ',soil_resis_method
-!!$OMP END MASTER
+!!$OMP END CRITICAL
 !!$    endif
 !!$!scs
 !!$!   soil_resis_method = leepielke_1992
@@ -161,11 +161,11 @@ contains
     call shr_mpi_bcast(soil_resis_method, mpicom)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) 'soil_resis settings:'
        write(iulog,*) '  soil_resis_method  = ',soil_resis_method
-!$OMP END MASTER
+!$OMP END CRITICAL
     endif
 
   end subroutine soil_resistance_readNL

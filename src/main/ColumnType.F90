@@ -200,10 +200,10 @@ contains
        ! Properties that are tied to the landunit's properties (like urbpoi) are assumed
        ! not to change here.
     else
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) subname//' ERROR: attempt to update itype when type_is_dynamic is false'
        write(iulog,*) 'c, col%itype(c), itype = ', c, col%itype(c), itype
-!$OMP END MASTER
+!$OMP END CRITICAL
        ! Need to use shr_sys_abort rather than endrun, because using endrun would cause
        ! circular dependencies
        call shr_sys_abort(subname//' ERROR: attempt to update itype when type_is_dynamic is false')

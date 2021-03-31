@@ -41,13 +41,13 @@ CONTAINS
     character(len=*), intent(in), optional :: additional_msg ! string to be printed, but not passed to shr_sys_abort
     !-----------------------------------------------------------------------
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (present (additional_msg)) then
        write(iulog,*)'ENDRUN: ', trim(additional_msg)
     else
        write(iulog,*)'ENDRUN:'
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     call shr_sys_abort(msg)
 
@@ -84,13 +84,13 @@ CONTAINS
     write(6,*)'calling getglobalwrite with decomp_index= ',decomp_index,' and clmlevel= ',trim(clmlevel)
     call GetGlobalWrite(decomp_index, clmlevel)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (present (additional_msg)) then
        write(iulog,*)'ENDRUN: ', additional_msg
     else
        write(iulog,*)'ENDRUN:'
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     call shr_sys_abort(msg)
 

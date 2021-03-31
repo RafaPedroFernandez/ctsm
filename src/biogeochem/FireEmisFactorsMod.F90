@@ -69,9 +69,9 @@ contains
 
     if (ndx<1) then 
        errmes = 'fire_emis_factors_get: '//trim(comp_name)//' compound not found in FireEmis table'
-!$OMP MASTER
+!$OMP CRITICAL
         write(iulog,*) trim(errmes)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(errmes)
     endif
 

@@ -601,11 +601,11 @@ contains
                                                      eflx_heat_from_ac_shadewall(l) )
 
             else
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) 'c, ctype, pi = ', c, ctype(c), pi
                write(iulog,*) 'Column indices for: shadewall, sunwall, road_imperv, road_perv, roof: '
                write(iulog,*) icol_shadewall, icol_sunwall, icol_road_imperv, icol_road_perv, icol_roof
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(decomp_index=l, clmlevel=namel, msg="ERROR, ctype out of range"//errmsg(sourcefile, __LINE__))
             end if
 
@@ -819,17 +819,17 @@ contains
          end if
       end do
       if ( found ) then
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*)'WARNING:  Total sensible heat does not equal sum of scaled heat fluxes for urban columns ',&
               ' nstep = ',nstep,' indexl= ',indexl,' eflx_err= ',eflx_err(indexl)
-!$OMP END MASTER
+!$OMP END CRITICAL
          if (abs(eflx_err(indexl)) > .01_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
             write(iulog,*)'clm model is stopping - error is greater than .01 W/m**2'
             write(iulog,*)'eflx_scale    = ',eflx_scale(indexl)
             write(iulog,*)'eflx_sh_grnd_scale: ',eflx_sh_grnd_scale(lun%patchi(indexl):lun%patchf(indexl))
             write(iulog,*)'eflx          = ',eflx(indexl)
-!$OMP END MASTER
+!$OMP END CRITICAL
             call endrun(decomp_index=indexl, clmlevel=namel, msg=errmsg(sourcefile, __LINE__))
          end if
       end if
@@ -845,16 +845,16 @@ contains
          end if
       end do
       if ( found ) then
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*)'WARNING:  Total water vapor flux does not equal sum of scaled water vapor fluxes for urban columns ',&
               ' nstep = ',nstep,' indexl= ',indexl,' qflx_err= ',qflx_err(indexl)
-!$OMP END MASTER
+!$OMP END CRITICAL
          if (abs(qflx_err(indexl)) > 4.e-9_r8) then
-!$OMP MASTER
+!$OMP CRITICAL
             write(iulog,*)'clm model is stopping - error is greater than 4.e-9 kg/m**2/s'
             write(iulog,*)'qflx_scale    = ',qflx_scale(indexl)
             write(iulog,*)'qflx          = ',qflx(indexl)
-!$OMP END MASTER
+!$OMP END CRITICAL
             call endrun(decomp_index=indexl, clmlevel=namel, msg=errmsg(sourcefile, __LINE__))
          end if
       end if

@@ -146,16 +146,16 @@ contains
     nlevsoifl   =  10
     nlevurb     =  5
 
-!$OMP MASTER
+!$OMP CRITICAL
     if ( masterproc ) write(iulog, *) 'soil_layerstruct_predefined varpar ', soil_layerstruct_predefined
     if ( masterproc ) write(iulog, *) 'soil_layerstruct_userdefined varpar ', soil_layerstruct_userdefined
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     if (soil_layerstruct_userdefined(1) /= rundef) then  ! user defined soil layers
        if (soil_layerstruct_predefined /= 'UNSET') then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname//' ERROR: Both soil_layerstruct_predefined and soil_layer_userdefined have values'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_abort(subname//' ERROR: Cannot decide how to set the soil layer structure')
        else
           nlevgrnd = size(soil_layerstruct_userdefined)
@@ -169,9 +169,9 @@ contains
           end do
           nlevsoi = soil_layerstruct_userdefined_nlevsoi  ! read in namelist
           if (nlevsoi >= nlevgrnd) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) subname//' ERROR: nlevsoi >= nlevgrnd; did you enter soil_layerstruct_userdefined_nlevsoi correctly in user_nl_clm?'
-!$OMP END MASTER
+!$OMP END CRITICAL
              call shr_sys_abort(subname//' ERROR: nlevsoi must be less than nlevgrnd')
           end if
        end if
@@ -193,21 +193,21 @@ contains
           nlevsoi     =  4
           nlevgrnd    =  5
        else if (soil_layerstruct_predefined == 'UNSET') then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname//' ERROR: Both soil_layerstruct_predefined and soil_layer_userdefined currently undefined'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_abort(subname//' ERROR: Cannot set the soil layer structure')
        else
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname//' ERROR: Unrecognized pre-defined soil layer structure: ', trim(soil_layerstruct_predefined)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call shr_sys_abort(subname//' ERROR: Unrecognized pre-defined soil layer structure')
        end if
     endif
     nlevmaxurbgrnd = max0(nlevurb,nlevgrnd)
-!$OMP MASTER
+!$OMP CRITICAL
     if ( masterproc ) write(iulog, *) 'nlevsoi, nlevgrnd varpar ', nlevsoi, nlevgrnd
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     if (use_vichydro) then
        nlayert     =  nlayer + (nlevgrnd -nlevsoi)
@@ -230,7 +230,7 @@ contains
     end if
 
     if ( masterproc )then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog, *) 'CLM varpar subsurface discretization levels '
        write(iulog, '(a, i3)') '    nlevsoi = ', nlevsoi
        write(iulog, '(a, i3)') '    nlevgrnd = ', nlevgrnd
@@ -238,7 +238,7 @@ contains
        write(iulog, '(a, i3)') '    nlevdecomp_full = ', nlevdecomp_full
        write(iulog, '(a, i3)') '    nlevlak = ', nlevlak
        write(iulog, *)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
     if ( use_fates ) then

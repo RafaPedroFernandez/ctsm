@@ -72,9 +72,9 @@ contains
 
     if (ndx<1) then 
        errmes = 'megan_factors_get: '//trim(comp_name)//' compound not found in MEGAN table'
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(errmes)
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     endif
 

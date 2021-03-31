@@ -119,7 +119,7 @@ contains
    call shr_mpi_bcast(ndep_tintalgo          , mpicom)
 
    if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
       write(iulog,*) ' '
       write(iulog,*) 'ndepdyn stream settings:'
       write(iulog,*) '  stream_year_first_ndep  = ',stream_year_first_ndep
@@ -130,7 +130,7 @@ contains
       write(iulog,*) '  ndep_taxmode            = ',ndep_taxmode
       write(iulog,*) '  ndep_tintalgo           = ',ndep_tintalgo
       write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
    endif
    ! Read in units
    call check_units( stream_fldFileName_ndep, ndep_varList )

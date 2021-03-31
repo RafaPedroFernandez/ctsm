@@ -90,7 +90,7 @@ contains
     call shr_mpi_bcast(rooting_profile_varindex_carbon, mpicom)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) 'rooting_profile settings:'
        write(iulog,*) '  rooting_profile_method_water  = ',rooting_profile_method_water
@@ -101,7 +101,7 @@ contains
        if ( rooting_profile_method_carbon == jackson_1996_root )then
           write(iulog,*) '  (rooting_profile_varindex_carbon  = ',rooting_profile_varindex_carbon, ')'
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
     endif
 
   end subroutine init_rootprof

@@ -63,9 +63,9 @@ contains
 
     if (masterproc) then
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in '//nmlname//'  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, nmlname, status=ierr)
        if (ierr == 0) then
@@ -84,14 +84,14 @@ contains
     call shr_mpi_bcast (nnegcrit, mpicom)
     call shr_mpi_bcast (cnegcrit, mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        write(iulog,*) ' '
        write(iulog,*) nmlname//' settings:'
        write(iulog,nml=cnprecision_inparm)
        write(iulog,*) ' '
     end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     ! Have precision control for froot be determined by use_nguardrail setting
     prec_control_for_froot = .not. use_nguardrail
@@ -692,10 +692,10 @@ contains
 
        if ( .not. lcroponly .or. (patch%itype(p) >= nc3crop) ) then
           if ( .not. lallowneg .and. ((carbon_patch(p) < cnegcrit) .or. (nitrogen_patch(p) < nnegcrit)) ) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'ERROR: Carbon or Nitrogen patch negative = ', carbon_patch(p), nitrogen_patch(p)
              write(iulog,*) 'ERROR: limits = ', cnegcrit, nnegcrit
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg='ERROR: carbon or nitrogen state critically negative '//errMsg(sourcefile, lineno))
           else if ( abs(carbon_patch(p)) < ccrit .or. (use_nguardrail .and. abs(nitrogen_patch(p)) < ncrit) ) then
              num_truncatep = num_truncatep + 1
@@ -763,10 +763,10 @@ contains
 
        if ( .not. lcroponly .or. (patch%itype(p) >= nc3crop) ) then
           if ( .not. lallowneg .and. (carbon_patch(p) < cnegcrit) ) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'ERROR: Carbon patch negative = ', carbon_patch(p)
              write(iulog,*) 'ERROR: limit = ', cnegcrit
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg='ERROR: carbon state critically negative '//errMsg(sourcefile, lineno))
           else if ( abs(carbon_patch(p)) < ccrit) then
 
@@ -808,9 +808,9 @@ contains
     do fp = 1,num_soilp
        p = filter_soilp(fp)
        if ( nitrogen_patch(p) < nnegcrit ) then
-!$OMP MASTER
+!$OMP CRITICAL
           !write(iulog,*) 'WARNING: Nitrogen patch negative = ', nitrogen_patch
-!$OMP END MASTER
+!$OMP END CRITICAL
           !call endrun(msg='ERROR: nitrogen state critically negative'//errMsg(sourcefile, lineno))
        else if ( abs(nitrogen_patch(p)) < ncrit) then
           pn(p) = pn(p) + nitrogen_patch(p)

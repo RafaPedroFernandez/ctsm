@@ -360,21 +360,21 @@ contains
   contains
     subroutine check_glacier_region_map
       if (minval(glacier_region_map) < min_glacier_region_id) then
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*) subname//' ERROR: Expect GLACIER_REGION to be >= ', min_glacier_region_id
          write(iulog,*) 'minval = ', minval(glacier_region_map)
-!$OMP END MASTER
+!$OMP END CRITICAL
          call endrun(msg=' ERROR: GLACIER_REGION smaller than expected'// &
               errMsg(sourcefile, __LINE__))
       end if
 
       if (maxval(glacier_region_map) > max_glacier_region_id) then
-!$OMP MASTER
+!$OMP CRITICAL
          write(iulog,*) subname//' ERROR: Max GLACIER_REGION is ', &
               maxval(glacier_region_map)
          write(iulog,*) 'but max_glacier_region_id is only ', max_glacier_region_id
          write(iulog,*) 'Try increasing max_glacier_region_id in ', sourcefile
-!$OMP END MASTER
+!$OMP END CRITICAL
          call endrun(msg=' ERROR: GLACIER_REGION larger than expected'// &
               errMsg(sourcefile, __LINE__))
       end if
@@ -408,18 +408,18 @@ contains
             case ('single_at_atm_topo')
                glacier_region_behavior(i) = BEHAVIOR_SINGLE_AT_ATM_TOPO
             case (behavior_str_unset)
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) ' ERROR: glacier_region_behavior not specified for ID ', i
                write(iulog,*) 'You probably need to extend the glacier_region_behavior namelist array'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: glacier_region_behavior not specified for ID '// &
                     errMsg(sourcefile, __LINE__))
             case default
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) ' ERROR: Unknown glacier_region_behavior for ID ', i
                write(iulog,*) glacier_region_behavior_str(i)
                write(iulog,*) 'Allowable values are: multiple, virtual, single_at_atm_topo'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Unknown glacier_region_behavior'// &
                     errMsg(sourcefile, __LINE__))
             end select
@@ -443,18 +443,18 @@ contains
             case ('remains_in_place')
                glacier_region_melt_behavior(i) = MELT_BEHAVIOR_REMAINS_IN_PLACE
             case (behavior_str_unset)
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) ' ERROR: glacier_region_melt_behavior not specified for ID ', i
                write(iulog,*) 'You probably need to extend the glacier_region_melt_behavior namelist array'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: glacier_region_melt_behavior not specified for ID '// &
                     errMsg(sourcefile, __LINE__))
             case default
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) ' ERROR: Unknown glacier_region_melt_behavior for ID ', i
                write(iulog,*) glacier_region_melt_behavior_str(i)
                write(iulog,*) 'Allowable values are: replaced_by_ice, remains_in_place'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Unknown glacier_region_melt_behavior'// &
                     errMsg(sourcefile, __LINE__))
             end select
@@ -478,18 +478,18 @@ contains
             case('melted')
                glacier_region_ice_runoff_behavior(i) = ICE_RUNOFF_BEHAVIOR_MELTED
             case (behavior_str_unset)
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) ' ERROR: glacier_region_ice_runoff_behavior not specified for ID ', i
                write(iulog,*) 'You probably need to extend the glacier_region_ice_runoff_behavior namelist array'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: glacier_region_ice_runoff_behavior not specified for ID '// &
                     errMsg(sourcefile, __LINE__))
             case default
-!$OMP MASTER
+!$OMP CRITICAL
                write(iulog,*) ' ERROR: Unknown glacier_region_ice_runoff_behavior for ID ', i
                write(iulog,*) glacier_region_ice_runoff_behavior_str(i)
                write(iulog,*) 'Allowable values are: remains_ice, melted'
-!$OMP END MASTER
+!$OMP END CRITICAL
                call endrun(msg=' ERROR: Unknown glacier_region_ice_runoff_behavior'// &
                     errMsg(sourcefile, __LINE__))
             end select
@@ -588,9 +588,9 @@ contains
     SHR_ASSERT_ALL_FL((ubound(glacier_region_map) == (/endg/)), sourcefile, __LINE__)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Attempting to read GLACIER_REGION...'
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
     call getfil(fsurdat, locfn, 0)
     call ncd_pio_openfile(ncid, locfn, 0)
@@ -667,12 +667,12 @@ contains
     call shr_mpi_bcast(glacier_region_ice_runoff_behavior, mpicom)
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) ' '
        write(iulog,*) 'clm_glacier_behavior settings:'
        write(iulog,nml=clm_glacier_behavior)
        write(iulog,*) ' '
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine read_namelist
@@ -776,10 +776,10 @@ contains
 
              ! Do nothing
           else
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) subname, ': ERROR getting elevation class for topo = ', atm_topo
              write(iulog,*) glc_errcode_to_string(err_code)
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg=subname//': ERROR getting elevation class')
           end if
 
@@ -1020,11 +1020,11 @@ contains
 
           ! Do nothing
        else
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) subname, ': ERROR getting elevation class for topo = ', &
                topo_col(c)
           write(iulog,*) glc_errcode_to_string(err_code)
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=subname//': ERROR getting elevation class')
        end if
 

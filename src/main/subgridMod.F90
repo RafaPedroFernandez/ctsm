@@ -159,10 +159,10 @@ contains
        ! As noted in natveg_patch_exists, we expect a naturally vegetated landunit in
        ! every grid cell. This means that npatches should be at least 1 in every grid
        ! cell. If we find that isn't true, abort.
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Expect at least one natural veg patch in every grid cell'
        write(iulog,*) 'Found 0 for gi = ', gi
-!$OMP END MASTER
+!$OMP END CRITICAL
        call endrun(subname//' ERROR: Expect at least one natural veg patch in every grid cell')
     end if
 

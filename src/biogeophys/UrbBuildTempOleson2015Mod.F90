@@ -657,13 +657,13 @@ contains
 
          ! If dgesv fails, abort
          if (info /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
            write(iulog,*)'fl: ',fl
            write(iulog,*)'l: ',l
            write(iulog,*)'dgesv info: ',info
            write (iulog,*) 'dgesv error'
            write (iulog,*) 'clm model is stopping'
-!$OMP END MASTER
+!$OMP END CRITICAL
            call endrun()
          end if
          ! Assign new temperatures

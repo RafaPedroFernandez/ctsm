@@ -605,9 +605,9 @@ contains
     ! Set specific vegetation type values
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Attempting to read PFT physiological data .....'
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
     call getfil (paramfile, locfn, 0)
     call ncd_pio_openfile (ncid, trim(locfn), 0)
@@ -1064,10 +1064,10 @@ contains
     do i = 0, mxpft
        if (.not. use_fates)then
           if ( trim(adjustl(pftname(i))) /= trim(expected_pftnames(i)) )then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*)'pftconrd: pftname is NOT what is expected, name = ', &
                   trim(pftname(i)), ', expected name = ', trim(expected_pftnames(i))
-!$OMP END MASTER
+!$OMP END CRITICAL
              call endrun(msg='pftconrd: bad name for pft on paramfile dataset'//errMsg(sourcefile, __LINE__))
           end if
        end if
@@ -1257,10 +1257,10 @@ contains
     end if
 
     if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Successfully read PFT physiological data'
        write(iulog,*)
-!$OMP END MASTER
+!$OMP END CRITICAL
     end if
 
   end subroutine InitRead

@@ -524,9 +524,9 @@ end subroutine InitHistory
     if ( masterproc )then
 
        unitn = getavu()
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'Read in clm_humanindex_inparm  namelist'
-!$OMP END MASTER
+!$OMP END CRITICAL
        call opnfil (NLFilename, unitn, 'F')
        call shr_nl_find_group_name(unitn, 'clm_humanindex_inparm', status=ierr)
        if (ierr == 0) then
@@ -971,10 +971,10 @@ end subroutine InitHistory
        wb_it = wb_temp
     else
        wb_it = T1 - C  ! Place Holder.  wet bulb temperature same as dry bulb (C)
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) 'WARNING: Wet_Bulb algorithm failed to converge. Setting to T: WB, P, T, RH, Q, VaporP: ', &
                        wb_it, pin, T1, relhum, qin, vape
-!$OMP END MASTER
+!$OMP END CRITICAL
     endif
 
   end subroutine Wet_Bulb

@@ -72,10 +72,10 @@ contains
     end do
 
     if (found) then
-!$OMP MASTER
+!$OMP CRITICAL
        write(iulog,*) trim(caller), ' ERROR: sum of ', trim(name), ' not ', TotalSum(nindx), ' at nl=', nindx
        write(iulog,*) 'sum is: ', sum(arr(nindx,:))
-!$OMP END MASTER
+!$OMP END CRITICAL
        if( present(ier) ) then
           ier = -10
        else
@@ -219,14 +219,14 @@ contains
           if (sum(wt_lunit(g,:)) == 0._r8) then
              max_landunit = maxloc(residual, 1)
              wt_lunit(g,max_landunit) = residual(max_landunit)
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) 'WARNING: The values of namelist parameters '
              write(iulog,*) 'toosmall_* have resulted in the removal of all '
              write(iulog,*) 'landunits in grid cell g = ', g, '. The model '
              write(iulog,*) 'requires at least one landunit per grid cell, '
              write(iulog,*) 'so the model has put back in this grid cell '
              write(iulog,*) 'the largest landunit.'
-!$OMP END MASTER
+!$OMP END CRITICAL
           end if
        end do
 
@@ -422,9 +422,9 @@ contains
 
        if (.not. irrigate) then
           if (verbose .and. masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
              write(iulog,*) trim(subname)//' irrigate=.F., so merging irrigated pfts with rainfed'
-!$OMP END MASTER
+!$OMP END CRITICAL
           end if
 
           do g = begg, endg
@@ -447,7 +447,7 @@ contains
        ! Merge CFTs into the list of crops that CLM knows how to model
        ! -----------------------------------------------------------------------
 
-!$OMP MASTER
+!$OMP CRITICAL
        if (verbose .and. masterproc .and. use_crop) then
           write(iulog, *) trim(subname) // ' merging wheat, barley, and rye into temperate cereals'
           write(iulog, *) trim(subname) // ' clm knows how to model corn, temperate cereals, and soybean'
@@ -455,7 +455,7 @@ contains
        else if (verbose .and. masterproc .and. .not. use_crop) then
           write(iulog, *) trim(subname) // ' merging crops into C3 generic crops'
        end if
-!$OMP END MASTER
+!$OMP END CRITICAL
 
        do g = begg, endg
           do m = 1, maxveg

@@ -713,10 +713,10 @@ contains
        ! ever entered, I'm putting an endrun call here to notify users of this removed
        ! code.
        if (masterproc) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) "SNICAR: This is an initial run (not a restart), and grain size/aerosol " // &
                "mass data are not defined in initial condition file. This situation is no longer handled."
-!$OMP END MASTER
+!$OMP END CRITICAL
        endif
        call endrun(msg = "Absent snw_rds on initial conditions file no longer handled. "// &
             errMsg(sourcefile, __LINE__))

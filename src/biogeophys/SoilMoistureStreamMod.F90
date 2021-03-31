@@ -150,7 +150,7 @@ contains
     call shr_mpi_bcast(soilm_offset, mpicom)
     call shr_mpi_bcast(soilm_ignore_data_if_missing, mpicom)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) then
        write(iulog,*) ' '
        write(iulog,*) 'soil_moisture_stream settings:'
@@ -167,7 +167,7 @@ contains
        end if
 
     endif
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     call clm_domain_mct (bounds, dom_clm, nlevels=nlevsoi)
 
@@ -176,9 +176,9 @@ contains
     !
     fldList = trim(soilmString)
 
-!$OMP MASTER
+!$OMP CRITICAL
     if (masterproc) write(iulog,*) 'fieldlist: ', trim(fldList)
-!$OMP END MASTER
+!$OMP END CRITICAL
 
     call shr_strdata_create(sdat_soilm,name="soil_moisture",    &
          pio_subsystem=pio_subsystem,                  &
@@ -257,9 +257,9 @@ contains
     if ( .not. allocated(g_to_ig) )then
        allocate (g_to_ig(bounds%begg:bounds%endg), stat=ier)
        if (ier /= 0) then
-!$OMP MASTER
+!$OMP CRITICAL
           write(iulog,*) 'Prescribed soil moisture allocation error'
-!$OMP END MASTER
+!$OMP END CRITICAL
           call endrun(msg=errMsg(sourcefile, __LINE__))
        end if
 
