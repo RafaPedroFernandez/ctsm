@@ -107,17 +107,17 @@ contains
     integer           , intent(in), optional :: ifill_value      ! attribute for int
     integer           , intent(in), optional :: flag_values(:)   ! attribute for int
     integer           , intent(in), optional :: nvalid_range(2)  ! attribute for int
-    ! 
+    !
     ! Local variables
     character(len=len(varname)) :: primary_varname ! first name in the varname list
     character(len=len(varname)) :: my_varname      ! actual varname to read/write
     integer          :: ivalue
     type(var_desc_t) :: vardesc  ! local vardesc
-    integer          :: status   ! return error code 
+    integer          :: status   ! return error code
     integer          :: varid
     integer          :: lxtype   ! local external type (in case logical variable)
     !----------------------------------------------------
-
+    readvar = .false.
     call shr_string_listGetName(varname, 1, primary_varname)
     if (flag == 'read') then
        call find_var_on_file(ncid, varname, is_dim=.false., varname_on_file=my_varname)
@@ -183,7 +183,7 @@ contains
 
     else if (flag == 'read' .or. flag == 'write') then
 
-#if ({ITYPE}!=TYPETEXT) 
+#if ({ITYPE}!=TYPETEXT)
        call ncd_io(varname=trim(my_varname), data=data, &
             ncid=ncid, flag=flag, readvar=readvar)
 #endif
@@ -236,14 +236,14 @@ contains
     integer           , intent(in), optional :: flag_values(:)   ! attribute for int
     integer           , intent(in), optional :: nvalid_range(2)  ! attribute for int
     logical           , intent(in), optional :: is_spatial       ! is this a spatial variable (with a dimension of gridcell, column, etc.)? If not present, assumed true.
-    ! 
+    !
     ! Local variables
     character(len=len(varname)) :: primary_varname ! first name in the varname list
     character(len=len(varname)) :: my_varname      ! actual varname to read/write
     logical          :: l_is_spatial               ! local version of is_spatial
     integer          :: ivalue
     type(var_desc_t) :: vardesc  ! local vardesc
-    integer          :: status   ! return error code 
+    integer          :: status   ! return error code
     integer          :: varid
     integer          :: lxtype   ! local external type (in case logical variable)
     !----------------------------------------------------
@@ -276,7 +276,7 @@ contains
        if (.not. present(dim1name)) then
           call ncd_defvar(ncid=ncid, varname=trim(my_varname), xtype=lxtype, &
                long_name=trim(long_name), units=units)
-       else if (.not. present(dim2name)) then 
+       else if (.not. present(dim2name)) then
           call ncd_defvar(ncid=ncid, varname=trim(my_varname), xtype=lxtype, &
                dim1name=trim(dim1name), &
                long_name=trim(long_name), units=units)
@@ -333,11 +333,11 @@ contains
 
     else if (flag == 'read' .or. flag == 'write') then
 
-#if ({ITYPE}!=TYPETEXT) 
+#if ({ITYPE}!=TYPETEXT)
        if (.not. present(dim1name) .or. .not. l_is_spatial) then
           call ncd_io(varname=trim(my_varname), data=data, &
                ncid=ncid, flag=flag, readvar=readvar)
-       else 
+       else
           call ncd_io(varname=trim(my_varname), data=data, &
             dim1name=trim(dim1name), ncid=ncid, flag=flag, readvar=readvar)
        end if
@@ -382,7 +382,7 @@ contains
     {VTYPE}          , pointer              :: data(:,:)        ! raw data
     logical          , intent(out)          :: readvar          ! was var read?
     integer          , intent(in), optional :: lowerb2
-    integer          , intent(in), optional :: upperb2 
+    integer          , intent(in), optional :: upperb2
     character(len=*) , intent(in), optional :: units            ! long name for variable
     character(len=*) , intent(in), optional :: comment          ! attribute
     character(len=*) , intent(in), optional :: flag_meanings(:) ! attribute
@@ -392,13 +392,13 @@ contains
     integer          , intent(in), optional :: ifill_value      ! attribute for int
     integer          , intent(in), optional :: flag_values(:)   ! attribute for int
     integer          , intent(in), optional :: nvalid_range(2)  ! attribute for int
-    ! 
+    !
     ! Local variables
     character(len=len(varname)) :: primary_varname ! first name in the varname list
     character(len=len(varname)) :: my_varname      ! actual varname to read/write
     integer          :: ivalue
     type(var_desc_t) :: vardesc  ! local vardesc
-    integer          :: status   ! return error code 
+    integer          :: status   ! return error code
     integer          :: varid    ! returned var id
     integer          :: lxtype   ! local external type (in case logical variable)
     !----------------------------------------------------
@@ -487,7 +487,7 @@ contains
           status = PIO_put_att(ncid,varid,'valid_range',    (/0, 1/) )
        end if
 
-    else 
+    else
 
        if (present(lowerb2) .and. present(upperb2)) then
           call ncd_io(varname=trim(my_varname), data=data, &

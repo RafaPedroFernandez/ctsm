@@ -34,7 +34,7 @@ module FATESFireBase
       procedure, public :: CNFireReadParams                                  ! Read in parameters    (NOT USED FOR FATES)
       procedure, public :: CNFireArea                                        ! Calculate fire area   (NOT USED FOR FATES)
       procedure, public :: CNFireFluxes                                      ! Calculate fire fluxes (NOT USED FOR FATES)
-      
+
   end type fates_fire_base_type
 
   !-----------------------
@@ -139,7 +139,7 @@ module FATESFireBase
    !
    ! !ARGUMENTS:
    class(fates_fire_base_type)                    :: this
-   type(bounds_type)              , intent(in)    :: bounds  
+   type(bounds_type)              , intent(in)    :: bounds
    integer                        , intent(in)    :: num_soilc       ! number of soil columns in filter
    integer                        , intent(in)    :: filter_soilc(:) ! filter for soil columns
    integer                        , intent(in)    :: num_soilp       ! number of soil patches in filter
@@ -159,6 +159,7 @@ module FATESFireBase
    real(r8)                       , intent(in)    :: decomp_npools_vr_col(bounds%begc:,1:,1:)
    real(r8)                       , intent(out)   :: somc_fire_col(bounds%begc:)
    !
+   somc_fire_col = 0_R8
    call endrun( "This subroutine should NEVER be called when FATES is active" )
   end subroutine CNFireFluxes
 
@@ -200,7 +201,7 @@ module FATESFireBase
     !
     ! !ARGUMENTS:
     class(fates_fire_base_type)                           :: this
-    type(bounds_type)                     , intent(in)    :: bounds 
+    type(bounds_type)                     , intent(in)    :: bounds
     integer                               , intent(in)    :: num_soilc       ! number of soil columns in filter
     integer                               , intent(in)    :: filter_soilc(:) ! filter for soil columns
     integer                               , intent(in)    :: num_soilp       ! number of soil patches in filter

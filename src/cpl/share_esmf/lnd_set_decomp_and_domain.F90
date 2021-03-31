@@ -10,8 +10,9 @@ module lnd_set_decomp_and_domain
   private ! except
 
   ! Module public routines
-  public :: lnd_set_decomp_and_domain_from_readmesh    ! nuopc/cmeps
-  public :: lnd_set_decomp_and_domain_from_createmesh  ! nuopc/cmeps
+  public :: lnd_set_decomp_and_domain_from_readmesh
+  public :: lnd_set_mesh_for_single_column
+  public :: lnd_set_decomp_and_domain_for_single_column
 
   ! Module private routines
   private :: lnd_get_global_dims
@@ -204,98 +205,13 @@ contains
 
     rc = ESMF_SUCCESS
 
-    if (trim(single_column_domainfile) /= 'null') then
-
-       ! In this case the domain file is not a single point file - but normally a
-       ! global domain file where a nearest neighbor search will be done to find
-       ! the closest point in the domin file to scol_lon and scol_lat
-
-       status = nf90_open(single_column_domainfile, NF90_NOWRITE, ncid)
-       if (status /= nf90_noerr) then
-          call shr_sys_abort (trim(subname) //': Cannot open '//trim(single_column_domainfile))
-       endif
-       status = nf90_inq_dimid (ncid, 'ni', dimid)
-       status = nf90_inquire_dimension(ncid, dimid, len=ni)
-       status = nf90_inq_dimid (ncid, 'nj', dimid)
-       status = nf90_inquire_dimension(ncid, dimid, len=nj)
-
-       status = nf90_open(single_column_domainfile, NF90_NOWRITE, ncid)
-       if (status /= nf90_noerr) then
-          call shr_sys_abort (trim(subname) //': Cannot open '//trim(single_column_domainfile))
-       endif
-       status = nf90_inq_dimid (ncid, 'ni', dimid)
-       status = nf90_inquire_dimension(ncid, dimid, len=ni)
-       status = nf90_inq_dimid (ncid, 'nj', dimid)
-       status = nf90_inquire_dimension(ncid, dimid, len=nj)
-
-       status = nf90_inq_varid(ncid, 'xc' , varid_xc)
-       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid xc')
-       status = nf90_inq_varid(ncid, 'yc' , varid_yc)
-       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid yc')
-       status = nf90_inq_varid(ncid, 'area' , varid_area)
-       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid area')
-       status = nf90_inq_varid(ncid, 'mask' , varid_mask)
-       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid mask')
-       status = nf90_inq_varid(ncid, 'frac' , varid_frac)
-       if (status /= nf90_noerr) call shr_sys_abort (subname//' inq_varid frac')
-
-       ! Read in domain file for single column
-       allocate(lats(nj))
-       allocate(lons(ni))
-       allocate(pos_lons(ni))
-       allocate(glob_grid(ni,nj))
-
-       ! The follow assumes that xc and yc are 2 dimensional values
-       start3=(/1,1,1/)
-       count3=(/ni,nj,1/)
-       status = nf90_get_var(ncid, varid_xc, glob_grid, start3, count3)
-       if (status /= nf90_noerr) call shr_sys_abort (subname//' get_var xc')
-       do i = 1,ni
-          lons(i) = glob_grid(i,1)
-       end do
-       status = nf90_get_var(ncid, varid_yc, glob_grid, start3, count3)
-       if (status /= nf90_noerr) call shr_sys_abort (subname//' get_var yc')
-       do j = 1,nj
-          lats(j) = glob_grid(1,j)
-       end do
-
-       ! find nearest neighbor indices of scol_lon and scol_lat in single_column_domain file
-       ! convert lons array and scol_lon to 0,360 and find index of value closest to 0
-       ! and obtain single-column longitude/latitude indices to retrieve
-       pos_lons(:)  = mod(lons(:)  + 360._r8, 360._r8)
-       pos_scol_lon = mod(scol_lon + 360._r8, 360._r8)
-       start(1) = (MINLOC(abs(pos_lons - pos_scol_lon), dim=1))
-       start(2) = (MINLOC(abs(lats      -scol_lat    ), dim=1))
-
-       ! reset ni and nj to be single point values
-       ni = 1
-       nj = 1
-
-       ! determine mincornerCoord and maxcornerCoord neede to create ESMF grid
-       ! determine mincornerCoord and maxcornerCoord neede to create ESMF grid
-       maxIndex(1)       = 1                          ! number of lons
-       maxIndex(2)       = 1                          ! number of lats
-       mincornerCoord(1) = scol_lon - scol_area/2._r8 ! min lon
-       mincornerCoord(2) = scol_lat - scol_area/2._r8 ! min lat
-       maxcornerCoord(1) = scol_lon + scol_area/2._r8 ! max lon
-       maxcornerCoord(2) = scol_lat + scol_area/2._r8 ! max lat
-
-    else
-
-       ! Use center and come up with arbitrary area delta lon and lat = .1 degree
-       ! Set mask and frac to 1
-       maxIndex(1)       = 1              ! number of lons
-       maxIndex(2)       = 1              ! number of lats
-       mincornerCoord(1) = scol_lon - .1_r8 ! min lon
-       mincornerCoord(2) = scol_lat - .1_r8 ! min lat
-       maxcornerCoord(1) = scol_lon + .1_r8 ! max lon
-       maxcornerCoord(2) = scol_lat + .1_r8 ! max lat
-
-       scol_area = spval
-       scol_mask = 1
-       scol_frac = 1._r8
-
-    end if
+    ! Use center and come up with arbitrary area delta lon and lat = .1 degree
+    maxIndex(1)       = 1                ! number of lons
+    maxIndex(2)       = 1                ! number of lats
+    mincornerCoord(1) = scol_lon - .1_r8 ! min lon
+    mincornerCoord(2) = scol_lat - .1_r8 ! min lat
+    maxcornerCoord(1) = scol_lon + .1_r8 ! max lon
+    maxcornerCoord(2) = scol_lat + .1_r8 ! max lat
 
     ! create the ESMF grid
     lgrid = ESMF_GridCreateNoPeriDimUfrm (maxindex=maxindex, &
@@ -646,7 +562,8 @@ contains
     logical               :: readvar     ! read variable in or not
     integer , allocatable :: idata2d(:,:)
     real(r8), allocatable :: rdata2d(:,:)
-    character(len=32) :: subname = 'lnd_set_mask_from_fatmlndfrc' ! subroutine name
+    integer               :: unitn
+    character(len=32)     :: subname = 'lnd_set_mask_from_fatmlndfrc' ! subroutine name
     !-----------------------------------------------------------------------
 
     ! Open file

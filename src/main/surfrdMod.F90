@@ -179,7 +179,7 @@ contains
     enddo
     if (rmaxlon > 0.001_r8 .or. rmaxlat > 0.001_r8) then
 !$OMP CRITICAL
-       write(iulog,*)' ERROR: surfdata/fatmgrid lon/lat mismatch error', rmaxlon,rmaxlat
+       write(iulog,*)' ERROR: surfdata_domain/ldomain lon/lat mismatch error', rmaxlon,rmaxlat
 !$OMP END CRITICAL
        call endrun(msg=errMsg(sourcefile, __LINE__))
     end if
