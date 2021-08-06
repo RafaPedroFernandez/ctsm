@@ -571,7 +571,7 @@ contains
     if (isPresent .and. isSet) then
        if (trim(cvalue) .eq. '.true.') write_restart_at_endofrun = .true.
     end if
-    print *,__FILE__,__LINE__,write_restart_at_endofrun
+
     ! ---------------------
     ! Initialize first phase of ctsm
     ! ---------------------
