@@ -19,10 +19,10 @@ This script will do the following:
     2) Make the case for the specific neon site(s).
     3) Make changes to the case, for:
         a. AD spinup
-	b. post-AD spinup
+        b. post-AD spinup
         c. transient
-    	#---------------
-    	d. SASU or Matrix spinup
+        #---------------
+        d. SASU or Matrix spinup
     4) Build and submit the case.
  
 -------------------------------------------------------------------
@@ -628,7 +628,7 @@ def check_neon_listing(valid_neon_sites):
     A function to download and parse neon listing file.
     """
     listing_file = "listing.csv"
-    url = "https://neon-ncar.s3.data.neonscience.org/listing.csv"
+    url = "https://storage.neonscience.org/neon-ncar/listing.csv"
 
     download_file(url, listing_file)
     available_list = parse_neon_listing(listing_file, valid_neon_sites)
@@ -666,7 +666,7 @@ def parse_neon_listing(listing_file, valid_neon_sites):
     df = df["object"].str.split("/", expand=True)
 
     # -- groupby site name
-    grouped_df = df.groupby(7)
+    grouped_df = df.groupby(8)
     for key, item in grouped_df:
         # -- check if it is a valid neon site
         if any(key in x for x in valid_neon_sites):
@@ -675,13 +675,13 @@ def parse_neon_listing(listing_file, valid_neon_sites):
             tmp_df = grouped_df.get_group(key)
 
             # -- filter files only ending with YYYY-MM.nc
-            tmp_df = tmp_df[tmp_df[8].str.contains("\d\d\d\d-\d\d.nc")]
-            latest_version = tmp_df[6].iloc[-1]
-            tmp_df = tmp_df[tmp_df[6].str.contains(latest_version)]
+            tmp_df = tmp_df[tmp_df[9].str.contains("\d\d\d\d-\d\d.nc")]
+            latest_version = tmp_df[7].iloc[-1]
+            tmp_df = tmp_df[tmp_df[7].str.contains(latest_version)]
             # -- remove .nc from the file names
-            tmp_df[8] = tmp_df[8].str.replace(".nc", "")
+            tmp_df[8] = tmp_df[9].str.replace(".nc", "")
 
-            tmp_df2 = tmp_df[8].str.split("-", expand=True)
+            tmp_df2 = tmp_df[9].str.split("-", expand=True)
             # ignore any prefix in file name and just get year
             tmp_df2[0] = tmp_df2[0].str.slice(-4)
             # -- figure out start_year and end_year
@@ -689,8 +689,8 @@ def parse_neon_listing(listing_file, valid_neon_sites):
             end_year = int(tmp_df2[0].iloc[-1])
 
             # -- figure out start_month and end_month
-            start_month = int(tmp_df2[1].iloc[0])
-            end_month = int(tmp_df2[1].iloc[-1])
+            start_month = int(tmp_df2[1].iloc[0][:2])
+            end_month = int(tmp_df2[1].iloc[-1][:2])
 
             logger.debug("Valid neon site " + site_name + " found!")
             logger.debug("File version {}".format(latest_version))
