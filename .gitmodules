@@ -2,7 +2,7 @@
 	path = src/fates
 	url = https://github.com/NGEET/fates
         fxrequired = I:T
-        fxtag = sci.1.68.2_api.31.0.0
+        fxtag = sci.1.67.2_api.27.0.0
 
 [submodule "rtm"]
 	path = components/rtm
