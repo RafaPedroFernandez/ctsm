@@ -1,3 +1,17 @@
+[submodule "cdeps"]
+	path = components/cdeps
+	url = https://github.com/jedwards4b/CDEPS
+	fxurl = https://github.com/ESCOMP/CDEPS
+        fxrequired = T:T
+        fxtag = cdeps1.0.26_rme01
+
+[submodule "cmeps"]
+	path = components/cmeps
+	url = https://github.com/ESCOMP/CMEPS.git
+	fxurl = https://github.com/ESCOMP/CMEPS.git
+        fxrequired = T:T
+        fxtag = cmeps0.14.49
+
 [submodule "fates"]
 	path = src/fates
 	url = https://github.com/NGEET/fates
@@ -68,3 +82,9 @@
         fxtag = v1.0.8
         fxrequired = T:T
 
+[submodule "cism"]
+	path = components/cism
+	url = https://github.com/jedwards4b/cism-wrapper.git
+        fxurl = https://github.com/ESCOMP/cism-wrapper.git                                                                                                                          
+        fxtag = cismwrap_2_1_96_rme02                                                                                                                                               
+        fxrequired = T:T                             
