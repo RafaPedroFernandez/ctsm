@@ -1,12 +1,10 @@
 on:
   push:
     branches:
-      - master
-      - remove_manage_externals
+      - 'branches/CESM3_dev.**'
   pull_request:
     branches:
-      - master
-      - remove_manage_externals
+      - 'branches/CESM3_dev.**'
 jobs:
   test:
     runs-on: ubuntu-latest
