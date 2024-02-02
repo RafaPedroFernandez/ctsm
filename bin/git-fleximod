@@ -276,7 +276,6 @@ def single_submodule_checkout(root, name, path, url=None, tag=None, force=False)
                         rootdotgit = line[8:].rstrip()
             
             newpath = os.path.abspath(os.path.join(root,rootdotgit,"modules",path))
-            print(f"root is {root} rootdotgit is {rootdotgit} newpath is {newpath}")
             if not os.path.isdir(os.path.join(newpath,os.pardir)):
                 os.makedirs(os.path.abspath(os.path.join(newpath,os.pardir)))
 

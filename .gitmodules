@@ -52,7 +52,7 @@
 	url = https://github.com/jedwards4b/cime
 	fxurl = https://github.com/ESMCI/cime
         fxrequired = T:T
-        fxtag = cime6.0.198_rme01
+        fxtag = cime6.0.198_rme05
 
 [submodule "share"]
 	path = share
