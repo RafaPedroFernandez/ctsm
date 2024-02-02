@@ -35,9 +35,9 @@
 
 [submodule "mizuRoute"]
 	path = components/mizuRoute
-	url = https://github.com/ESCOMP/mizuRoute
+	url = https://github.com/jedwards4b/mizuRoute
 	fxurl = https://github.com/ESCOMP/mizuRoute
-        fxtag = cesm-coupling.n02_v2.1.2
+        fxtag = cesm-coupling.n02_v2.1.2_rme02
         fxrequired = T:T
 
 [submodule "ccs_config"]
