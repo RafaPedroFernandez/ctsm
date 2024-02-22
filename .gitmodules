@@ -1,0 +1,7 @@
+[submodule "fates"]
+path = src/fates
+url = https://github.com/NGEET/fates
+fxtag = sci.1.67.2_api.27.0.0
+fxurl = https://github.com/NGEET/fates
+fxrequired = ToplevelRequired
+
