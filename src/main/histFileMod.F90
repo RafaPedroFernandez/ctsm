@@ -766,9 +766,9 @@ contains
           do ff = 1,f
 !rpf_CESM2_SLH: updated following Jim's Edward e-mail
 ! !            if (hlist(ff)%field%num2d > hlist(ff+1)%field%num2d) then
-!              if (tape(t)%hlist(ff)%field%num2d > tape(t)%hlist(ff+1)%field%num2d) then
+             if (tape(t)%hlist(ff)%field%num2d > tape(t)%hlist(ff+1)%field%num2d) then
 !rpf_CESM2_SLH: updated following Jim's Edward e-mail
-             if (hist_list(ff)%field%num2d > hist_list(ff+1)%field%num2d) then
+!              if (hist_list(ff)%field%num2d > hist_list(ff+1)%field%num2d) then
 
                 tmp = tape(t)%hlist(ff)
                 tape(t)%hlist(ff  ) = tape(t)%hlist(ff+1)
@@ -779,11 +779,11 @@ contains
 !rpf_CESM2_SLH: updated following Jim's Edward e-mail
 ! !            if ((hlist(ff)%field%num2d == hlist(ff+1)%field%num2d) .and. &
 ! !                 (hlist(ff)%field%name > hlist(ff+1)%field%name)) then
-!              if ((tape(t)%hlist(ff)%field%num2d == tape(t)%hlist(ff+1)%field%num2d) .and. &
-!                   (tape(t)%hlist(ff)%field%name > tape(t)%hlist(ff+1)%field%name)) then
+             if ((tape(t)%hlist(ff)%field%num2d == tape(t)%hlist(ff+1)%field%num2d) .and. &
+                  (tape(t)%hlist(ff)%field%name > tape(t)%hlist(ff+1)%field%name)) then
 !rpf_CESM2_SLH: updated following Jim's Edward e-mail
-             if ((hist_list(ff)%field%num2d == hist_list(ff+1)%field%num2d) .and. &
-                  (hist_list(ff)%field%name > hist_list(ff+1)%field%name)) then
+!              if ((hist_list(ff)%field%num2d == hist_list(ff+1)%field%num2d) .and. &
+!                   (hist_list(ff)%field%name > hist_list(ff+1)%field%name)) then
 
                 tmp = tape(t)%hlist(ff)
                 tape(t)%hlist(ff  ) = tape(t)%hlist(ff+1)
