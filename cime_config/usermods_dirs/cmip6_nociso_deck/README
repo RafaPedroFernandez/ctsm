@@ -1,0 +1,7 @@
+WACCM DECK runs should be configured similarly to CAM DECK runs, but
+without virtual elevation classes over Antarctica. At 2-degree we
++also decided to NOT turn on Carbon isotopes.
+
+(2024-08-06) RafaPedroFernandez created the cmip6_nociso_deck folder and 
+removed the carbon isotope following the same performed for WACCM 
+(cmip6_waccm_nociso_deck). IMPORTANT TO CHECK and VALIDATE !!!
