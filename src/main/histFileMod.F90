@@ -947,7 +947,9 @@ contains
 
        ! Specification of tape contents now complete.
        ! Sort each list of active entries
+!rpf_CESM3_SLH: make sure it is updated following Jim's Edward e-mail for CESM2_SLH
        call sort_hist_list(t, tape(t)%nflds, tape(t)%hlist)
+!rpf_CESM3_SLH: make sure it is updated following Jim's Edward e-mail for CESM2_SLH
 
        if (masterproc) then
           if (tape(t)%nflds > 0) then
